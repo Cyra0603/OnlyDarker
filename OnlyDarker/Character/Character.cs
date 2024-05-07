@@ -3,36 +3,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using OnlyDarker.CommonUsing;
+using OnlyDarker.GameProcess;
 
 namespace OnlyDarker
 {
     public class Character
     {
-        public int Width { get; set; } // = 90;
-        public int Height { get; set; } // = 90;
-        public int X { get; set; } = 0;
-        public int Y { get; set; } = 0;
-        public int Speed { get; set; } = 10;
-        public Direction Facing { get; set; } = Direction.Down;
-        public Rectangle BodyHitbox { get; private set; }
-        public Rectangle PlacementHitbox { get; private set; }
-        public Character (int x, int y, Rectangle hitbox, Rectangle placementhitbox)
+        private readonly Texture2D _texture;
+        public Vector2 Position { get; protected set; }
+        public Vector2 Origin { get; protected set; }
+        private float Speed { get; set; } = 100F;
+        public int HealthPoints { get; set; } = 3;
+        private Vector2 _minPosition, _maxPosition;
+        public Character(Texture2D texture, SpriteStandartTile parentTile)
         {
-            X = x;
-            Y = y;
-            BodyHitbox = hitbox;
-            PlacementHitbox = placementhitbox;
+            _texture = texture;
+            Origin = new(texture.Width / 2, texture.Height / 2);
+            Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - texture.Width) / 2);
+        }
+
+        public void Draw()
+        {
+            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0F);
+        }
+
+        public void SetRoomBounds(Point roomSize, Point tileSize)
+        {
+            _minPosition = new Vector2((-tileSize.X / 2) + Origin.X, (-tileSize.Y / 2) + Origin.Y);
+            _maxPosition = new Vector2(roomSize.X - (tileSize.X / 2) - Origin.X, roomSize.Y - (tileSize.Y / 2) - Origin.Y);
+        }
+
+        public void Update()
+        {
+            Position += InputManager.Direction * GlobalUse.Time * Speed;
+            Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
+        }
+
+        public void AddSpeed(float amount, float maxspeed = 200, float minspeed = 50)
+        {
+            Speed += amount;
+            if (Speed < minspeed) Speed = minspeed;
+            if (Speed > maxspeed) Speed = maxspeed;
         }
     }
-
-    //internal class CharacterBodyHitbox (int width, int height, int x, int y, Rectangle hitbox)
-    //{
-
-    //}
-    //internal class CharacterPlacementHitbox(int width, int height = 1, int x, int y, Rectangle hitbox)
-    //{
-
-    //}
 }

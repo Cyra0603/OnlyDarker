@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
+using System.Reflection.Metadata.Ecma335;
 
 namespace OnlyDarker.CommonUsing
 {
@@ -37,7 +38,7 @@ namespace OnlyDarker.CommonUsing
     {
         Entry,
         Treasure,
-        Battle,
+        Encounter,
         Secret,
         Puzzle,
         Boss,
@@ -45,6 +46,7 @@ namespace OnlyDarker.CommonUsing
     public static class GlobalUse
     {
         public static float Time { get; set; }
+        public const float DIMENSION_DRAWING_OFFSET = 0.667F;
         public static ContentManager Content { get; set; }
         public static SpriteBatch SpriteBatch { get; set; }
         public static Point WindowSize { get; set; }
@@ -53,52 +55,91 @@ namespace OnlyDarker.CommonUsing
             Time = (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
     }
-
-    public class Sprite
-    {
-        private readonly Texture2D _texture;
-        public Vector2 Position { get; protected set; }
-        public Vector2 Center { get; protected set; }
-        public Sprite(Texture2D texture, Vector2 position)
-        {
-            _texture = texture;
-            Position = position;
-            Center = new(_texture.Width * 0.5F, texture.Height * 0.5F);
-        }
-        public void Draw()
-        {
-            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Center, 1F, SpriteEffects.None, 0F);
-        }
-    }
-
     public static class InputManager
     {
         private static Vector2 _direction;
         public static Vector2 Direction => _direction;
-        public static void Update()
+        private const float DIRECTIONX_MAX_VALUE = 4F;
+        private const float DIRECTIONY_MAX_VALUE = 2.6F;
+        private const long ONE_TICK = 166667L;
+        private readonly static float Friction = 0.75F;
+        public static bool InputsBlocked { get; private set; } = true;
+        public static bool Paralyzed { get; private set; } = false;
+        public static async void UpdateCharacterControls()
         {
-            var keyboardState = Keyboard.GetState();
-            if (keyboardState.IsKeyDown(Keys.W))
+            while (GameBody.MainCharacter is not null)
             {
-                _direction.Y--;
-            }
-            if (keyboardState.IsKeyDown(Keys.A))
-            {
-                _direction.X--;
-            }
-            if (keyboardState.IsKeyDown(Keys.S))
-            {
-                _direction.Y++;
-            }
-            if (keyboardState.IsKeyDown(Keys.D))
-            {
-                _direction.X++;
-            }
+                if (!InputsBlocked)
+                {
+                    var keyboardState = Keyboard.GetState();
 
-            if (_direction != Vector2.Zero)
-            {
-                Vector2.Normalize(_direction);
+                    if (keyboardState.IsKeyDown(Keys.F1))
+                    {
+                        CharacterParalyze(1);
+                    }
+                    if (keyboardState.IsKeyDown(Keys.W))
+                    {
+                        if (_direction.Y > -DIRECTIONY_MAX_VALUE)
+                            _direction.Y--;
+                    }
+                    if (keyboardState.IsKeyDown(Keys.A))
+                    {
+                        if (_direction.X > -DIRECTIONX_MAX_VALUE)
+                            _direction.X--;
+                    }
+                    if (keyboardState.IsKeyDown(Keys.S))
+                    {
+                        if (_direction.Y < DIRECTIONY_MAX_VALUE)
+                            _direction.Y++;
+                    }
+                    if (keyboardState.IsKeyDown(Keys.D))
+                    {
+                        if (_direction.X < DIRECTIONX_MAX_VALUE)
+                            _direction.X++;
+                    }
+
+                    //
+                    AddFriction(keyboardState);
+
+                }
+                if (_direction != Vector2.Zero)
+                {
+                    Vector2.Normalize(_direction);
+                }
+                if (Paralyzed)
+                {
+                    _direction.X = _direction.Y = 0;
+                }
+                await Task.Delay(TimeSpan.FromTicks(ONE_TICK));
             }
+        }
+
+        private static void AddFriction(KeyboardState keyboardState)
+        {
+            if (!keyboardState.IsKeyDown(Keys.W) && !keyboardState.IsKeyDown(Keys.S))
+            {
+                _direction.Y *= Friction;
+            }
+            if (!keyboardState.IsKeyDown(Keys.A) && !keyboardState.IsKeyDown(Keys.D))
+            {
+                _direction.X *= Friction;
+            }
+        }
+
+        public static async void CharacterParalyze(int milliseconds)
+        {
+            InputsBlocked = Paralyzed = true;
+            _direction.X = _direction.Y = 0;
+            await Task.Delay(milliseconds);
+            InputsBlocked = Paralyzed = false;
+        }
+        public static void ToggleDisableInputs()
+        {
+            InputsBlocked = !InputsBlocked;
+        }
+        public static void SetDisableInputs(bool isBlocked)
+        {
+            InputsBlocked = isBlocked;
         }
     }
 
