@@ -7,7 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OnlyDarker.GameProcess
+namespace OnlyDarker.GameProcess.SpriteClasses
 {
     public class SpriteStandartTile
     {
@@ -33,24 +33,4 @@ namespace OnlyDarker.GameProcess
             return _texture.Height;
         }
     }
-
-
-    public class SpriteStandartObstacle
-    {
-        private readonly Texture2D _texture;
-        public Vector2 Position { get; protected set; }
-        public Vector2 Origin { get; protected set; }
-        public SpriteStandartObstacle(Texture2D texture, SpriteStandartTile parentTile)
-        {
-            _texture = texture;
-            Origin = new(texture.Width / 2, texture.Height / 2);
-            Position = new(parentTile.Position.X, parentTile.Position.Y - texture.Width / 6);
-        }
-        public void Draw()
-        {
-            //var scaleSpread = new Random();
-            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.1F);
-        }
-    }
-
 }

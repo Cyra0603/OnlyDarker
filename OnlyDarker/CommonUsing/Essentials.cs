@@ -1,13 +1,13 @@
-﻿using System;
+﻿global using System;
+global using Microsoft.Xna.Framework;
+global using Microsoft.Xna.Framework.Graphics;
+global using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Content;
-using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Input;
-using System.Reflection.Metadata.Ecma335;
+using OnlyDarker.CommonUsing.Rendering;
 
 namespace OnlyDarker.CommonUsing
 {
@@ -55,14 +55,25 @@ namespace OnlyDarker.CommonUsing
             Time = (float)gameTime.ElapsedGameTime.TotalSeconds;
         }
     }
-    public static class InputManager
+    public static class ControlsManager
     {
         private static Vector2 _direction;
         public static Vector2 Direction => _direction;
-        private const float DIRECTIONX_MAX_VALUE = 4F;
-        private const float DIRECTIONY_MAX_VALUE = 2.6F;
-        private const long ONE_TICK = 166667L;
-        private readonly static float Friction = 0.75F;
+        public static Vector2 MousePosition
+        {
+            get
+            {
+                return
+                    Mouse.GetState().Position.ToVector2() -
+                    new Vector2(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2) +
+                    GameBody.MainCharacter.Position;
+;
+            }
+        }
+        private const float DIRECTIONX_MAX_VALUE = 7F;
+        private const float DIRECTIONY_MAX_VALUE = 4.6F;
+        private const long ONE_TICK = 83333L;
+        private readonly static float Friction = 0.88F;
         public static bool InputsBlocked { get; private set; } = true;
         public static bool Paralyzed { get; private set; } = false;
         public static async void UpdateCharacterControls()
@@ -79,32 +90,32 @@ namespace OnlyDarker.CommonUsing
                     }
                     if (keyboardState.IsKeyDown(Keys.W))
                     {
-                        if (_direction.Y > -DIRECTIONY_MAX_VALUE)
-                            _direction.Y--;
+                        _direction.Y--;
+                        _direction.Y = MathHelper.Max(_direction.Y, -DIRECTIONY_MAX_VALUE);
                     }
                     if (keyboardState.IsKeyDown(Keys.A))
                     {
-                        if (_direction.X > -DIRECTIONX_MAX_VALUE)
-                            _direction.X--;
+                        _direction.X--;
+                        _direction.X = MathHelper.Max(_direction.X, -DIRECTIONX_MAX_VALUE);
                     }
                     if (keyboardState.IsKeyDown(Keys.S))
                     {
-                        if (_direction.Y < DIRECTIONY_MAX_VALUE)
-                            _direction.Y++;
+                        _direction.Y++;
+                        _direction.Y = MathHelper.Min(_direction.Y, DIRECTIONY_MAX_VALUE);
                     }
                     if (keyboardState.IsKeyDown(Keys.D))
                     {
-                        if (_direction.X < DIRECTIONX_MAX_VALUE)
-                            _direction.X++;
+                        _direction.X++;
+                        _direction.X = MathHelper.Min(_direction.X, DIRECTIONX_MAX_VALUE);
                     }
 
                     //
-                    AddFriction(keyboardState);
+                    AddFriction();
 
                 }
                 if (_direction != Vector2.Zero)
                 {
-                    Vector2.Normalize(_direction);
+                    Vector2.Normalize(Direction);
                 }
                 if (Paralyzed)
                 {
@@ -114,16 +125,10 @@ namespace OnlyDarker.CommonUsing
             }
         }
 
-        private static void AddFriction(KeyboardState keyboardState)
+        private static void AddFriction(/*KeyboardState keyboardState*/)
         {
-            if (!keyboardState.IsKeyDown(Keys.W) && !keyboardState.IsKeyDown(Keys.S))
-            {
-                _direction.Y *= Friction;
-            }
-            if (!keyboardState.IsKeyDown(Keys.A) && !keyboardState.IsKeyDown(Keys.D))
-            {
-                _direction.X *= Friction;
-            }
+            _direction.Y *= Friction;
+            _direction.X *= Friction;
         }
 
         public static async void CharacterParalyze(int milliseconds)
@@ -137,7 +142,7 @@ namespace OnlyDarker.CommonUsing
         {
             InputsBlocked = !InputsBlocked;
         }
-        public static void SetDisableInputs(bool isBlocked)
+        public static void CharacterInputsDisabled(bool isBlocked)
         {
             InputsBlocked = isBlocked;
         }
