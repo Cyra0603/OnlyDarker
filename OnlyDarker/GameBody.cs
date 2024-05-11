@@ -1,10 +1,12 @@
 ﻿
+using Microsoft.Xna.Framework.Graphics;
 using OnlyDarker.CommonUsing;
 using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -14,16 +16,17 @@ namespace OnlyDarker
     {
         private GraphicsDeviceManager _graphics;
         private MainCanvas _mainCanvas;
-        private SceneManager _sceneManager;
+        public static SceneManager SceneManager { get; private set; }
         public SpriteFont Arial;
-        private Room _currentRoom => _sceneManager.CurrentRoom;
-        public static Character? MainCharacter { get; private set; } = null;
-        public static Vector2 ScreenCenter { get; private set; }
+        public static Character MainCharacter { get; private set; } = null;
+        private static Texture2D _hitboxTexture;
+        private long fixedElapsedTime = 0;
+        public const long ONE_TICK = 78125L;
         public int FPS { get; set; } = 0;
         private string Netgraph { get; set; } = "0";
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
-        private float _cameraZoom = 0.5F;
+        private static float _cameraZoom = 0.5F;
 
         public GameBody()
         {
@@ -47,23 +50,25 @@ namespace OnlyDarker
 
             _graphics.ApplyChanges();
 
-            _sceneManager = new(new Level(Floor.One));
+            SceneManager = new(new Level(Floor.One));
 
             _mainCanvas = new(_graphics.GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
 
             _mainCanvas.SetDestinationRectangle();
 
+            _hitboxTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
+            _hitboxTexture.SetData(new Color[] { Color.Red });
+
+
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
-                _currentRoom._tiles[2, 2]);
-            MainCharacter.SetRoomBounds(_currentRoom.RoomSize, _currentRoom.TileSize);
+                SceneManager.CurrentRoom._tiles[2, 2]);
+            MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
 
             UpdateFpsCounter();
 
             ControlsManager.CharacterInputsDisabled(false);
-
-            ControlsManager.UpdateCharacterControls();
 
             base.Initialize();
         }
@@ -76,17 +81,23 @@ namespace OnlyDarker
 
         protected override void Update(GameTime gameTime)
         {
+            fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.F1)) _sceneManager.GoToScene(1);
-            if (Keyboard.GetState().IsKeyDown(Keys.F2)) _sceneManager.GoToScene(2);
-            if (Keyboard.GetState().IsKeyDown(Keys.F3)) _sceneManager.GoToScene(3);
-            if (Keyboard.GetState().IsKeyDown(Keys.F4)) _sceneManager.GoToScene(4);
-            if (Keyboard.GetState().IsKeyDown(Keys.F10)) _sceneManager.GoToScene(0);
+            if (Keyboard.GetState().IsKeyDown(Keys.F1)) SceneManager.GoToScene(1);
+            if (Keyboard.GetState().IsKeyDown(Keys.F2)) SceneManager.GoToScene(2);
+            if (Keyboard.GetState().IsKeyDown(Keys.F3)) SceneManager.GoToScene(3);
+            if (Keyboard.GetState().IsKeyDown(Keys.F4)) SceneManager.GoToScene(4);
+            if (Keyboard.GetState().IsKeyDown(Keys.F10)) SceneManager.GoToScene(0);
 
-            GlobalUse.Update(gameTime);
-            MainCharacter.Update();
-            CalculateCameraView();
+
+
+            if (fixedElapsedTime >= ONE_TICK)
+            {
+                CalculateCameraView();
+                MainCharacter.Update();
+                fixedElapsedTime = 0;
+            }
             base.Update(gameTime);
         }
 
@@ -95,9 +106,14 @@ namespace OnlyDarker
             //GraphicsDevice.Clear(Color.Black);
             _mainCanvas.Activate();
 
-            GlobalUse.SpriteBatch.Begin(samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
-            _currentRoom.Draw();
+            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
+            SceneManager.CurrentRoom.Draw();
             MainCharacter.Draw();
+            foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
+            {
+                DrawHitbox(hitbox);
+            }
+            GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
             GlobalUse.SpriteBatch.End();
 
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
@@ -113,11 +129,10 @@ namespace OnlyDarker
         private void CalculateCameraView()
         {
             var lx = GlobalUse.WindowSize.X / 2 / _cameraZoom - MainCharacter.Position.X;
-            lx = MathHelper.Clamp(lx, -_currentRoom.RoomSize.X + GlobalUse.WindowSize.X / _cameraZoom + (_currentRoom.TileSize.X / 2), _currentRoom.TileSize.X / 2);
+            //lx = MathHelper.Clamp(lx, -CurrentRoom.RoomSize.X + GlobalUse.WindowSize.X / _cameraZoom + (CurrentRoom.TileSize.X / 2), CurrentRoom.TileSize.X / 2);
             var ly = GlobalUse.WindowSize.Y / 2 / _cameraZoom - MainCharacter.Position.Y;
-            ly = MathHelper.Clamp(ly, -_currentRoom.RoomSize.Y + GlobalUse.WindowSize.Y / _cameraZoom + (_currentRoom.TileSize.Y / 2), _currentRoom.TileSize.Y / 2);
-            _cameraView = Matrix.CreateTranslation(lx, ly, 0F) * Matrix.CreateScale(_cameraZoom,_cameraZoom,0);
-            ScreenCenter = new(lx - GlobalUse.WindowSize.X, ly - GlobalUse.WindowSize.Y);
+            //ly = MathHelper.Clamp(ly, -CurrentRoom.RoomSize.Y + GlobalUse.WindowSize.Y / _cameraZoom + (CurrentRoom.TileSize.Y / 2), CurrentRoom.TileSize.Y / 2);
+            _cameraView = Matrix.CreateTranslation(lx, ly, 0F) * Matrix.CreateScale(_cameraZoom, _cameraZoom, 0);
         }
         private async void UpdateFpsCounter()
         {
@@ -133,6 +148,11 @@ namespace OnlyDarker
         private void ShowFPS()
         {
             GlobalUse.SpriteBatch.DrawString(Arial, Netgraph, Vector2.Zero, Color.Red, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 1F);
+        }
+
+        private void DrawHitbox(Rectangle hitbox)
+        {
+            GlobalUse.SpriteBatch.Draw(_hitboxTexture, hitbox, Color.White);
         }
     }
 }

@@ -14,6 +14,7 @@ namespace OnlyDarker.GameProcess
         private readonly Point _roomTileSize;
         public readonly SpriteStandartTile[,] _tiles;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
+        public List<Rectangle> RoomColliders { get; private set; }
         public int OrderNumber { get; private set; }
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
@@ -38,9 +39,9 @@ namespace OnlyDarker.GameProcess
 
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
 
-            List<Texture2D> tileTextures = ExtractTileTextures(floor, roomType);
+            List<Texture2D> tileTextures = ImportTileTextures(floor, roomType);
 
-            List<Texture2D> standartObstacleTextures = ExtractStandartObstacleTextures(floor, roomType);
+            List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(floor, roomType);
 
             TileSize = new(tileTextures[0].Width, tileTextures[0].Height);
 
@@ -49,6 +50,14 @@ namespace OnlyDarker.GameProcess
             BuildTiles(tileTextures);
 
             BuildStandartObstacles(standartObstacleTextures);
+
+            RoomColliders = new();
+
+            foreach (var obstacle in _standartObstacles)
+            {
+                if (obstacle is not null)
+                    RoomColliders.Add(obstacle.MovementCollider);
+            }
    
         }
 
@@ -73,12 +82,13 @@ namespace OnlyDarker.GameProcess
                 for (int y = 0; y < _standartObstacles.GetLength(1); y++)
                 {
                     int l = rng.Next(0, 100);
-                    if (l >= 20) { continue; }
+                    if (l >= 4) { continue; }
                     int i = rng.Next(0, standartObstacleTextures.Count);
                     _standartObstacles[x, y] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[x, y]);
                 }
             }
         }
+
         private void BuildTiles(List<Texture2D> tileTextures)
         {
             Random rng = new();
@@ -93,7 +103,7 @@ namespace OnlyDarker.GameProcess
             }
         }
 
-        private static List<Texture2D> ExtractTileTextures(Floor floor, RoomType roomType)
+        private static List<Texture2D> ImportTileTextures(Floor floor, RoomType roomType)
         {
             string dirContentPath = $"Content/Floor/{floor}/RoomType/{roomType}/Tile";
             int dirTextureCount = Directory.EnumerateFiles(dirContentPath, "*.xnb").Count();
@@ -111,7 +121,7 @@ namespace OnlyDarker.GameProcess
 
             return tileTextures;
         }
-        private static List<Texture2D> ExtractStandartObstacleTextures(Floor floor, RoomType roomType)
+        private static List<Texture2D> ImportStandartObstacleTextures(Floor floor, RoomType roomType)
         {
             string dirContentPath = $"Content/Floor/{floor}/RoomType/{roomType}/StandartObstacle";
             int dirTextureCount = Directory.EnumerateFiles(dirContentPath, "*.xnb").Count();
