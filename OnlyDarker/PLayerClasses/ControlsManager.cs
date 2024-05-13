@@ -20,8 +20,8 @@ namespace OnlyDarker
                     new Vector2(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
             }
         }
-        private const float DIRECTIONX_MAX_VALUE = 7F;
-        private const float DIRECTIONY_MAX_VALUE = 4.667F;
+        public const float DIRECTIONX_MAX_VALUE = 7F;
+        public const float DIRECTIONY_MAX_VALUE = 4.667F;
         private readonly static float Friction = 0.88F;
         public static bool InputsBlocked { get; private set; } = true;
         public static bool Paralyzed { get; private set; } = false;
@@ -67,10 +67,9 @@ namespace OnlyDarker
             }
             AddFriction();
         }
-        private static void AddFriction(/*KeyboardState keyboardState*/)
+        private static void AddFriction()
         {
-            Direction.Y *= Friction;
-            Direction.X *= Friction;
+            Direction *= Friction;
         }
 
         public static async void CharacterParalyze(int milliseconds)

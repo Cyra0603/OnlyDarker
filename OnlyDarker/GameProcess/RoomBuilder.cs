@@ -58,7 +58,6 @@ namespace OnlyDarker.GameProcess
                 if (obstacle is not null)
                     RoomColliders.Add(obstacle.MovementCollider);
             }
-   
         }
 
         public void Draw()
@@ -82,7 +81,7 @@ namespace OnlyDarker.GameProcess
                 for (int y = 0; y < _standartObstacles.GetLength(1); y++)
                 {
                     int l = rng.Next(0, 100);
-                    if (l >= 4) { continue; }
+                    if (l >= 20) { continue; }
                     int i = rng.Next(0, standartObstacleTextures.Count);
                     _standartObstacles[x, y] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[x, y]);
                 }

@@ -23,14 +23,14 @@ namespace OnlyDarker
         private Vector2 _minPosition, _maxPosition;
         public Vector2 RightHandPosition => new(Position.X, Position.Y);
         public Vector2 LeftHandPosition { get; private set; }
-        public Vector2 MovementColliderPosition { get; protected set; }
+        public Rectangle MovementCollisionAura => new(new Point(MovementCollider.Center.X - _bodyTexture.Width, MovementCollider.Center.Y - _bodyTexture.Height / 4), new(_bodyTexture.Width * 2, _bodyTexture.Height / 2));
         public Rectangle MovementCollider => new(new Point(
             (int)Position.X - _bodyTexture.Width / 2, (int)Position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET),
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2)
             );
         private float Speed { get; set; } = 1F;
-        private const float MAX_CHARACTER_SPEED = 0.2F;
-        private const float MIN_CHARACTER_SPEED = 0.05F;
+        public const float MAX_CHARACTER_SPEED = 0.2F;
+        public const float MIN_CHARACTER_SPEED = 0.05F;
         public float HandRotation { get; set; } = 0;
         public int HealthPoints { get; private set; } = 3;
 
@@ -51,25 +51,63 @@ namespace OnlyDarker
 
         public void SetRoomBounds(Point roomSize, Point tileSize)
         {
-            _minPosition = new Vector2((-tileSize.X / 2) + Origin.X, (-tileSize.Y / 2) + Origin.Y - _bodyTexture.Height + 4F);
+            _minPosition = new Vector2((-tileSize.X / 2) + Origin.X, (-tileSize.Y / 2) + Origin.Y - _bodyTexture.Height + GlobalUse.PIXEL_OFFSET);
             _maxPosition = new Vector2(roomSize.X - (tileSize.X / 2) - Origin.X, roomSize.Y - (tileSize.Y / 2) - Origin.Y);
         }
 
         public void Update()
         {
-            if (!GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollider)))
-            {
-                _lastAvailablePosition = this.Position;
-            }
             ControlsManager.UpdateCharacterControls();
-            Position += ControlsManager.GetDirection() * Speed;
-            if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollider)))
+            if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
-                Position = _lastAvailablePosition;
+                var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
+                var availableDirection = ControlsManager.GetDirection();
+                Position += CalculateAvailableDirection(obstacles, ref availableDirection) * Speed;
+            }
+            else
+            {
+                Position += ControlsManager.GetDirection() * Speed;
             }
             Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
             var cursorPointer = ControlsManager.MousePosition - RightHandPosition;
-            HandRotation = (float)Math.Atan2(cursorPointer.Y, cursorPointer.X);
+            HandRotation = 0;
+        }
+
+        private Vector2 CalculateAvailableDirection(List<Rectangle> obstacles, ref Vector2 availableDirection)
+        {
+            Vector2 futurePos = Position + availableDirection * Speed;
+            Rectangle newRect = CalculateMovementCollider(futurePos);
+            if (obstacles.Any(collider => collider.Intersects(newRect)))
+            {
+                for (float i = 1, j = 7; i <= j; i++)
+                {
+
+                    if (obstacles.Any(collider => collider.Intersects(newRect)))
+                    {
+                        if (availableDirection.Y > 0)
+                        {
+                            availableDirection.Y--;
+                        }
+                        if (availableDirection.Y < 0)
+                        {
+                            availableDirection.Y++;
+                        }
+                        if (availableDirection.X > 0)
+                        {
+                            availableDirection.X--;
+                        }
+                        if (availableDirection.X < 0)
+                        {
+                            availableDirection.X++;
+                        }
+                    }
+                    else
+                    {
+                        return availableDirection;
+                    }
+                }
+            }
+            else return availableDirection;
         }
 
         public void AddSpeed(float amount, float maxspeed = MAX_CHARACTER_SPEED, float minspeed = MIN_CHARACTER_SPEED)
@@ -81,6 +119,14 @@ namespace OnlyDarker
         public void SetPosition(Vector2 position)
         {
             Position = position;
+        }
+        public Rectangle CalculateMovementCollider(Vector2 position)
+        {
+            return new(new Point(
+            (int)position.X - _bodyTexture.Width / 2,
+            (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET),
+            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2)
+            );
         }
     }
 }
