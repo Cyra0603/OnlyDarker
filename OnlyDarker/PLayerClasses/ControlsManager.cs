@@ -22,7 +22,7 @@ namespace OnlyDarker
         }
         public const float DIRECTIONX_MAX_VALUE = 7F;
         public const float DIRECTIONY_MAX_VALUE = 4.667F;
-        private readonly static float Friction = 0.88F;
+        public readonly static float Friction = 0.88F;
         public static bool InputsBlocked { get; private set; } = true;
         public static bool Paralyzed { get; private set; } = false;
         public static void UpdateCharacterControls()
@@ -67,9 +67,10 @@ namespace OnlyDarker
             }
             AddFriction();
         }
-        private static void AddFriction()
+        public static void AddFriction()
         {
-            Direction *= Friction;
+            Direction.Y *= Friction;
+            Direction.X *= Friction;
         }
 
         public static async void CharacterParalyze(int milliseconds)
@@ -90,6 +91,14 @@ namespace OnlyDarker
         public static Vector2 GetDirection()
         {
             return Direction;
+        }
+        public static void ZeroDirectionY()
+        {
+            Direction.Y = 0;
+        }
+        public static void ZeroDirectionX()
+        {
+            Direction.X = 0;
         }
     }
 }

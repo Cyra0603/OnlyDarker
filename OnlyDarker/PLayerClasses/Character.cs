@@ -61,8 +61,12 @@ namespace OnlyDarker
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
                 var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
-                var availableDirection = ControlsManager.GetDirection();
-                Position += CalculateAvailableDirection(obstacles, ref availableDirection) * Speed;
+                for (int i = 0, j = (int)ControlsManager.GetDirection().Length(); i < j; i++)
+                {
+                    var currentDirection = ControlsManager.GetDirection();
+                    CalculatePossibleCollisions(obstacles, ref currentDirection);
+                    Position += ControlsManager.GetDirection() / j * Speed;
+                }
             }
             else
             {
@@ -73,43 +77,43 @@ namespace OnlyDarker
             HandRotation = 0;
         }
 
-        private Vector2 CalculateAvailableDirection(List<Rectangle> obstacles, ref Vector2 availableDirection)
+        private void CalculatePossibleCollisions(List<Rectangle> obstacles, ref Vector2 currentDirection)
         {
-            Vector2 futurePos = Position + availableDirection * Speed;
-            Rectangle newRect = CalculateMovementCollider(futurePos);
-            if (obstacles.Any(collider => collider.Intersects(newRect)))
+            var ly = currentDirection.Y;
+            var lx = currentDirection.X;
+            if (currentDirection.Y < 0)
             {
-                for (float i = 1, j = 7; i <= j; i++)
+                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1) * Speed))))
                 {
-
-                    if (obstacles.Any(collider => collider.Intersects(newRect)))
-                    {
-                        if (availableDirection.Y > 0)
-                        {
-                            availableDirection.Y--;
-                        }
-                        if (availableDirection.Y < 0)
-                        {
-                            availableDirection.Y++;
-                        }
-                        if (availableDirection.X > 0)
-                        {
-                            availableDirection.X--;
-                        }
-                        if (availableDirection.X < 0)
-                        {
-                            availableDirection.X++;
-                        }
-                    }
-                    else
-                    {
-                        return availableDirection;
-                    }
+                    ControlsManager.ZeroDirectionY();
+                    ControlsManager.AddFriction();
                 }
             }
-            else return availableDirection;
+            if (currentDirection.Y > 0)
+            {
+                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly + 1) * Speed))))
+                {
+                    ControlsManager.ZeroDirectionY();
+                    ControlsManager.AddFriction();
+                }
+            }
+            if (currentDirection.X < 0)
+            {
+                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx - 1, ly) * Speed))))
+                {
+                    ControlsManager.ZeroDirectionX();
+                    ControlsManager.AddFriction();
+                }
+            }
+            if (currentDirection.X > 0)
+            {
+                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx + 1, ly) * Speed))))
+                {
+                    ControlsManager.ZeroDirectionX();
+                    ControlsManager.AddFriction();
+                }
+            }
         }
-
         public void AddSpeed(float amount, float maxspeed = MAX_CHARACTER_SPEED, float minspeed = MIN_CHARACTER_SPEED)
         {
             Speed += amount;
