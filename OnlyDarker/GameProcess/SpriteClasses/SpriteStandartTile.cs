@@ -22,7 +22,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Draw()
         {
-            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0F);
+            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 1F);
         }
         public float GetTextureWidth()
         {

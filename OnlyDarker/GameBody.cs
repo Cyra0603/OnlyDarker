@@ -27,6 +27,7 @@ namespace OnlyDarker
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
         private static float _cameraZoom = 0.5F;
+        private bool _drawHitboxes { get; set; } = false;
 
         public GameBody()
         {
@@ -106,14 +107,17 @@ namespace OnlyDarker
             //GraphicsDevice.Clear(Color.Black);
             _mainCanvas.Activate();
 
-            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
+            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
             MainCharacter.Draw();
-            foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
+            if (_drawHitboxes)
             {
-                DrawHitbox(hitbox);
+                foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
+                {
+                    DrawHitbox(hitbox);
+                }
+                GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
             }
-            GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
             GlobalUse.SpriteBatch.End();
 
             _mainCanvas.Draw(GlobalUse.SpriteBatch);

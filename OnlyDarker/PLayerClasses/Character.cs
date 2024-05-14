@@ -25,12 +25,12 @@ namespace OnlyDarker
         public Vector2 LeftHandPosition { get; private set; }
         public Rectangle MovementCollisionAura => new(new Point(MovementCollider.Center.X - _bodyTexture.Width, MovementCollider.Center.Y - _bodyTexture.Height / 4), new(_bodyTexture.Width * 2, _bodyTexture.Height / 2));
         public Rectangle MovementCollider => new(new Point(
-            (int)Position.X - _bodyTexture.Width / 2, (int)Position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET),
-            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2)
+            (int)Position.X - _bodyTexture.Width / 2, (int)Position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
+            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
         private float Speed { get; set; } = 1F;
-        public const float MAX_CHARACTER_SPEED = 0.2F;
-        public const float MIN_CHARACTER_SPEED = 0.05F;
+        public const float MAX_CHARACTER_SPEED = 2F;
+        public const float MIN_CHARACTER_SPEED = 0.5F;
         public float HandRotation { get; set; } = 0;
         public int HealthPoints { get; private set; } = 3;
 
@@ -45,8 +45,8 @@ namespace OnlyDarker
 
         public void Draw()
         {
-            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0F);
-            GlobalUse.SpriteBatch.Draw(_handTexture, RightHandPosition, null, Color.White, HandRotation, _handOrigin, 1F, SpriteEffects.None, 0F);
+            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
+            GlobalUse.SpriteBatch.Draw(_handTexture, RightHandPosition, null, Color.White, HandRotation, _handOrigin, 1F, SpriteEffects.None, 0.5F);
         }
 
         public void SetRoomBounds(Point roomSize, Point tileSize)
@@ -128,8 +128,8 @@ namespace OnlyDarker
         {
             return new(new Point(
             (int)position.X - _bodyTexture.Width / 2,
-            (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET),
-            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2)
+            (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
+            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
         }
     }
