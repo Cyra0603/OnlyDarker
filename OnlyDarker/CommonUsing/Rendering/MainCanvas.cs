@@ -39,13 +39,13 @@ namespace OnlyDarker.CommonUsing.Rendering
         public void Activate()
         {
             _graphicsDevice.SetRenderTarget(_target);
-            _graphicsDevice.Clear(Color.Black);
+            _graphicsDevice.Clear(Color.Transparent);
         }
 
         public void Draw(SpriteBatch spriteBatch)
         {
             _graphicsDevice.SetRenderTarget(null);
-            _graphicsDevice.Clear(Color.Black);
+            _graphicsDevice.Clear(Color.Transparent);
             spriteBatch.Begin();
             spriteBatch.Draw(_target, DestinationRectangle, Color.White);
             spriteBatch.End();

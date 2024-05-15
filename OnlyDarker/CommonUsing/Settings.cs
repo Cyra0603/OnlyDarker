@@ -6,8 +6,8 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.CommonUsing
 {
-    internal class Settings
+    public static class Settings
     {
-
+        
     }
 }

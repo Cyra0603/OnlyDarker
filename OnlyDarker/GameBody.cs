@@ -18,16 +18,17 @@ namespace OnlyDarker
         private MainCanvas _mainCanvas;
         public static SceneManager SceneManager { get; private set; }
         public SpriteFont Arial;
-        public static Character MainCharacter { get; private set; } = null;
+        public static Character ?MainCharacter { get; private set; } = null;
         private static Texture2D _hitboxTexture;
-        private long fixedElapsedTime = 0;
+        private long _fixedElapsedTime = 0;
         public const long ONE_TICK = 78125L;
         public int FPS { get; set; } = 0;
-        private string Netgraph { get; set; } = "0";
+        private string _netgraph = "0";
+        private Vector2 _netgraphPosition;
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
         private static float _cameraZoom = 0.5F;
-        private bool _drawHitboxes { get; set; } = false;
+        private bool _drawHitboxes = false;
 
         public GameBody()
         {
@@ -44,6 +45,10 @@ namespace OnlyDarker
             _graphics.PreferredBackBufferWidth = GlobalUse.WindowSize.X;
 
             _graphics.PreferredBackBufferHeight = GlobalUse.WindowSize.Y;
+
+            Arial = Content.Load<SpriteFont>("Fonts/Arial");
+
+            _netgraphPosition = new Vector2(_graphics.PreferredBackBufferWidth - Arial.MeasureString(_netgraph).X, 0);
 
             _graphics.SynchronizeWithVerticalRetrace = false;
 
@@ -77,12 +82,11 @@ namespace OnlyDarker
         protected override void LoadContent()
         {
             GlobalUse.SpriteBatch = new SpriteBatch(GraphicsDevice);
-            Arial = Content.Load<SpriteFont>("Fonts/Arial");
         }
 
         protected override void Update(GameTime gameTime)
         {
-            fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
+            _fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
             if (Keyboard.GetState().IsKeyDown(Keys.F1)) SceneManager.GoToScene(1);
@@ -93,11 +97,11 @@ namespace OnlyDarker
 
 
 
-            if (fixedElapsedTime >= ONE_TICK)
+            if (_fixedElapsedTime >= ONE_TICK)
             {
                 CalculateCameraView();
                 MainCharacter.Update();
-                fixedElapsedTime = 0;
+                _fixedElapsedTime = 0;
             }
             base.Update(gameTime);
         }
@@ -105,9 +109,14 @@ namespace OnlyDarker
         protected override void Draw(GameTime gameTime)
         {
             //GraphicsDevice.Clear(Color.Black);
-            _mainCanvas.Activate();
 
-            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
+            _mainCanvas.Activate();
+            //Background
+            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, blendState: BlendState.AlphaBlend, samplerState: SamplerState.LinearWrap, transformMatrix: _cameraView);
+            SceneManager.CurrentRoom.CurrentBackground.Draw();
+            GlobalUse.SpriteBatch.End();
+            //MainScene
+            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
             MainCharacter.Draw();
             if (_drawHitboxes)
@@ -121,7 +130,7 @@ namespace OnlyDarker
             GlobalUse.SpriteBatch.End();
 
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
-
+            //UI
             GlobalUse.SpriteBatch.Begin();
             ShowFPS();
             GlobalUse.SpriteBatch.End();
@@ -143,7 +152,7 @@ namespace OnlyDarker
             while (true)
             {
                 await Task.Delay(1000);
-                Netgraph = FPS.ToString();
+                _netgraph = FPS.ToString();
                 FPS = 0;
             }
         }
@@ -151,7 +160,7 @@ namespace OnlyDarker
 
         private void ShowFPS()
         {
-            GlobalUse.SpriteBatch.DrawString(Arial, Netgraph, Vector2.Zero, Color.Red, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 1F);
+            GlobalUse.SpriteBatch.DrawString(Arial, _netgraph, _netgraphPosition, Color.Red, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 1F);
         }
 
         private void DrawHitbox(Rectangle hitbox)

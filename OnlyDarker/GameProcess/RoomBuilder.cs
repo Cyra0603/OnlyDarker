@@ -1,4 +1,5 @@
 ﻿using OnlyDarker.CommonUsing;
+using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess.SpriteClasses;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ namespace OnlyDarker.GameProcess
         private readonly Point _roomTileSize;
         public readonly SpriteStandartTile[,] _tiles;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
+        public readonly BackgroundSprite CurrentBackground;
         public List<Rectangle> RoomColliders { get; private set; }
         public int OrderNumber { get; private set; }
         public Point TileSize { get; private set; }
@@ -34,6 +36,7 @@ namespace OnlyDarker.GameProcess
                 case RoomType.Boss: _roomTileSize = new(30, 20); break;
                 case RoomType.Secret: _roomTileSize = new(30, 20); break;
             }
+            CurrentBackground = new(floor);
 
             _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
 
