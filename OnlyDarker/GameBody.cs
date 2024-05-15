@@ -4,6 +4,7 @@ using OnlyDarker.CommonUsing;
 using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
+using OnlyDarker.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -18,7 +19,8 @@ namespace OnlyDarker
         private MainCanvas _mainCanvas;
         public static SceneManager SceneManager { get; private set; }
         public SpriteFont Arial;
-        public static Character ?MainCharacter { get; private set; } = null;
+        public static Character? MainCharacter { get; private set; } = null;
+        private static CharacterHealthbar _characterHealthbar;
         private static Texture2D _hitboxTexture;
         private long _fixedElapsedTime = 0;
         public const long ONE_TICK = 78125L;
@@ -29,6 +31,7 @@ namespace OnlyDarker
         private Matrix _cameraView;
         private static float _cameraZoom = 0.5F;
         private bool _drawHitboxes = false;
+        private KeyboardState _lastKeyboardState;
 
         public GameBody()
         {
@@ -70,7 +73,10 @@ namespace OnlyDarker
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
                 SceneManager.CurrentRoom._tiles[2, 2]);
+
             MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
+
+            _characterHealthbar = new(GlobalUse.Content.Load<Texture2D>("UI/Heart"));
 
             UpdateFpsCounter();
 
@@ -87,15 +93,17 @@ namespace OnlyDarker
         protected override void Update(GameTime gameTime)
         {
             _fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
+
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.F1)) SceneManager.GoToScene(1);
-            if (Keyboard.GetState().IsKeyDown(Keys.F2)) SceneManager.GoToScene(2);
-            if (Keyboard.GetState().IsKeyDown(Keys.F3)) SceneManager.GoToScene(3);
-            if (Keyboard.GetState().IsKeyDown(Keys.F4)) SceneManager.GoToScene(4);
-            if (Keyboard.GetState().IsKeyDown(Keys.F10)) SceneManager.GoToScene(0);
-
-
+            if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) SceneManager.GoToScene(1);
+            if (Keyboard.GetState().IsKeyDown(Keys.F2) && !_lastKeyboardState.IsKeyDown(Keys.F2)) SceneManager.GoToScene(2);
+            if (Keyboard.GetState().IsKeyDown(Keys.F3) && !_lastKeyboardState.IsKeyDown(Keys.F3)) SceneManager.GoToScene(3);
+            if (Keyboard.GetState().IsKeyDown(Keys.F4) && !_lastKeyboardState.IsKeyDown(Keys.F4)) SceneManager.GoToScene(4);
+            if (Keyboard.GetState().IsKeyDown(Keys.F10) && !_lastKeyboardState.IsKeyDown(Keys.F10)) SceneManager.GoToScene(0);
+            if (Keyboard.GetState().IsKeyDown(Keys.F11) && !_lastKeyboardState.IsKeyDown(Keys.F11)) MainCharacter.TakeDamage(1);
+            if (Keyboard.GetState().IsKeyDown(Keys.F12) && !_lastKeyboardState.IsKeyDown(Keys.F12)) MainCharacter.Heal(1);
+            _lastKeyboardState = Keyboard.GetState();
 
             if (_fixedElapsedTime >= ONE_TICK)
             {
@@ -134,7 +142,7 @@ namespace OnlyDarker
             GlobalUse.SpriteBatch.Begin();
             ShowFPS();
             GlobalUse.SpriteBatch.End();
-
+            _characterHealthbar.StandaloneDraw();
             base.Draw(gameTime);
             FPS++;
         }
@@ -160,7 +168,7 @@ namespace OnlyDarker
 
         private void ShowFPS()
         {
-            GlobalUse.SpriteBatch.DrawString(Arial, _netgraph, _netgraphPosition, Color.Red, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 1F);
+            GlobalUse.SpriteBatch.DrawString(Arial, _netgraph, _netgraphPosition, Color.Red, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 0F);
         }
 
         private void DrawHitbox(Rectangle hitbox)

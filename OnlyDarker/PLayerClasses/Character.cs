@@ -32,7 +32,28 @@ namespace OnlyDarker
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
         public float HandRotation { get; set; } = 0;
-        public int HealthPoints { get; private set; } = 3;
+        private float _healthPoints = 30;
+        public float HealthPoints
+        {
+            get => _healthPoints;
+            private set
+            {
+                var previousValue = _healthPoints;
+                _healthPoints = value;
+                if (previousValue != _healthPoints)
+                {
+                    OnChangingHealth?.Invoke(_healthPoints);
+                    if (_healthPoints > previousValue)
+                    {
+                        OnHealing?.Invoke(_healthPoints);
+                    }
+                    if (_healthPoints < previousValue)
+                    {
+                        OnTakingDamage?.Invoke(_healthPoints);
+                    }
+                }
+            }
+        }
 
         public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteStandartTile parentTile)
         {
@@ -42,6 +63,10 @@ namespace OnlyDarker
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
         }
+        public delegate void ObserveHP(float healthPoints);
+        public event ObserveHP OnChangingHealth;
+        public event ObserveHP OnTakingDamage;
+        public event ObserveHP OnHealing;
 
         public void Draw()
         {
@@ -114,6 +139,14 @@ namespace OnlyDarker
                 }
             }
         }
+        public Rectangle CalculateMovementCollider(Vector2 position)
+        {
+            return new(new Point(
+            (int)position.X - _bodyTexture.Width / 2,
+            (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
+            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
+            );
+        }
         public void AddSpeed(float amount, float maxspeed = MAX_CHARACTER_SPEED, float minspeed = MIN_CHARACTER_SPEED)
         {
             Speed += amount;
@@ -124,13 +157,13 @@ namespace OnlyDarker
         {
             Position = position;
         }
-        public Rectangle CalculateMovementCollider(Vector2 position)
+        public void TakeDamage(float damage)
         {
-            return new(new Point(
-            (int)position.X - _bodyTexture.Width / 2,
-            (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
-            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
-            );
+            HealthPoints -= damage;
+        }
+        public void Heal(float healAmount)
+        {
+            HealthPoints += healAmount;
         }
     }
 }
