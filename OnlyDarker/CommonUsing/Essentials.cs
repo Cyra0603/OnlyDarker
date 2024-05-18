@@ -43,10 +43,13 @@ namespace OnlyDarker.CommonUsing
         Puzzle,
         Boss,
     }
+
     public static class GlobalUse
     {
         public const float DIMENSION_DRAWING_OFFSET = 0.667F;
         public const float PIXEL_OFFSET = 4F;
+        public static SpriteFont Arial { get; set; }
+        public static SpriteFont MainFont { get; set; }
         public static ContentManager Content { get; set; }
         public static SpriteBatch SpriteBatch { get; set; }
         public static Point WindowSize { get; set; }

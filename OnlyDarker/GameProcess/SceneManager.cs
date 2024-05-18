@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms.Design;
 
 namespace OnlyDarker.GameProcess
 {
@@ -11,6 +12,12 @@ namespace OnlyDarker.GameProcess
     {
         public Room CurrentRoom { get; private set; }
         public Level CurrentLevel { get;private set; }
+        public Dictionary<Floor, string> FloorNameAssigner = new()
+        {
+            {Floor.One, "The Forest"},
+            {Floor.Two, "The Mines"}
+        };
+        
         public SceneManager(Level floor) 
         {
             CurrentLevel = floor;

@@ -18,14 +18,15 @@ namespace OnlyDarker
         private GraphicsDeviceManager _graphics;
         private MainCanvas _mainCanvas;
         public static SceneManager SceneManager { get; private set; }
-        public SpriteFont Arial;
         public static Character? MainCharacter { get; private set; } = null;
         private static CharacterHealthbar _characterHealthbar;
+        private static StatsBar _statsBar;
+        private static CurrentFloorBar _currentFloorBar;
         private static Texture2D _hitboxTexture;
         private long _fixedElapsedTime = 0;
         public const long ONE_TICK = 78125L;
-        public int FPS { get; set; } = 0;
         private string _netgraph = "0";
+        private int FPS = 0;
         private Vector2 _netgraphPosition;
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
@@ -49,9 +50,11 @@ namespace OnlyDarker
 
             _graphics.PreferredBackBufferHeight = GlobalUse.WindowSize.Y;
 
-            Arial = Content.Load<SpriteFont>("Fonts/Arial");
+            GlobalUse.Arial = Content.Load<SpriteFont>("Fonts/Arial");
 
-            _netgraphPosition = new Vector2(_graphics.PreferredBackBufferWidth - Arial.MeasureString(_netgraph).X, 0);
+            GlobalUse.MainFont = Content.Load<SpriteFont>("Fonts/MainFont");
+
+            _netgraphPosition = new Vector2(_graphics.PreferredBackBufferWidth - GlobalUse.Arial.MeasureString(_netgraph).X, 0);
 
             _graphics.SynchronizeWithVerticalRetrace = false;
 
@@ -68,7 +71,6 @@ namespace OnlyDarker
             _hitboxTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
             _hitboxTexture.SetData(new Color[] { Color.Red });
 
-
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
@@ -78,7 +80,11 @@ namespace OnlyDarker
 
             _characterHealthbar = new(GlobalUse.Content.Load<Texture2D>("UI/Heart"));
 
-            UpdateFpsCounter();
+            _statsBar = new();
+
+            _currentFloorBar = new();
+
+            UpdateFPS();
 
             ControlsManager.CharacterInputsDisabled(false);
 
@@ -120,11 +126,11 @@ namespace OnlyDarker
 
             _mainCanvas.Activate();
             //Background
-            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, blendState: BlendState.AlphaBlend, samplerState: SamplerState.LinearWrap, transformMatrix: _cameraView);
+            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, blendState: BlendState.AlphaBlend, samplerState: SamplerState.LinearWrap/*, transformMatrix: _cameraView*/);
             SceneManager.CurrentRoom.CurrentBackground.Draw();
             GlobalUse.SpriteBatch.End();
             //MainScene
-            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.BackToFront, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
+            GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
             MainCharacter.Draw();
             if (_drawHitboxes)
@@ -139,10 +145,15 @@ namespace OnlyDarker
 
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
             //UI
+            _characterHealthbar.StandaloneDraw();
+
             GlobalUse.SpriteBatch.Begin();
             ShowFPS();
+            _statsBar.DrawStats();
+            _currentFloorBar.Draw();
             GlobalUse.SpriteBatch.End();
-            _characterHealthbar.StandaloneDraw();
+
+
             base.Draw(gameTime);
             FPS++;
         }
@@ -155,22 +166,19 @@ namespace OnlyDarker
             //ly = MathHelper.Clamp(ly, -CurrentRoom.RoomSize.Y + GlobalUse.WindowSize.Y / _cameraZoom + (CurrentRoom.TileSize.Y / 2), CurrentRoom.TileSize.Y / 2);
             _cameraView = Matrix.CreateTranslation(lx, ly, 0F) * Matrix.CreateScale(_cameraZoom, _cameraZoom, 0);
         }
-        private async void UpdateFpsCounter()
-        {
-            while (true)
-            {
-                await Task.Delay(1000);
-                _netgraph = FPS.ToString();
-                FPS = 0;
-            }
-        }
-
-
         private void ShowFPS()
         {
-            GlobalUse.SpriteBatch.DrawString(Arial, _netgraph, _netgraphPosition, Color.Red, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 0F);
+            GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, _netgraph, _netgraphPosition, Color.White, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 0F);
         }
-
+        private async void UpdateFPS()
+        {
+            while (MainCharacter is not null)
+            {
+                _netgraph = FPS.ToString();
+                FPS = 0;
+                await Task.Delay(1000);
+            }
+        }
         private void DrawHitbox(Rectangle hitbox)
         {
             GlobalUse.SpriteBatch.Draw(_hitboxTexture, hitbox, Color.White);

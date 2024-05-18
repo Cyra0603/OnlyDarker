@@ -14,6 +14,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 Position { get; protected set; }
         public Vector2 Origin { get; protected set; }
         public Rectangle MovementCollider { get; private set; }
+        private Color _shadowColor = new(Color.Black, 0.20F);
         public SpriteStandartObstacle(Texture2D texture, SpriteStandartTile parentTile)
         {
             _texture = texture;
@@ -29,6 +30,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public void Draw()
         {
             GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.4F);
+        }
+        public void DrawShadow()
+        {
+            GlobalUse.SpriteBatch.Draw(_texture, Position, null, _shadowColor, -0.4F, Origin * 1.5F, 1F, SpriteEffects.None, 0.4F);
         }
     }
 }

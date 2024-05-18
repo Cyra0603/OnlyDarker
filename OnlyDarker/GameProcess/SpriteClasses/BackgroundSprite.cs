@@ -16,13 +16,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public BackgroundSprite(Floor floor)
         {
             _texture = GlobalUse.Content.Load<Texture2D>($"Floor/{floor}/Floor{floor}Background");
-            Size = new Point(_texture.Width * 10, _texture.Height * 10);
+            Size = new Point(_texture.Width * 2, _texture.Height * 2);
             Bounds = new(Point.Zero, Size);
             Origin = new Vector2(_texture.Width, _texture.Height);
         }
         public void Draw()
         {
-            GlobalUse.SpriteBatch.Draw(_texture, Bounds, Bounds, Color.White, 0F, Origin,SpriteEffects.None,1F);
+            GlobalUse.SpriteBatch.Draw(_texture, Vector2.Zero, Bounds, Color.White, 0F, Origin,0.7F,SpriteEffects.None,1F);
         }
     }
 }

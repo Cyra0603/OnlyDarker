@@ -49,6 +49,18 @@
 /processorParam:TextureFormat=Color
 /build:Floor/One/FloorOneBackground.png
 
+#begin Floor/One/RoomType/Boss/Presets/PresetOneBoss1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Floor/One/RoomType/Boss/Presets/PresetOneBoss1.png
+
 #begin Floor/One/RoomType/Boss/StandartObstacle/Boss1.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -276,6 +288,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Floor/One/RoomType/Boss/Tile/Boss6.png
+
+#begin Floor/One/RoomType/Encounter/Presets/PresetOneEncounter1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Floor/One/RoomType/Encounter/Presets/PresetOneEncounter1.png
 
 #begin Floor/One/RoomType/Encounter/StandartObstacle/Encounter1.png
 /importer:TextureImporter
@@ -505,6 +529,18 @@
 /processorParam:TextureFormat=Color
 /build:Floor/One/RoomType/Encounter/Tile/Encounter6.png
 
+#begin Floor/One/RoomType/Entry/Presets/PresetOneEntry1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Floor/One/RoomType/Entry/Presets/PresetOneEntry1.png
+
 #begin Floor/One/RoomType/Entry/StandartObstacle/Entry1.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -732,6 +768,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Floor/One/RoomType/Entry/Tile/Entry6.png
+
+#begin Floor/One/RoomType/Puzzle/Presets/PresetOnePuzzle1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Floor/One/RoomType/Puzzle/Presets/PresetOnePuzzle1.png
 
 #begin Floor/One/RoomType/Puzzle/StandartObstacle/Puzzle1.png
 /importer:TextureImporter
@@ -961,6 +1009,18 @@
 /processorParam:TextureFormat=Color
 /build:Floor/One/RoomType/Puzzle/Tile/Puzzle6.png
 
+#begin Floor/One/RoomType/Secret/Presets/PresetOneSecret1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Floor/One/RoomType/Secret/Presets/PresetOneSecret1.png
+
 #begin Floor/One/RoomType/Secret/StandartObstacle/Secret1.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -1188,6 +1248,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:Floor/One/RoomType/Secret/Tile/Secret6.png
+
+#begin Floor/One/RoomType/Treasure/Presets/PresetOneTreasure1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Floor/One/RoomType/Treasure/Presets/PresetOneTreasure1.png
 
 #begin Floor/One/RoomType/Treasure/StandartObstacle/Treasure1.png
 /importer:TextureImporter
@@ -1423,6 +1495,25 @@
 /processorParam:PremultiplyAlpha=True
 /processorParam:TextureFormat=Compressed
 /build:Fonts/File.spritefont;Fonts/Arial.spritefont
+
+#begin Fonts/MainFont.spritefont
+/importer:FontDescriptionImporter
+/processor:FontDescriptionProcessor
+/processorParam:PremultiplyAlpha=True
+/processorParam:TextureFormat=Compressed
+/build:Fonts/MainFont.spritefont
+
+#begin RoomGates/RoomGate1.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:RoomGates/RoomGate1.png
 
 #begin UI/Heart.png
 /importer:TextureImporter

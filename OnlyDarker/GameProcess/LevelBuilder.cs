@@ -15,22 +15,23 @@ namespace OnlyDarker.GameProcess
     public class Level
     {
         private int Encounters { get; set; }
+        public readonly Floor FloorType;
         public List<Room> BuiltFloor { get; private set; }
         public Level(Floor floor)
         {
             switch (floor)
             {
-                case Floor.One:Encounters = 6; break;
+                case Floor.One:Encounters = 6;FloorType = floor; break;
             }
             var level = new List<Room>(Encounters);
             for (int i = 0; i < Encounters; i++)
             {
-                level.Add(new Room(floor, RoomType.Encounter));
+                level.Add(new Room(floor, RoomType.Encounter, this));
             }
-            level = level.Prepend(new Room(floor, RoomType.Entry)).ToList();
-            level.Add(new Room(floor, RoomType.Boss));
-            level.Add(new Room(floor, RoomType.Secret));
-            level.Insert(level.Count / 2, new Room(floor, RoomType.Treasure));
+            level = level.Prepend(new Room(floor, RoomType.Entry, this)).ToList();
+            level.Add(new Room(floor, RoomType.Boss, this));
+            level.Add(new Room(floor, RoomType.Secret, this));
+            level.Insert(level.Count / 2, new Room(floor, RoomType.Treasure, this));
 
             for (int i = 0;i < level.Count; i++)
             {
