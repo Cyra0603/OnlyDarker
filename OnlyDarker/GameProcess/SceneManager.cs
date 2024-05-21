@@ -23,17 +23,10 @@ namespace OnlyDarker.GameProcess
             CurrentLevel = floor;
             CurrentRoom = CurrentLevel.BuiltFloor[0];
         }
-        public Room GetCurrentRoom()
+
+        public void GoToRoom (int roomIndex)
         {
-            return CurrentRoom;
-        }
-        public Level GetCurrentFloor()
-        {
-            return CurrentLevel;
-        }
-        public void GoToScene (int sceneIndex)
-        {
-            CurrentRoom = CurrentLevel.BuiltFloor[sceneIndex];
+            CurrentRoom = CurrentLevel.BuiltFloor[roomIndex];
             GameBody.MainCharacter.SetRoomBounds(CurrentRoom.RoomSize, CurrentRoom.TileSize);
         }
     }

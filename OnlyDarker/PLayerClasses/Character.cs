@@ -164,7 +164,9 @@ namespace OnlyDarker
         }
         public void SetPosition(Vector2 position)
         {
-            Position = position;
+            var newPos = position;
+            newPos.Y += Position.Y - MovementCollider.Location.Y;
+            Position = newPos;
         }
         public void TakeDamage(float damage)
         {

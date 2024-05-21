@@ -13,7 +13,7 @@ namespace OnlyDarker.CommonUsing
 {
     public enum Direction
     {
-        Left = 1,
+        Left,
         Right,
         Up,
         Down
@@ -53,6 +53,7 @@ namespace OnlyDarker.CommonUsing
         public static ContentManager Content { get; set; }
         public static SpriteBatch SpriteBatch { get; set; }
         public static Point WindowSize { get; set; }
+        public readonly static Random RNG = new();
         public static float TicksToMilliseconds(long ticks)
         {
             return ticks / 10000;

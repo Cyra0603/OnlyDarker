@@ -102,11 +102,8 @@ namespace OnlyDarker
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) SceneManager.GoToScene(1);
-            if (Keyboard.GetState().IsKeyDown(Keys.F2) && !_lastKeyboardState.IsKeyDown(Keys.F2)) SceneManager.GoToScene(2);
-            if (Keyboard.GetState().IsKeyDown(Keys.F3) && !_lastKeyboardState.IsKeyDown(Keys.F3)) SceneManager.GoToScene(3);
-            if (Keyboard.GetState().IsKeyDown(Keys.F4) && !_lastKeyboardState.IsKeyDown(Keys.F4)) SceneManager.GoToScene(4);
-            if (Keyboard.GetState().IsKeyDown(Keys.F10) && !_lastKeyboardState.IsKeyDown(Keys.F10)) SceneManager.GoToScene(0);
+            if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) ToggleHitboxesDrawing();
+
             if (Keyboard.GetState().IsKeyDown(Keys.F11) && !_lastKeyboardState.IsKeyDown(Keys.F11)) MainCharacter.TakeDamage(1);
             if (Keyboard.GetState().IsKeyDown(Keys.F12) && !_lastKeyboardState.IsKeyDown(Keys.F12)) MainCharacter.Heal(1);
             _lastKeyboardState = Keyboard.GetState();
@@ -115,6 +112,7 @@ namespace OnlyDarker
             {
                 CalculateCameraView();
                 MainCharacter.Update();
+                SceneManager.CurrentRoom.UpdatePortals();
                 _fixedElapsedTime = 0;
             }
             base.Update(gameTime);
@@ -178,6 +176,10 @@ namespace OnlyDarker
                 FPS = 0;
                 await Task.Delay(1000);
             }
+        }
+        private void ToggleHitboxesDrawing()
+        {
+            _drawHitboxes = !_drawHitboxes;
         }
         private void DrawHitbox(Rectangle hitbox)
         {

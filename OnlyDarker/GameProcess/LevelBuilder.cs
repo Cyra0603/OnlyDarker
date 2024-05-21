@@ -9,36 +9,153 @@ using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace OnlyDarker.GameProcess
 {
     public class Level
     {
-        private int Encounters { get; set; }
+        private static readonly Dictionary<Direction, Direction> _oppositeDirectionPairs = new()
+        {
+            {Direction.Left, Direction.Right },
+            {Direction.Right, Direction.Left },
+            {Direction.Up, Direction.Down },
+            {Direction.Down, Direction.Up },
+        };
+        private static readonly Dictionary<Floor, IFloorConfig> _floorConfigPairs = new()
+        {
+            {Floor.One , new FloorOneConfig()},
+        };
         public readonly Floor FloorType;
+        private readonly IFloorConfig _floorConfig;
         public List<Room> BuiltFloor { get; private set; }
+        private RoomBlueprint[,] _levelGrid;
         public Level(Floor floor)
         {
-            switch (floor)
-            {
-                case Floor.One:Encounters = 6;FloorType = floor; break;
-            }
-            var level = new List<Room>(Encounters);
-            for (int i = 0; i < Encounters; i++)
-            {
-                level.Add(new Room(floor, RoomType.Encounter, this));
-            }
-            level = level.Prepend(new Room(floor, RoomType.Entry, this)).ToList();
-            level.Add(new Room(floor, RoomType.Boss, this));
-            level.Add(new Room(floor, RoomType.Secret, this));
-            level.Insert(level.Count / 2, new Room(floor, RoomType.Treasure, this));
+            FloorType = floor;
+            _floorConfigPairs.TryGetValue(floor, out _floorConfig);
+            List<RoomBlueprint> levelBlueprint = new();
 
-            for (int i = 0;i < level.Count; i++)
+            var level = new List<Room>();
+            for (int i = 0; i < _floorConfig.Encounters; i++)
+            {
+                levelBlueprint.Add(new(floor, RoomType.Encounter));
+            }
+            levelBlueprint = levelBlueprint.Prepend(new(floor, RoomType.Entry)).ToList();
+            levelBlueprint.Add(new(floor, RoomType.Boss));
+            levelBlueprint.Insert(levelBlueprint.Count / 2, new(floor, RoomType.Treasure));
+            SetLevelGrid(levelBlueprint);
+            var secretRoom = new RoomBlueprint(floor, RoomType.Secret);
+            secretRoom.lastRoomDirection = (Direction)Roll4();
+            foreach (var blueprint in levelBlueprint)
+            {
+                level.Add(new Room(blueprint.floorType, blueprint.roomType, this, blueprint.lastRoomDirection, blueprint.nextRoomDirection));
+            }
+            for (int i = 0; i < level.Count; i++)
             {
                 level[i].SetOrderNumber(i);
             }
             BuiltFloor = level;
+            LinkPortals();
+        }
+        private void SetLevelGrid(List<RoomBlueprint> levelBlueprint)
+        {
+            if (_levelGrid is not null) { return; }
+            _levelGrid = new RoomBlueprint[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
+            var blockedDirection = (Direction)Roll4();
+            var blockedDirectionTwo = BlockSecondDirection(blockedDirection);
+            _oppositeDirectionPairs.TryGetValue(blockedDirection, out Direction oppositeDirection);
+            Point currentCell = new((_floorConfig.GridSize.Y - 1) / 2, (_floorConfig.GridSize.X - 1) / 2);
+            for (int i = 0; i < levelBlueprint.Count; i++)
+            {
+                _levelGrid[currentCell.Y, currentCell.X] = levelBlueprint[i];
+                Direction newDirection;
+                if (levelBlueprint[i].roomType is not RoomType.Boss)
+                {
+                    var newCell = GetNextCell(blockedDirection, blockedDirectionTwo, currentCell, oppositeDirection, out newDirection);
+                    SetDirections(currentCell, newDirection, oppositeDirection);
+                    _oppositeDirectionPairs.TryGetValue(newDirection, out oppositeDirection);
+                    currentCell = newCell;
+                }
+                else
+                {
+                    SetDirections(currentCell, oppositeDirection, oppositeDirection);
+                }
+            }
+        }
+        private static int Roll4()
+        {
+            return GlobalUse.RNG.Next(0, 4);
+        }
+        private Point GetNextCell(Direction blockedDirection, Direction blockedDirectionTwo, Point currentCell, Direction oppositeDirection, out Direction newDirection)
+        {
+            do
+            {
+                newDirection = (Direction)Roll4();
+            }
+            while (newDirection == blockedDirection || newDirection == oppositeDirection || newDirection == blockedDirectionTwo);
+            Point newCell;
+            switch (newDirection)
+            {
+                case Direction.Down:
+                    newCell = new Point(currentCell.Y + 1, currentCell.X);
+                    break;
+                case Direction.Up:
+                    newCell = new Point(currentCell.Y - 1, currentCell.X);
+                    break;
+                case Direction.Left:
+                    newCell = new Point(currentCell.Y, currentCell.X - 1);
+                    break;
+                case Direction.Right:
+                    newCell = new Point(currentCell.Y, currentCell.X + 1);
+                    break;
+                default:
+                    newCell = Point.Zero;
+                    break;
+            }
+            return newCell;
+        }
+        private Direction BlockSecondDirection(Direction blockedDirection)
+        {
+            Direction blockedDirectionTwo;
+            _oppositeDirectionPairs.TryGetValue(blockedDirection, out Direction oppositeDirection);
+            do
+            {
+                blockedDirectionTwo = (Direction)Roll4();
+            }
+            while (blockedDirectionTwo == oppositeDirection || blockedDirectionTwo == blockedDirection);
+            return blockedDirectionTwo;
         }
 
-    }  
+        private void SetDirections(Point currentCell, Direction newDirection, Direction oppositeDirection)
+        {
+            _levelGrid[currentCell.Y, currentCell.X].nextRoomDirection = newDirection;
+            _levelGrid[currentCell.Y, currentCell.X].lastRoomDirection = oppositeDirection;
+        }
+
+        private void LinkPortals()
+        {
+            foreach (var room in BuiltFloor)
+            {
+                room.PortalBack?.SetExitPosition(BuiltFloor[room.OrderNumber - 1].PortalNext.Position);
+                room.PortalBack?.SetExitRoom(BuiltFloor[room.OrderNumber - 1]);
+                room.PortalNext?.SetExitPosition(BuiltFloor[room.OrderNumber + 1].PortalBack.Position);
+                room.PortalNext?.SetExitRoom(BuiltFloor[room.OrderNumber + 1]);
+            }
+        }
+    }
+
+    internal class RoomBlueprint
+    {
+        public Floor floorType;
+        public RoomType roomType;
+        public Direction lastRoomDirection;
+        public Direction nextRoomDirection;
+        public RoomBlueprint(Floor floorType, RoomType roomType)
+        {
+            this.floorType = floorType;
+            this.roomType = roomType;
+        }
+    }
 }
+

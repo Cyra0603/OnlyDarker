@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -18,19 +19,21 @@ namespace OnlyDarker.GameProcess
         private readonly List<SpriteStandartTile> _tilesYSorted;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
         private readonly List<SpriteStandartObstacle> _obstaclesYSorted;
+        public RoomPortalSprite PortalBack { get; private set; }
+        public RoomPortalSprite PortalNext { get; private set; }
         public readonly BackgroundSprite CurrentBackground;
         public readonly Level ParentLevelReference;
-        private static Dictionary<Vector4, string> PresetColorTranslator = new()
+        private readonly static Dictionary<Vector4, string> _presetColorTranslator = new()
         {
             {new Vector4(255,0,0,255) , "Obstacle"},
-            {new Vector4(0,255,0,255) , "Tile"}
+            {new Vector4(0,255,0,255) , "Tile"},
+            {new Vector4(0,0,255,255) , "Portal"},
         };
         public List<Rectangle> RoomColliders { get; private set; }
         public int OrderNumber { get; private set; }
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
-        //private float _sizeMultiplier { get; set; }
-        public Room(Floor floor, RoomType roomType, Level parentLevelReference)
+        public Room(Floor floor, RoomType roomType, Level parentLevelReference, Direction lastRoomDirection, Direction nextRoomDirection)
         {
             _roomPresetImage = ImportPreset(floor, roomType);
             var presetData = TextureTo2DArray(_roomPresetImage);
@@ -41,15 +44,24 @@ namespace OnlyDarker.GameProcess
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
             List<Texture2D> tileTextures = ImportTileTextures(floor, roomType);
             List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(floor, roomType);
+            List<Texture2D> portalTextures = ImportPortalTextures(floor, roomType);
             TileSize = new(tileTextures[0].Width, tileTextures[0].Height);
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
-            FillRoom(tileTextures, standartObstacleTextures, presetData);
+            FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, lastRoomDirection, nextRoomDirection, roomType);
             RoomColliders = new();
             foreach (var obstacle in _standartObstacles)
             {
                 if (obstacle is not null)
                     RoomColliders.Add(obstacle.MovementCollider);
             }
+            //if (PortalBack is not null)
+            //{
+            //    RoomColliders.Add(PortalBack.MovementCollider);
+            //}
+            //if (PortalNext is not null)
+            //{
+            //    RoomColliders.Add(PortalNext.MovementCollider);
+            //}
             _tilesYSorted = _tiles.OfType<SpriteStandartTile>().OrderBy(tile => tile.Position.Y).ToList();
             _obstaclesYSorted = _standartObstacles.OfType<SpriteStandartObstacle>().OrderBy(obstacle => obstacle.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;
@@ -65,6 +77,8 @@ namespace OnlyDarker.GameProcess
             {
                 obstacle.Draw();
             }
+            PortalBack?.Draw();
+            PortalNext?.Draw();
         }
         private Texture2D ImportPreset(Floor floor, RoomType roomType)
         {
@@ -85,70 +99,98 @@ namespace OnlyDarker.GameProcess
 
             return colors2D;
         }
-        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, Color[,] presetData)
+        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, List<Texture2D> portalTextures, Color[,] presetData, Direction lastRoomDirection, Direction nextRoomDirection, RoomType roomType)
         {
-            Random rng = new();
             for (int x = 0; x < _tiles.GetLength(0); x++)
             {
                 for (int y = 0; y < _tiles.GetLength(1); y++)
                 {
-                    if (PresetColorTranslator.TryGetValue(ColorToVector4(presetData[x,y]), out string presetCellAlias))
-                    switch (presetCellAlias)
-                    {
-                        case "Tile":
-                                int a = rng.Next(0, tileTextures.Count);
-                                _tiles[x, y] = new SpriteStandartTile(tileTextures[a], new Vector2(x * TileSize.X, y * TileSize.Y));
+                    if (_presetColorTranslator.TryGetValue(ColorToVector4(presetData[x, y]), out string presetCellAlias))
+                        switch (presetCellAlias)
+                        {
+                            case "Tile":
+                                BuildTile(tileTextures, x, y);
                                 break;
-                        case "Obstacle":
-                                int b = rng.Next(0, tileTextures.Count);
-                                _tiles[x, y] = new SpriteStandartTile(tileTextures[b], new Vector2(x * TileSize.X, y * TileSize.Y));
-                                int c = rng.Next(0, standartObstacleTextures.Count);
-                                _standartObstacles[x, y] = new SpriteStandartObstacle(standartObstacleTextures[c], _tiles[x, y]);
+                            case "Obstacle":
+                                BuildTile(tileTextures, x, y);
+                                BuildObstacle(standartObstacleTextures, x, y);
                                 break;
-                    }
+                            case "Portal":
+                                var portalDirection = CheckPortalDirection(_roomPresetImage, x, y);
+                                if (portalDirection == lastRoomDirection && roomType != RoomType.Entry)
+                                {
+                                    BuildPortal(portalTextures, x, y, true);
+                                }
+                                else if (portalDirection == nextRoomDirection && roomType != RoomType.Boss)
+                                {
+                                    BuildPortal(portalTextures, x, y, false);
+                                }
+                                else
+                                {
+                                    BuildTile(tileTextures, x, y);
+                                }
+                                break;
+                            default:
+                                BuildTile(tileTextures, x, y);
+                                break;
+                        }
                     else
                     {
-                        int i = rng.Next(0, tileTextures.Count);
-                        _tiles[x,y] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
+                        BuildTile(tileTextures, x, y);
                     }
                 }
             }
         }
-        private Vector4 ColorToVector4(Color color)
+
+        private static Direction CheckPortalDirection(Texture2D roomPresetImage, int x, int y)
+        {
+            Point center = new((roomPresetImage.Width - 1) / 2, (roomPresetImage.Height - 1) / 2);
+            if (x > center.X) { return Direction.Right; }
+            else if (x < center.X) { return Direction.Left; }
+            else if (y > center.Y) { return Direction.Down; }
+            else return Direction.Up;
+        }
+        public async void TempPortalDeactivation(int milliseconds)
+        {
+            PortalBack?.DeactivatePortal();
+            PortalNext?.DeactivatePortal();
+            await Task.Delay(milliseconds);
+            PortalBack?.ActivatePortal();
+            PortalNext?.ActivatePortal();
+        }
+        public void UpdatePortals()
+        {
+            PortalBack?.Update();
+            PortalNext?.Update();
+        }
+        private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
+        {
+            int i = GlobalUse.RNG.Next(0, standartObstacleTextures.Count);
+            _standartObstacles[x, y] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[x, y]);
+        }
+
+        private void BuildTile(List<Texture2D> tileTextures, int x, int y)
+        {
+            int i = GlobalUse.RNG.Next(0, tileTextures.Count);
+            _tiles[x, y] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
+        }
+
+        private void BuildPortal(List<Texture2D> portalTextures, int x, int y, bool portalBack)
+        {
+            int i = GlobalUse.RNG.Next(0, portalTextures.Count);
+            if (portalBack)
+            {
+                PortalBack = new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), this);
+            }
+            else
+            {
+                PortalNext = new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), this);
+            }
+        }
+        private static Vector4 ColorToVector4(Color color)
         {
             return new Vector4(color.R, color.G, color.B, color.A);
         }
-
-        private void BuildStandartObstacles(List<Texture2D> standartObstacleTextures) // TEMP
-        {
-            Random rng = new();
-
-            for (int x = 0; x < _standartObstacles.GetLength(0); x++)
-            {
-                for (int y = 0; y < _standartObstacles.GetLength(1); y++)
-                {
-                    int l = rng.Next(0, 100);
-                    if (l >= 5) { continue; }
-                    int i = rng.Next(0, standartObstacleTextures.Count);
-                    _standartObstacles[x, y] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[x, y]);
-                }
-            }
-        }
-
-        private void BuildTiles(List<Texture2D> tileTextures)
-        {
-            Random rng = new();
-
-            for (int x = 0; x < _tiles.GetLength(0); x++)
-            {
-                for (int y = 0; y < _tiles.GetLength(1); y++)
-                {
-                    int i = rng.Next(0, tileTextures.Count);
-                    _tiles[x, y] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
-                }
-            }
-        }
-
         private static List<Texture2D> ImportTileTextures(Floor floor, RoomType roomType)
         {
             string dirContentPath = $"Content/Floor/{floor}/RoomType/{roomType}/Tile";
@@ -184,6 +226,24 @@ namespace OnlyDarker.GameProcess
             catch (NullReferenceException) { throw; }
 
             return standartObstacleTextures;
+        }
+        private static List<Texture2D> ImportPortalTextures(Floor floor, RoomType roomType) //Temp
+        {
+            string dirContentPath = $"Content/RoomGates";
+            int dirTextureCount = Directory.EnumerateFiles(dirContentPath, "*.xnb").Count();
+
+            List<Texture2D> portalTextures = new(dirTextureCount);
+
+            try
+            {
+                for (int i = 1; i <= dirTextureCount; i++)
+                {
+                    portalTextures.Add(GlobalUse.Content.Load<Texture2D>($"RoomGates/RoomGate{i}"));
+                }
+            }
+            catch (NullReferenceException) { throw; }
+
+            return portalTextures;
         }
         public void SetOrderNumber(int number)
         {
