@@ -12,14 +12,14 @@ namespace OnlyDarker.UI
         private Texture2D _texture;
         private Rectangle _barBounds;
         public const int TEXTURE_ONE_FOURTH = 8;
-        private Character _currentCharacter => GameBody.MainCharacter;
+        private Character СurrentCharacter => GameBody.MainCharacter;
         private float _healthPoints;
         public CharacterHealthbar(Texture2D texture)
         {
             _texture = texture;
-            _healthPoints = _currentCharacter.HealthPoints;
+            _healthPoints = СurrentCharacter.HealthPoints;
             AdjustBounds();
-            _currentCharacter.OnChangingHealth += ObserveHealthPoints;
+            СurrentCharacter.OnChangingHealth += ObserveHealthPoints;
         }
         public void ObserveHealthPoints(float healthPoints)
         {

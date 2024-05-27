@@ -3,10 +3,12 @@ using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess.SpriteClasses;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess
@@ -23,6 +25,7 @@ namespace OnlyDarker.GameProcess
         public RoomPortalSprite PortalNext { get; private set; }
         public readonly BackgroundSprite CurrentBackground;
         public readonly Level ParentLevelReference;
+        public readonly RoomType InstanceRoomType;
         private readonly static Dictionary<Vector4, string> _presetColorTranslator = new()
         {
             {new Vector4(255,0,0,255) , "Obstacle"},
@@ -33,21 +36,24 @@ namespace OnlyDarker.GameProcess
         public int OrderNumber { get; private set; }
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
-        public Room(Floor floor, RoomType roomType, Level parentLevelReference, Direction lastRoomDirection, Direction nextRoomDirection)
+        public Point GridCords { get; private set; }
+        public Room(RoomBlueprint roomBlueprint, Level parentLevelReference)
         {
-            _roomPresetImage = ImportPreset(floor, roomType);
+            _roomPresetImage = ImportPreset(roomBlueprint.floorType, roomBlueprint.roomType);
+            InstanceRoomType = roomBlueprint.roomType;
             var presetData = TextureTo2DArray(_roomPresetImage);
             _roomTileSize.Y = presetData.GetLength(1);
             _roomTileSize.X = presetData.GetLength(0);
-            CurrentBackground = new(floor);
+            CurrentBackground = new(roomBlueprint.floorType);
             _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
-            List<Texture2D> tileTextures = ImportTileTextures(floor, roomType);
-            List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(floor, roomType);
-            List<Texture2D> portalTextures = ImportPortalTextures(floor, roomType);
+            GridCords = roomBlueprint.gridCords;
+            List<Texture2D> tileTextures = ImportTileTextures(roomBlueprint.floorType, roomBlueprint.roomType);
+            List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(roomBlueprint.floorType, roomBlueprint.roomType);
+            List<Texture2D> portalTextures = ImportPortalTextures(roomBlueprint.floorType, roomBlueprint.roomType);
             TileSize = new(tileTextures[0].Width, tileTextures[0].Height);
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
-            FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, lastRoomDirection, nextRoomDirection, roomType);
+            FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, roomBlueprint.lastRoomDirection, roomBlueprint.nextRoomDirection, roomBlueprint.roomType);
             RoomColliders = new();
             foreach (var obstacle in _standartObstacles)
             {
@@ -120,10 +126,12 @@ namespace OnlyDarker.GameProcess
                                 if (portalDirection == lastRoomDirection && roomType != RoomType.Entry)
                                 {
                                     BuildPortal(portalTextures, x, y, true);
+                                    Debug.WriteLine("Built backPortal");
                                 }
                                 else if (portalDirection == nextRoomDirection && roomType != RoomType.Boss)
                                 {
                                     BuildPortal(portalTextures, x, y, false);
+                                    Debug.WriteLine("Built forwardPortal\n");
                                 }
                                 else
                                 {
@@ -150,10 +158,13 @@ namespace OnlyDarker.GameProcess
             else if (y > center.Y) { return Direction.Down; }
             else return Direction.Up;
         }
-        public async void TempPortalDeactivation(int milliseconds)
+        public void DeactivatePortals()
         {
             PortalBack?.DeactivatePortal();
             PortalNext?.DeactivatePortal();
+        }
+        public async void ActivatePortals(int milliseconds)
+        {
             await Task.Delay(milliseconds);
             PortalBack?.ActivatePortal();
             PortalNext?.ActivatePortal();

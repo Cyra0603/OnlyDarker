@@ -23,6 +23,7 @@ namespace OnlyDarker
         private static StatsBar _statsBar;
         private static CurrentFloorBar _currentFloorBar;
         private static Texture2D _hitboxTexture;
+        private static Minimap _minimap;
         private long _fixedElapsedTime = 0;
         public const long ONE_TICK = 78125L;
         private string _netgraph = "0";
@@ -84,6 +85,8 @@ namespace OnlyDarker
 
             _currentFloorBar = new();
 
+            _minimap = new(_graphics.GraphicsDevice);
+
             UpdateFPS();
 
             ControlsManager.CharacterInputsDisabled(false);
@@ -120,7 +123,7 @@ namespace OnlyDarker
 
         protected override void Draw(GameTime gameTime)
         {
-            //GraphicsDevice.Clear(Color.Black);
+            //Rendering
 
             _mainCanvas.Activate();
             //Background
@@ -140,17 +143,20 @@ namespace OnlyDarker
                 GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
             }
             GlobalUse.SpriteBatch.End();
+            _mainCanvas.Deactivate();
 
+            _minimap.RenderMinimap();
+
+            //Drawing
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
-            //UI
-            _characterHealthbar.StandaloneDraw();
 
+            _minimap.StandaloneDraw();
+            _characterHealthbar.StandaloneDraw();
             GlobalUse.SpriteBatch.Begin();
             ShowFPS();
             _statsBar.DrawStats();
             _currentFloorBar.Draw();
             GlobalUse.SpriteBatch.End();
-
 
             base.Draw(gameTime);
             FPS++;

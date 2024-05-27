@@ -41,12 +41,14 @@ namespace OnlyDarker.CommonUsing.Rendering
             _graphicsDevice.SetRenderTarget(_target);
             _graphicsDevice.Clear(Color.Transparent);
         }
-
-        public void Draw(SpriteBatch spriteBatch)
+        public void Deactivate()
         {
             _graphicsDevice.SetRenderTarget(null);
             _graphicsDevice.Clear(Color.Transparent);
-            spriteBatch.Begin();
+        }
+        public void Draw(SpriteBatch spriteBatch)
+        {
+            spriteBatch.Begin(blendState: BlendState.AlphaBlend);
             spriteBatch.Draw(_target, DestinationRectangle, Color.White);
             spriteBatch.End();
         }

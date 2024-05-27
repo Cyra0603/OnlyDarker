@@ -1,8 +1,10 @@
 ﻿using OnlyDarker.CommonUsing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
@@ -16,7 +18,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 ExitPosition { get; protected set; }
         public Room ExitRoom { get; protected set; }
         public Rectangle MovementCollider;
-        private Room _parentRoomReference;
+        public readonly Room ParentRoomReference;
         private bool _isActive;
         public RoomPortalSprite(Texture2D texture, Vector2 position, Room parentRoomReference)
         {
@@ -25,14 +27,15 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Origin = new(_texture.Width / 2, texture.Height / 2);
             CenterCords = Position + Origin;
             MovementCollider = new((int)Position.X - (int)Origin.X, (int)Position.Y - (int)Origin.Y, _texture.Width, _texture.Height);
-            _parentRoomReference = parentRoomReference;
+            ParentRoomReference = parentRoomReference;
             _isActive = true;
+            Debug.WriteLine(parentRoomReference.OrderNumber.ToString());
         }
         public void Update()
         {
-            if (_isActive == false) { return; }
-            if (MovementCollider.Intersects(GameBody.MainCharacter.MovementCollider))
+            if (MovementCollider.Intersects(GameBody.MainCharacter.MovementCollider) && _isActive)
             {
+                Debug.WriteLine("Found intersection at" + ParentRoomReference.OrderNumber.ToString());
                 PlayerTeleport();
             }
         }
@@ -50,11 +53,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         private Room GetPreviousRoom()
         {
-            return _parentRoomReference.ParentLevelReference.BuiltFloor[_parentRoomReference.OrderNumber - 1];
+            return ParentRoomReference.ParentLevelReference.BuiltFloor[ParentRoomReference.OrderNumber - 1];
         }
         private Room GetNextRoom()
         {
-            return _parentRoomReference.ParentLevelReference.BuiltFloor[_parentRoomReference.OrderNumber + 1];
+            return ParentRoomReference.ParentLevelReference.BuiltFloor[ParentRoomReference.OrderNumber + 1];
         }
         public void ActivatePortal()
         {
@@ -70,13 +73,18 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void SetExitRoom(Room exitRoom)
         {
-            ExitRoom = exitRoom;
+            ExitRoom = exitRoom; 
         }
         private void PlayerTeleport()
         {
-            ExitRoom.TempPortalDeactivation(5000);
+            Debug.WriteLine("teleporting from" + GameBody.SceneManager.CurrentRoom.OrderNumber.ToString());
+            ParentRoomReference.DeactivatePortals();
+            ExitRoom.DeactivatePortals();
             GameBody.SceneManager.GoToRoom(ExitRoom.OrderNumber);
             GameBody.MainCharacter.SetPosition(ExitPosition);
+            Debug.WriteLine("to" + GameBody.SceneManager.CurrentRoom.OrderNumber.ToString());
+            ParentRoomReference.ActivatePortals(2000);
+            ExitRoom.ActivatePortals(2000);
         }
     }
 }
