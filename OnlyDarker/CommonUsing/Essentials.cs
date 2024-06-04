@@ -7,10 +7,15 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Content;
-using OnlyDarker.CommonUsing.Rendering;
 
 namespace OnlyDarker.CommonUsing
 {
+    public enum DamageType
+    {
+        Slice,
+        Poke,
+        Blunt
+    }
     public enum Direction
     {
         Left,
