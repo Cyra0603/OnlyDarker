@@ -30,11 +30,6 @@ namespace OnlyDarker
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
-                if (keyboardState.IsKeyDown(Keys.F1))
-                {
-                    CharacterParalyze(1);
-                }
-
                 if (keyboardState.IsKeyDown(Keys.W))
                 {
                     Direction.Y--;

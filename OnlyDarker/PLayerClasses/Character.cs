@@ -106,7 +106,7 @@ namespace OnlyDarker
             {
                 Position += ControlsManager.GetDirection() * Speed;
             }
-            if (GameBody.SceneManager.CurrentRoom.Pickups.Any(collider => collider.MovementCollider.Intersects(MovementCollisionAura)))
+            if (GameBody.SceneManager.CurrentRoom.Pickups is not null && GameBody.SceneManager.CurrentRoom.Pickups.Any(collider => collider.MovementCollider.Intersects(MovementCollisionAura)))
             {
                 GameBody.SceneManager.CurrentRoom.Pickups.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)).ShowPickupMessage();
             }
