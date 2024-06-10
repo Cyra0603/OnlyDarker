@@ -15,9 +15,10 @@ namespace OnlyDarker
 {
     public class GameBody : Game
     {
-        private GraphicsDeviceManager _graphics;
         private MainCanvas _mainCanvas;
+        private GraphicsDeviceManager _graphics;
         public static SceneManager SceneManager { get; private set; }
+        public static BindsManager BindsManager { get; private set; }   
         public static Character? MainCharacter { get; private set; } = null;
         private static CharacterHealthbar _characterHealthbar;
         private static StatsBar _statsBar;
@@ -32,7 +33,7 @@ namespace OnlyDarker
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
         private static float _cameraZoom = 0.5F;
-        private bool _drawHitboxes = false;
+        private bool _drawHitboxes => GlobalUse.DebugIsOn;
         private KeyboardState _lastKeyboardState;
 
         public GameBody()
@@ -62,6 +63,8 @@ namespace OnlyDarker
             IsFixedTimeStep = false;
 
             _graphics.ApplyChanges();
+
+            BindsManager = new();
 
             SceneManager = new(new Level(Floor.One));
 
@@ -105,7 +108,7 @@ namespace OnlyDarker
 
             if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) ToggleHitboxesDrawing();
+            if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) GlobalUse.ToggleDebugMode();
 
             if (Keyboard.GetState().IsKeyDown(Keys.F11) && !_lastKeyboardState.IsKeyDown(Keys.F11)) MainCharacter.TakeDamage(1);
             if (Keyboard.GetState().IsKeyDown(Keys.F12) && !_lastKeyboardState.IsKeyDown(Keys.F12)) MainCharacter.Heal(1);
@@ -141,6 +144,10 @@ namespace OnlyDarker
                     DrawHitbox(hitbox);
                 }
                 GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
+                if (SceneManager.CurrentRoom.PortalBack is not null)
+                    GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalBack.MovementCollider, Color.Blue);
+                if (SceneManager.CurrentRoom.PortalNext is not null)
+                    GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalNext.MovementCollider, Color.Blue);
             }
             GlobalUse.SpriteBatch.End();
             _mainCanvas.Deactivate();
@@ -183,10 +190,7 @@ namespace OnlyDarker
                 await Task.Delay(1000);
             }
         }
-        private void ToggleHitboxesDrawing()
-        {
-            _drawHitboxes = !_drawHitboxes;
-        }
+
         private void DrawHitbox(Rectangle hitbox)
         {
             GlobalUse.SpriteBatch.Draw(_hitboxTexture, hitbox, Color.White);

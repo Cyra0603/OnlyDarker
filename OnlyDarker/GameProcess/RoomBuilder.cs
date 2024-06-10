@@ -22,6 +22,7 @@ namespace OnlyDarker.GameProcess
         public readonly SpriteStandartObstacle[,] _standartObstacles;
         private readonly List<SpriteStandartObstacle> _obstaclesYSorted;
         public List<IPickup> Pickups;
+        public List<IDamageable> Damageables;
         public RoomPortalSprite PortalBack { get; private set; }
         public RoomPortalSprite PortalNext { get; private set; }
         public readonly BackgroundSprite CurrentBackground;
@@ -59,8 +60,11 @@ namespace OnlyDarker.GameProcess
             foreach (var obstacle in _standartObstacles)
             {
                 if (obstacle is not null)
+                {
                     RoomColliders.Add(obstacle.MovementCollider);
+                }
             }
+            
             _tilesYSorted = _tiles.OfType<SpriteStandartTile>().OrderBy(tile => tile.Position.Y).ToList();
             _obstaclesYSorted = _standartObstacles.OfType<SpriteStandartObstacle>().OrderBy(obstacle => obstacle.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;

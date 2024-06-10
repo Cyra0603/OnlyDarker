@@ -8,11 +8,12 @@ using Microsoft.Xna.Framework.Graphics;
 using OnlyDarker.CommonUsing;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
+using OnlyDarker.PlayerClasses;
 
 namespace OnlyDarker
 {
 
-    public class Character
+    public class Character : IDamageable
     {
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _handTexture;
@@ -28,11 +29,15 @@ namespace OnlyDarker
             (int)Position.X - _bodyTexture.Width / 2, (int)Position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
+        public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
+        public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
+        public IWeapon CurrentWeapon = new WeaponFist();
         public float Speed { get; private set; } = 1F;
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
         public const float I_FRAME_TIME = 500F;
         private bool _isInvincible = false;
+        private bool _isAttacking = false;
         public float HandRotation { get; set; } = 0;
         private float _healthPoints = 24;
         public float HealthPoints
@@ -184,6 +189,12 @@ namespace OnlyDarker
         public void Heal(float healAmount)
         {
             HealthPoints += healAmount;
+        }
+        public async void Attack()
+        {
+            if (CurrentWeapon.IsOnCooldown) return;
+            _isAttacking = true;
+            
         }
     }
 }

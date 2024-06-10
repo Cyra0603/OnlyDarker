@@ -1,4 +1,5 @@
 ﻿using OnlyDarker.CommonUsing;
+using OnlyDarker.GameProcess;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,22 +31,22 @@ namespace OnlyDarker
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
-                if (keyboardState.IsKeyDown(Keys.W))
+                if (keyboardState.IsKeyDown(BindsManager.MoveUp.Key))
                 {
                     Direction.Y--;
                     Direction.Y = MathHelper.Max(Direction.Y, -DIRECTIONY_MAX_VALUE);
                 }
-                if (keyboardState.IsKeyDown(Keys.S))
+                if (keyboardState.IsKeyDown(BindsManager.MoveDown.Key))
                 {
                     Direction.Y++;
                     Direction.Y = MathHelper.Min(Direction.Y, DIRECTIONY_MAX_VALUE);
                 }
-                if (keyboardState.IsKeyDown(Keys.A))
+                if (keyboardState.IsKeyDown(BindsManager.MoveLeft.Key))
                 {
                     Direction.X--;
                     Direction.X = MathHelper.Max(Direction.X, -DIRECTIONX_MAX_VALUE);
                 }
-                if (keyboardState.IsKeyDown(Keys.D))
+                if (keyboardState.IsKeyDown(BindsManager.MoveRight.Key))
                 {
                     Direction.X++;
                     Direction.X = MathHelper.Min(Direction.X, DIRECTIONX_MAX_VALUE);

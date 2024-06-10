@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class Entity
+    public class EntitySprite : IDamageable
     {
         private readonly Texture2D _bodyTexture;
         public Vector2 Position { get; set; }
@@ -20,6 +20,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             (int)Position.X - _bodyTexture.Width / 2, (int)Position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
+        public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
         public float Speed { get; private set; } = 0.5F;
         private bool _isInvincible = false;
         private float _healthPoints = 10;
@@ -45,7 +46,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             }
         }
 
-        public Entity(Texture2D bodyTexture, SpriteStandartTile parentTile)
+        public EntitySprite(Texture2D bodyTexture, SpriteStandartTile parentTile)
         {
             _bodyTexture = bodyTexture;
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
