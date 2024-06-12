@@ -96,7 +96,7 @@ namespace OnlyDarker
 
         public void Update()
         {
-            ControlsManager.UpdateCharacterControls();
+            ControlsManager.UpdatePlayerControls();
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
                 var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();

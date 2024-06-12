@@ -18,7 +18,7 @@ namespace OnlyDarker
         private MainCanvas _mainCanvas;
         private GraphicsDeviceManager _graphics;
         public static SceneManager SceneManager { get; private set; }
-        public static BindsManager BindsManager { get; private set; }   
+        public static BindManager BindsManager { get; private set; }   
         public static Character? MainCharacter { get; private set; } = null;
         private static CharacterHealthbar _characterHealthbar;
         private static StatsBar _statsBar;

@@ -10,6 +10,7 @@ namespace OnlyDarker
 {
     public static class ControlsManager
     {
+        private static BindManager _bindManager => GameBody.BindsManager;
         private static Vector2 Direction;
         public static Vector2 MousePosition
         {
@@ -21,35 +22,35 @@ namespace OnlyDarker
                     new Vector2(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
             }
         }
-        public const float DIRECTIONX_MAX_VALUE = 7F;
-        public const float DIRECTIONY_MAX_VALUE = 4.667F;
+        public const float DIRECTION_X_MAX_VALUE = 7F;
+        public const float DIRECTION_Y_MAX_VALUE = 4.667F;
         public readonly static float Friction = 0.88F;
         public static bool InputsBlocked { get; private set; } = true;
         public static bool Paralyzed { get; private set; } = false;
-        public static void UpdateCharacterControls()
+        public static void UpdatePlayerControls()
         {
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
-                if (keyboardState.IsKeyDown(BindsManager.MoveUp.Key))
+                if (keyboardState.IsKeyDown(_bindManager.MoveUp.Key))
                 {
                     Direction.Y--;
-                    Direction.Y = MathHelper.Max(Direction.Y, -DIRECTIONY_MAX_VALUE);
+                    Direction.Y = MathHelper.Max(Direction.Y, -DIRECTION_Y_MAX_VALUE);
                 }
-                if (keyboardState.IsKeyDown(BindsManager.MoveDown.Key))
+                if (keyboardState.IsKeyDown(_bindManager.MoveDown.Key))
                 {
                     Direction.Y++;
-                    Direction.Y = MathHelper.Min(Direction.Y, DIRECTIONY_MAX_VALUE);
+                    Direction.Y = MathHelper.Min(Direction.Y, DIRECTION_Y_MAX_VALUE);
                 }
-                if (keyboardState.IsKeyDown(BindsManager.MoveLeft.Key))
+                if (keyboardState.IsKeyDown(_bindManager.MoveLeft.Key))
                 {
                     Direction.X--;
-                    Direction.X = MathHelper.Max(Direction.X, -DIRECTIONX_MAX_VALUE);
+                    Direction.X = MathHelper.Max(Direction.X, -DIRECTION_X_MAX_VALUE);
                 }
-                if (keyboardState.IsKeyDown(BindsManager.MoveRight.Key))
+                if (keyboardState.IsKeyDown(_bindManager.MoveRight.Key))
                 {
                     Direction.X++;
-                    Direction.X = MathHelper.Min(Direction.X, DIRECTIONX_MAX_VALUE);
+                    Direction.X = MathHelper.Min(Direction.X, DIRECTION_X_MAX_VALUE);
                 }
             }
             //
