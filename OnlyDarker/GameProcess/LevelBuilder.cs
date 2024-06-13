@@ -50,7 +50,7 @@ namespace OnlyDarker.GameProcess
             levelBlueprint.Insert(levelBlueprint.Count / 2, new(floor, RoomType.Puzzle));
             GenerateDirections(levelBlueprint);
             //var secretRoom = new RoomBlueprint(floor, RoomType.Secret);
-            //secretRoom.lastRoomDirection = (Direction)Roll4();
+            //secretRoom.lastRoomDirection = (_direction)Roll4();
             foreach (var blueprint in levelBlueprint)
             {
                 level.Add(new Room(blueprint, this));

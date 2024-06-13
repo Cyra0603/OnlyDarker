@@ -9,49 +9,57 @@ namespace OnlyDarker.GameProcess
     public class BindManager
     {
         private BindManager _managerInstance = null;
-
+        public readonly static List<Bind> BindList = new();
         public readonly Bind ExitApplication;
         public readonly Bind MoveLeft;
         public readonly Bind MoveRight;
         public readonly Bind MoveUp;
         public readonly Bind MoveDown;
-        public static readonly List<Bind> BindList;
+        public readonly Bind Dash;
+        public readonly Bind ClickAction;
+        public readonly Bind DamageCharacter;
+        public readonly Bind HealCharacter;
+        public readonly Bind Jump;
+        public delegate void KeyPress();
         public BindManager()
         {
-            if (_managerInstance is not null)
-            {
+            if (_managerInstance is not null)        
                 throw new Exception("BindManager instance already exists");
-            }
-            ExitApplication = new(Keys.Back);
-            MoveLeft = new(Keys.A);
-            MoveRight = new(Keys.D);
-            MoveUp = new(Keys.W);
-            MoveDown = new(Keys.S);
-            _managerInstance = this;
+
+            bool canBeHold = true;
+            ExitApplication = new(Keys.Back, !canBeHold);
+            MoveLeft = new(Keys.A, canBeHold);
+            MoveRight = new(Keys.D, canBeHold);
+            MoveUp = new(Keys.W, canBeHold);
+            MoveDown = new(Keys.S, canBeHold);
+            Dash = new(Keys.LeftShift, !canBeHold);
+            DamageCharacter = new(Keys.F11, !canBeHold);
+            HealCharacter = new(Keys.F12, !canBeHold);
+            _managerInstance = this;           
         }
-        public void SetControlKey(Bind controlKey)
+        public void SetControlKey(Bind bind)
         {
             
         }
         public class Bind
         {
             public Keys Key { get; set; }
-            public KeyState LastState;
-            public KeyState State 
+            public bool CanBeHold { get; }
+            private bool _lastIskeyDown;
+            public bool IsKeyDown
             {
                 set
                 {
-                    if (value is KeyState.Down)
-                    {
-                        KeyPressed.Invoke(this, EventArgs.Empty);
-                    }
-                    LastState = value;
-                } 
+                    if (value == true && CanBeHold || value == true && _lastIskeyDown == false)
+                        KeyPressed.Invoke();
+                    _lastIskeyDown = value;
+                }
             }
-            public EventHandler KeyPressed;
-            public Bind(Keys key)
+            public event KeyPress KeyPressed;
+            public Bind(Keys key, bool canBeHold)
             {
                 Key = key;
+                CanBeHold = canBeHold;
                 BindList.Add(this);
             }
         }

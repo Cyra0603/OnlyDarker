@@ -36,6 +36,7 @@ namespace OnlyDarker
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
         public const float I_FRAME_TIME = 500F;
+        public int DashDuration { get; private set; } = 100; // rework to ingame time
         private bool _isInvincible = false;
         private bool _isAttacking = false;
         public float HandRotation { get; set; } = 0;
@@ -75,10 +76,10 @@ namespace OnlyDarker
         public event ObserveHP OnTakingDamage;
         public event ObserveHP OnHealing;
 
-        public async void RunIFrames()
+        public async void RunIFrames(int durationMilliseconds)
         {
             _isInvincible = true;
-            await Task.Delay((int)I_FRAME_TIME);
+            await Task.Delay(durationMilliseconds);
             _isInvincible = false;
         }
 
@@ -177,14 +178,31 @@ namespace OnlyDarker
             newPos.Y += Position.Y - MovementCollider.Location.Y;
             Position = newPos;
         }
-        public void TakeDamage(float damage)
+        public async void Dash() // rework to ingame time
+        {
+            var currentSpeed = Speed;
+            _isInvincible = true;
+            Speed *= 5F;
+            await Task.Delay(DashDuration);
+            _isInvincible = false;
+            Speed = currentSpeed;
+        }
+        public void TakeDamage(float damage) //rework to ingame time
         {
             if (!_isInvincible)
             {
                 HealthPoints -= damage;
-                RunIFrames();
+                RunIFrames((int)I_FRAME_TIME);
             }
             else return;
+        }
+        public void TestTakingDamage()
+        {
+            TakeDamage(1);
+        }
+        public void TestHealing()
+        {
+            Heal(1);
         }
         public void Heal(float healAmount)
         {

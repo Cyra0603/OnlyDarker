@@ -10,8 +10,8 @@ namespace OnlyDarker
 {
     public static class ControlsManager
     {
-        private static BindManager _bindManager => GameBody.BindsManager;
-        private static Vector2 Direction;
+        private static BindManager _bindManager;
+        private static Vector2 _direction;
         public static Vector2 MousePosition
         {
             get
@@ -24,56 +24,70 @@ namespace OnlyDarker
         }
         public const float DIRECTION_X_MAX_VALUE = 7F;
         public const float DIRECTION_Y_MAX_VALUE = 4.667F;
-        public readonly static float Friction = 0.88F;
+        private static float _friction = 0.88F;
         public static bool InputsBlocked { get; private set; } = true;
         public static bool Paralyzed { get; private set; } = false;
+        static ControlsManager()
+        {
+            _bindManager = GameBody.BindsManager;
+            _bindManager.MoveUp.KeyPressed += PlayerMoveUp;
+            _bindManager.MoveDown.KeyPressed += PlayerMoveDown;
+            _bindManager.MoveLeft.KeyPressed += PlayerMoveLeft;
+            _bindManager.MoveRight.KeyPressed += PlayerMoveRight;
+            _bindManager.HealCharacter.KeyPressed += GameBody.MainCharacter.TestTakingDamage;
+            _bindManager.DamageCharacter.KeyPressed += GameBody.MainCharacter.TestHealing;
+            _bindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
+        }
+
         public static void UpdatePlayerControls()
         {
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
-                if (keyboardState.IsKeyDown(_bindManager.MoveUp.Key))
+                foreach (var bind in BindManager.BindList)
                 {
-                    Direction.Y--;
-                    Direction.Y = MathHelper.Max(Direction.Y, -DIRECTION_Y_MAX_VALUE);
-                }
-                if (keyboardState.IsKeyDown(_bindManager.MoveDown.Key))
-                {
-                    Direction.Y++;
-                    Direction.Y = MathHelper.Min(Direction.Y, DIRECTION_Y_MAX_VALUE);
-                }
-                if (keyboardState.IsKeyDown(_bindManager.MoveLeft.Key))
-                {
-                    Direction.X--;
-                    Direction.X = MathHelper.Max(Direction.X, -DIRECTION_X_MAX_VALUE);
-                }
-                if (keyboardState.IsKeyDown(_bindManager.MoveRight.Key))
-                {
-                    Direction.X++;
-                    Direction.X = MathHelper.Min(Direction.X, DIRECTION_X_MAX_VALUE);
+                    bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
                 }
             }
-            //
-            if (Direction != Vector2.Zero)
-            {
-                Vector2.Normalize(Direction);
-            }
-            if (Paralyzed)
-            {
-                Direction.X = Direction.Y = 0;
-            }
+            Normalize();
             AddFriction();
+        }
+
+        private static void Normalize()
+        {
+            if (_direction != Vector2.Zero)
+                Vector2.Normalize(_direction);
+        }
+        private static void PlayerMoveUp()
+        {
+            _direction.Y--;
+            _direction.Y = MathHelper.Max(_direction.Y, -DIRECTION_Y_MAX_VALUE);
+        }
+        private static void PlayerMoveDown()
+        {
+            _direction.Y++;
+            _direction.Y = MathHelper.Min(_direction.Y, DIRECTION_Y_MAX_VALUE);
+        }
+        private static void PlayerMoveLeft()
+        {
+            _direction.X--;
+            _direction.X = MathHelper.Max(_direction.X, -DIRECTION_X_MAX_VALUE);
+        }
+        private static void PlayerMoveRight()
+        {
+            _direction.X++;
+            _direction.X = MathHelper.Min(_direction.X, DIRECTION_X_MAX_VALUE);
         }
         public static void AddFriction()
         {
-            Direction.Y *= Friction;
-            Direction.X *= Friction;
+            _direction.Y *= _friction;
+            _direction.X *= _friction;
         }
 
         public static async void CharacterParalyze(int milliseconds)
         {
             InputsBlocked = Paralyzed = true;
-            Direction.X = Direction.Y = 0;
+            _direction.X = _direction.Y = 0;
             await Task.Delay(milliseconds);
             InputsBlocked = Paralyzed = false;
         }
@@ -87,15 +101,15 @@ namespace OnlyDarker
         }
         public static Vector2 GetDirection()
         {
-            return Direction;
+            return _direction;
         }
         public static void ZeroDirectionY()
         {
-            Direction.Y = 0;
+            _direction.Y = 0;
         }
         public static void ZeroDirectionX()
         {
-            Direction.X = 0;
+            _direction.X = 0;
         }
     }
 }

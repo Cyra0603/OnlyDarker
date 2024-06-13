@@ -66,6 +66,8 @@ namespace OnlyDarker
 
             BindsManager = new();
 
+            BindsManager.ExitApplication.KeyPressed += Exit;
+
             SceneManager = new(new Level(Floor.One));
 
             _mainCanvas = new(_graphics.GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
@@ -110,8 +112,8 @@ namespace OnlyDarker
 
             if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) GlobalUse.ToggleDebugMode();
 
-            if (Keyboard.GetState().IsKeyDown(Keys.F11) && !_lastKeyboardState.IsKeyDown(Keys.F11)) MainCharacter.TakeDamage(1);
-            if (Keyboard.GetState().IsKeyDown(Keys.F12) && !_lastKeyboardState.IsKeyDown(Keys.F12)) MainCharacter.Heal(1);
+            //if (Keyboard.GetState().IsKeyDown(Keys.F11) && !_lastKeyboardState.IsKeyDown(Keys.F11)) MainCharacter.TakeDamage(1);
+            //if (Keyboard.GetState().IsKeyDown(Keys.F12) && !_lastKeyboardState.IsKeyDown(Keys.F12)) MainCharacter.Heal(1);
             _lastKeyboardState = Keyboard.GetState();
 
             if (_fixedElapsedTime >= ONE_TICK)
