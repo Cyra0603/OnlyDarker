@@ -18,7 +18,6 @@ namespace OnlyDarker
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _handTexture;
         public Vector2 Position { get; set; }
-        private Vector2 _lastAvailablePosition;
         public Vector2 Origin { get; protected set; }
         private Vector2 _handOrigin;
         private Vector2 _minPosition, _maxPosition;
@@ -36,7 +35,7 @@ namespace OnlyDarker
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
         public const float I_FRAME_TIME = 500F;
-        public int DashDuration { get; private set; } = 100; // rework to ingame time
+        private float _dashTimer { get; set; } = 100; // rework to ingame time
         private bool _isInvincible = false;
         private bool _isAttacking = false;
         public float HandRotation { get; set; } = 0;
@@ -76,7 +75,7 @@ namespace OnlyDarker
         public event ObserveHP OnTakingDamage;
         public event ObserveHP OnHealing;
 
-        public async void RunIFrames(int durationMilliseconds)
+        public async void RunIFrames(int durationMilliseconds) //rework to ingame time!
         {
             _isInvincible = true;
             await Task.Delay(durationMilliseconds);
@@ -95,9 +94,11 @@ namespace OnlyDarker
             _maxPosition = new Vector2(roomSize.X - (tileSize.X / 2) - Origin.X, roomSize.Y - (tileSize.Y / 2) - Origin.Y);
         }
 
-        public void Update()
+        public void Update(GameTime gameTime)
         {
-            ControlsManager.UpdatePlayerControls();
+
+            ControlsManager.UpdatePlayerControls(gameTime);
+
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
                 var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
@@ -117,7 +118,7 @@ namespace OnlyDarker
                 GameBody.SceneManager.CurrentRoom.Pickups.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)).ShowPickupMessage();
             }
             Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
-            var cursorPointer = ControlsManager.MousePosition - RightHandPosition;
+            //var cursorPointer = ControlsManager.MousePosition - RightHandPosition;
             HandRotation = 0;
         }
 
@@ -125,37 +126,25 @@ namespace OnlyDarker
         {
             var ly = currentDirection.Y;
             var lx = currentDirection.X;
-            if (currentDirection.Y < 0)
+            if (currentDirection.Y < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1) * Speed))))
             {
-                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1) * Speed))))
-                {
-                    ControlsManager.ZeroDirectionY();
-                    ControlsManager.AddFriction();
-                }
+                ControlsManager.ZeroDirectionY();
+                ControlsManager.AddFriction();
             }
-            if (currentDirection.Y > 0)
+            if (currentDirection.Y > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly + 1) * Speed))))
             {
-                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly + 1) * Speed))))
-                {
-                    ControlsManager.ZeroDirectionY();
-                    ControlsManager.AddFriction();
-                }
+                ControlsManager.ZeroDirectionY();
+                ControlsManager.AddFriction();
             }
-            if (currentDirection.X < 0)
+            if (currentDirection.X < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx - 1, ly) * Speed))))
             {
-                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx - 1, ly) * Speed))))
-                {
-                    ControlsManager.ZeroDirectionX();
-                    ControlsManager.AddFriction();
-                }
+                ControlsManager.ZeroDirectionX();
+                ControlsManager.AddFriction();
             }
-            if (currentDirection.X > 0)
+            if (currentDirection.X > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx + 1, ly) * Speed))))
             {
-                if (obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx + 1, ly) * Speed))))
-                {
-                    ControlsManager.ZeroDirectionX();
-                    ControlsManager.AddFriction();
-                }
+                ControlsManager.ZeroDirectionX();
+                ControlsManager.AddFriction();
             }
         }
         public Rectangle CalculateMovementCollider(Vector2 position)
@@ -178,14 +167,9 @@ namespace OnlyDarker
             newPos.Y += Position.Y - MovementCollider.Location.Y;
             Position = newPos;
         }
-        public async void Dash() // rework to ingame time
+        public void Dash() // rework to ingame time
         {
-            var currentSpeed = Speed;
-            _isInvincible = true;
-            Speed *= 5F;
-            await Task.Delay(DashDuration);
-            _isInvincible = false;
-            Speed = currentSpeed;
+            
         }
         public void TakeDamage(float damage) //rework to ingame time
         {
@@ -208,11 +192,11 @@ namespace OnlyDarker
         {
             HealthPoints += healAmount;
         }
-        public async void Attack()
+        public void Attack()
         {
             if (CurrentWeapon.IsOnCooldown) return;
             _isAttacking = true;
-            
+
         }
     }
 }

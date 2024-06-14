@@ -59,14 +59,14 @@ namespace OnlyDarker.CommonUsing
         public static SpriteBatch SpriteBatch { get; set; }
         public static Point WindowSize { get; set; }
         public readonly static Random RNG = new();
-        public static bool DebugIsOn { get; private set; } = false;
+        public static bool IsDebugMode { get; private set; } = false;
         public static float TicksToMilliseconds(long ticks)
         {
             return ticks / 10000;
         }
         public static void ToggleDebugMode()
         {
-            DebugIsOn = !DebugIsOn;
+            IsDebugMode = !IsDebugMode;
         }
     }
 }

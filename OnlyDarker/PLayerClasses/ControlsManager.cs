@@ -2,6 +2,7 @@
 using OnlyDarker.GameProcess;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -12,6 +13,7 @@ namespace OnlyDarker
     {
         private static BindManager _bindManager;
         private static Vector2 _direction;
+        public static Vector2 ForceSum;     
         public static Vector2 MousePosition
         {
             get
@@ -24,7 +26,7 @@ namespace OnlyDarker
         }
         public const float DIRECTION_X_MAX_VALUE = 7F;
         public const float DIRECTION_Y_MAX_VALUE = 4.667F;
-        private static float _friction = 0.88F;
+        private static readonly float _friction = 0.88F;
         public static bool InputsBlocked { get; private set; } = true;
         public static bool Paralyzed { get; private set; } = false;
         static ControlsManager()
@@ -39,7 +41,7 @@ namespace OnlyDarker
             _bindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
         }
 
-        public static void UpdatePlayerControls()
+        public static void UpdatePlayerControls(GameTime gameTime)
         {
             if (!InputsBlocked)
             {
@@ -49,11 +51,13 @@ namespace OnlyDarker
                     bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
                 }
             }
-            Normalize();
+            _direction += ForceSum;
+            NormalizeDirectionVector();
             AddFriction();
+            ForceSum = Vector2.Zero;
         }
 
-        private static void Normalize()
+        private static void NormalizeDirectionVector()
         {
             if (_direction != Vector2.Zero)
                 Vector2.Normalize(_direction);
@@ -84,12 +88,12 @@ namespace OnlyDarker
             _direction.X *= _friction;
         }
 
-        public static async void CharacterParalyze(int milliseconds)
+        public static async void CharacterParalyze(int milliseconds) //rework to ingame time
         {
-            InputsBlocked = Paralyzed = true;
-            _direction.X = _direction.Y = 0;
-            await Task.Delay(milliseconds);
-            InputsBlocked = Paralyzed = false;
+            //InputsBlocked = Paralyzed = true;
+            //_direction.X = _direction.Y = 0;
+            //await Task.Delay(milliseconds);
+            //InputsBlocked = Paralyzed = false;
         }
         public static void ToggleDisableInputs()
         {

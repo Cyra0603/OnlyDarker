@@ -25,7 +25,8 @@ namespace OnlyDarker
         private static CurrentFloorBar _currentFloorBar;
         private static Texture2D _hitboxTexture;
         private static Minimap _minimap;
-        private long _fixedElapsedTime = 0;
+        private long _fixedElapsedTime = 0; //add fixed elapsed time event
+
         public const long ONE_TICK = 78125L;
         private string _netgraph = "0";
         private int FPS = 0;
@@ -33,7 +34,13 @@ namespace OnlyDarker
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
         private static float _cameraZoom = 0.5F;
-        private bool _drawHitboxes => GlobalUse.DebugIsOn;
+        private bool _drawHitboxes
+        {
+            get
+            {
+                return GlobalUse.IsDebugMode;
+            }
+        }
         private KeyboardState _lastKeyboardState;
 
         public GameBody()
@@ -108,18 +115,14 @@ namespace OnlyDarker
         {
             _fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
 
-            if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || Keyboard.GetState().IsKeyDown(Keys.Escape)) Exit();
-
             if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) GlobalUse.ToggleDebugMode();
 
-            //if (Keyboard.GetState().IsKeyDown(Keys.F11) && !_lastKeyboardState.IsKeyDown(Keys.F11)) MainCharacter.TakeDamage(1);
-            //if (Keyboard.GetState().IsKeyDown(Keys.F12) && !_lastKeyboardState.IsKeyDown(Keys.F12)) MainCharacter.Heal(1);
             _lastKeyboardState = Keyboard.GetState();
 
             if (_fixedElapsedTime >= ONE_TICK)
             {
                 CalculateCameraView();
-                MainCharacter.Update();
+                MainCharacter.Update(gameTime);
                 SceneManager.CurrentRoom.UpdatePortals();
                 _fixedElapsedTime = 0;
             }
