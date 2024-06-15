@@ -23,7 +23,7 @@ namespace OnlyDarker.GameProcess
         public delegate void KeyPress();
         public BindManager()
         {
-            if (_managerInstance is not null)        
+            if (_managerInstance is not null)
                 throw new Exception("BindManager instance already exists");
 
             bool canBeHold = true;
@@ -35,11 +35,11 @@ namespace OnlyDarker.GameProcess
             Dash = new(Keys.LeftShift, !canBeHold);
             DamageCharacter = new(Keys.F11, !canBeHold);
             HealCharacter = new(Keys.F12, !canBeHold);
-            _managerInstance = this;           
+            _managerInstance = this;
         }
         public void SetControlKey(Bind bind)
         {
-            
+
         }
         public class Bind
         {

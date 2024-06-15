@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace OnlyDarker
 {
@@ -122,7 +123,7 @@ namespace OnlyDarker
             if (_fixedElapsedTime >= ONE_TICK)
             {
                 CalculateCameraView();
-                MainCharacter.Update(gameTime);
+                MainCharacter.Update(GlobalUse.TicksToMilliseconds(_fixedElapsedTime));
                 SceneManager.CurrentRoom.UpdatePortals();
                 _fixedElapsedTime = 0;
             }

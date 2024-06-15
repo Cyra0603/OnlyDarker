@@ -41,7 +41,7 @@ namespace OnlyDarker
             _bindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
         }
 
-        public static void UpdatePlayerControls(GameTime gameTime)
+        public static void UpdatePlayerControls(float elapsedMilliseconds)
         {
             if (!InputsBlocked)
             {
@@ -51,12 +51,16 @@ namespace OnlyDarker
                     bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
                 }
             }
+            ClampDirectionVector();
             _direction += ForceSum;
             NormalizeDirectionVector();
             AddFriction();
             ForceSum = Vector2.Zero;
         }
-
+        private static void ClampDirectionVector()
+        {
+            _direction = Vector2.Clamp(_direction, new(-DIRECTION_X_MAX_VALUE, -DIRECTION_Y_MAX_VALUE), new(DIRECTION_X_MAX_VALUE, DIRECTION_Y_MAX_VALUE));
+        }
         private static void NormalizeDirectionVector()
         {
             if (_direction != Vector2.Zero)
@@ -65,22 +69,22 @@ namespace OnlyDarker
         private static void PlayerMoveUp()
         {
             _direction.Y--;
-            _direction.Y = MathHelper.Max(_direction.Y, -DIRECTION_Y_MAX_VALUE);
+            //_direction.Y = MathHelper.Max(_direction.Y, -DIRECTION_Y_MAX_VALUE);
         }
         private static void PlayerMoveDown()
         {
             _direction.Y++;
-            _direction.Y = MathHelper.Min(_direction.Y, DIRECTION_Y_MAX_VALUE);
+            //_direction.Y = MathHelper.Min(_direction.Y, DIRECTION_Y_MAX_VALUE);
         }
         private static void PlayerMoveLeft()
         {
             _direction.X--;
-            _direction.X = MathHelper.Max(_direction.X, -DIRECTION_X_MAX_VALUE);
+            //_direction.X = MathHelper.Max(_direction.X, -DIRECTION_X_MAX_VALUE);
         }
         private static void PlayerMoveRight()
         {
             _direction.X++;
-            _direction.X = MathHelper.Min(_direction.X, DIRECTION_X_MAX_VALUE);
+            //_direction.X = MathHelper.Min(_direction.X, DIRECTION_X_MAX_VALUE);
         }
         public static void AddFriction()
         {
