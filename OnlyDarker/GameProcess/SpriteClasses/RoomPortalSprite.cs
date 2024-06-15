@@ -85,6 +85,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Debug.WriteLine("to" + GameBody.SceneManager.CurrentRoom.OrderNumber.ToString());
             ParentRoomReference.ActivatePortals(2000);
             ExitRoom.ActivatePortals(2000);
+            GC.Collect();
         }
     }
 }

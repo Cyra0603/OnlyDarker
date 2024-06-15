@@ -10,6 +10,7 @@ namespace OnlyDarker.GameProcess
     {
         private BindManager _managerInstance = null;
         public readonly static List<Bind> BindList = new();
+        public readonly Bind ToggleDebug;
         public readonly Bind ExitApplication;
         public readonly Bind MoveLeft;
         public readonly Bind MoveRight;
@@ -27,6 +28,7 @@ namespace OnlyDarker.GameProcess
                 throw new Exception("BindManager instance already exists");
 
             bool canBeHold = true;
+            ToggleDebug = new(Keys.F1, !canBeHold);
             ExitApplication = new(Keys.Back, !canBeHold);
             MoveLeft = new(Keys.A, canBeHold);
             MoveRight = new(Keys.D, canBeHold);

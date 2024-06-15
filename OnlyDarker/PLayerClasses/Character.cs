@@ -15,7 +15,7 @@ using OnlyDarker.PlayerClasses;
 namespace OnlyDarker
 {
 
-    public class Character : IDamageable
+    public class Character : IDamageable,IYSortable
     {
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _handTexture;
@@ -225,7 +225,7 @@ namespace OnlyDarker
             var pos = Position;
             _dashFrames.Add(pos);
         }
-        public void TakeDamage(float damage) //rework to ingame time
+        public void TakeDamage(float damage)
         {
             if (InvincibilityTimer is null || !InvincibilityTimer.IsRunning)
             {
@@ -248,9 +248,7 @@ namespace OnlyDarker
         }
         public void Attack()
         {
-            if (CurrentWeapon.IsOnCooldown) return;
-            _isAttacking = true;
-
+            
         }
     }
 }

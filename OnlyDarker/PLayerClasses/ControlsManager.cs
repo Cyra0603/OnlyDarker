@@ -31,7 +31,7 @@ namespace OnlyDarker
         public static bool Paralyzed { get; private set; } = false;
         static ControlsManager()
         {
-            _bindManager = GameBody.BindsManager;
+            _bindManager = GameBody.BindManager;
             _bindManager.MoveUp.KeyPressed += PlayerMoveUp;
             _bindManager.MoveDown.KeyPressed += PlayerMoveDown;
             _bindManager.MoveLeft.KeyPressed += PlayerMoveLeft;

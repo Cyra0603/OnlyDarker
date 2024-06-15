@@ -19,7 +19,7 @@ namespace OnlyDarker
         private MainCanvas _mainCanvas;
         private GraphicsDeviceManager _graphics;
         public static SceneManager SceneManager { get; private set; }
-        public static BindManager BindsManager { get; private set; }   
+        public static BindManager BindManager { get; private set; }   
         public static Character? MainCharacter { get; private set; } = null;
         private static CharacterHealthbar _characterHealthbar;
         private static StatsBar _statsBar;
@@ -72,9 +72,11 @@ namespace OnlyDarker
 
             _graphics.ApplyChanges();
 
-            BindsManager = new();
+            BindManager = new();
 
-            BindsManager.ExitApplication.KeyPressed += Exit;
+            BindManager.ExitApplication.KeyPressed += Exit;
+
+            BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
 
             SceneManager = new(new Level(Floor.One));
 

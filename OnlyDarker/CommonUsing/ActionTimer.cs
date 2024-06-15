@@ -1,15 +1,17 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using System.Reflection.Metadata.Ecma335;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 
 namespace OnlyDarker.CommonUsing
 {
-    public class ActionTimer : IDisposable
+    public class ActionTimer
     {
         public bool IsRunning { get; private set; }
+        public bool Expired { get; private set; }
         private bool _disposed = false;
         private float _timeLeft;
         public float TimeLeft
@@ -23,6 +25,7 @@ namespace OnlyDarker.CommonUsing
                 {
                     TimeElapsed?.Invoke(this, EventArgs.Empty);
                     IsRunning = false;
+                    Expired = true;
                 }
             }
         }
@@ -35,12 +38,16 @@ namespace OnlyDarker.CommonUsing
             //TimeElapsed += elapsedTimeAction;
             IsRunning = true;
         }
-        public void Dispose()
+        ~ActionTimer()
         {
-            if (_disposed) 
-                return;
-            GC.SuppressFinalize(this);
-            _disposed = true;
+            Debug.WriteLine($"Timer {GetType} disposed");
         }
+        public void Update(GameTime gameTime)
+        {
+            if (!IsRunning) return;
+            TimeLeft -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+        }
+        public void Pause() => IsRunning = false;
+        public void Unpause() => IsRunning = true;
     }
 }

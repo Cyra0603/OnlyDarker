@@ -3,10 +3,10 @@
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class SpriteStandartObstacle
+    public class SpriteStandartObstacle : IYSortable
     {
         private readonly Texture2D _texture;
-        public Vector2 Position { get; protected set; }
+        public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         public Rectangle MovementCollider { get; private set; }
         private Color _shadowColor = new(Color.Black, 0.20F);

@@ -160,7 +160,7 @@ namespace OnlyDarker.GameProcess
             PortalBack?.DeactivatePortal();
             PortalNext?.DeactivatePortal();
         }
-        public async void ActivatePortals(int milliseconds)
+        public async void ActivatePortals(int milliseconds) //REWORK TO INGAME TIME
         {
             await Task.Delay(milliseconds);
             PortalBack?.ActivatePortal();
