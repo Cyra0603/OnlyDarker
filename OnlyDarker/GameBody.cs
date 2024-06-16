@@ -10,7 +10,6 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TrackBar;
 
 namespace OnlyDarker
 {
@@ -22,9 +21,11 @@ namespace OnlyDarker
         public static BindManager BindManager { get; private set; }   
         public static Character? MainCharacter { get; private set; } = null;
         private static CharacterHealthbar _characterHealthbar;
+        private static CharacterStaminaBar _staminaBar;
         private static StatsBar _statsBar;
         private static CurrentFloorBar _currentFloorBar;
         private static Texture2D _hitboxTexture;
+        private static Texture2D _emptyTexture;
         private static Minimap _minimap;
         private long _fixedElapsedTime = 0; //add fixed elapsed time event
 
@@ -87,6 +88,9 @@ namespace OnlyDarker
             _hitboxTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
             _hitboxTexture.SetData(new Color[] { Color.Red });
 
+            _emptyTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
+            _emptyTexture.SetData(new[] { Color.White });
+
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
@@ -106,6 +110,8 @@ namespace OnlyDarker
             _currentFloorBar = new();
 
             _minimap = new(_graphics.GraphicsDevice);
+
+            _staminaBar = new(_graphics.GraphicsDevice);
 
             UpdateFPS();
 
@@ -178,6 +184,7 @@ namespace OnlyDarker
             ShowFPS();
             _statsBar.DrawStats();
             _currentFloorBar.Draw();
+            _staminaBar.Draw();
             GlobalUse.SpriteBatch.End();
 
             base.Draw(gameTime);
@@ -209,6 +216,13 @@ namespace OnlyDarker
         private void DrawHitbox(Rectangle hitbox)
         {
             GlobalUse.SpriteBatch.Draw(_hitboxTexture, hitbox, Color.White);
+        }
+        public static void DrawRectangleOutline(Rectangle rect, Color color, int borderWidth = 1)
+        {
+            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Left, rect.Top, borderWidth, rect.Height), color);
+            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Right, rect.Top, borderWidth, rect.Height), color);
+            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Left, rect.Top, rect.Width, borderWidth), color);
+            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Left, rect.Bottom, rect.Width, borderWidth), color);
         }
     }
 }

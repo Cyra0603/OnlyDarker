@@ -58,6 +58,7 @@ namespace OnlyDarker
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
         public const float I_FRAME_TIME = 500F;
+        private float _staminaRegenValue = 0.02F;
         private float _dashLength { get; set; } = 100;
         private float _dashEffectLength => _dashLength * 1.5F;
         private bool _isInvincible = false;
@@ -154,6 +155,7 @@ namespace OnlyDarker
             DashTimer?.Update(elapsedMilliseconds);
             DashEffectTimer?.Update(elapsedMilliseconds);
             InvincibilityTimer?.Update(elapsedMilliseconds);
+            Stamina += elapsedMilliseconds * _staminaRegenValue;
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
                 var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
@@ -226,6 +228,12 @@ namespace OnlyDarker
         {
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 return;
+            if(Stamina < 50F)
+            {
+                //Notify
+                return;
+            }
+            Stamina -= 50F;
             _dashForce = ControlsManager.GetDirection();
             DashTimer = new ActionTimer(_dashLength);
             DashEffectTimer = new ActionTimer(_dashEffectLength);
