@@ -15,8 +15,8 @@ namespace OnlyDarker.UI
         private RenderTarget2D _minimapTarget;
         private readonly GraphicsDevice _graphicsDevice;
         private const int FRAME_OFFSET = 3;
-        private List<Room> CurrentLevel => GameBody.SceneManager.CurrentLevel.BuiltFloor;
-        private Room CurrentRoom => GameBody.SceneManager.CurrentRoom;
+        private static List<Room> CurrentLevel => GameBody.SceneManager.CurrentLevel.BuiltFloor;
+        private static Room CurrentRoom => GameBody.SceneManager.CurrentRoom;
         private float _minimapScale = 1F;
         private Matrix _minimapView => CalculateMinimapView();
 

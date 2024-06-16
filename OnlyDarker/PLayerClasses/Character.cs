@@ -63,6 +63,31 @@ namespace OnlyDarker
         private bool _isInvincible = false;
         private bool _isAttacking = false;
         public float HandRotation { get; set; } = 0;
+        private float _maxStamina = 100;
+        public float MaxStamina
+        {
+            get
+            {
+                return _maxStamina;
+            }
+            set
+            {
+                _maxStamina = value;    
+                OnChangingMaxStamina?.Invoke(_maxStamina);
+            }
+        }
+        private float _stamina = 100;
+        public float Stamina
+        {
+            get => _stamina;
+            private set 
+            {
+                _stamina = value;
+                if (_stamina > MaxStamina)
+                    _stamina = MaxStamina;
+                OnChangingStamina?.Invoke(_stamina);
+            }
+        }
         private float _healthPoints = 24;
         public float HealthPoints
         {
@@ -95,10 +120,12 @@ namespace OnlyDarker
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
             //_dashDelegate += DashAction(this, EventArgs.Empty);
         }
-        public delegate void ObserveHP(float healthPoints);
-        public event ObserveHP OnChangingHealth;
-        public event ObserveHP OnTakingDamage;
-        public event ObserveHP OnHealing;
+        public delegate void ObserveFloatStat(float statValue);
+        public event ObserveFloatStat OnChangingHealth;
+        public event ObserveFloatStat OnTakingDamage;
+        public event ObserveFloatStat OnHealing;
+        public event ObserveFloatStat OnChangingStamina;
+        public event ObserveFloatStat OnChangingMaxStamina;
         //private EventHandler _dashDelegate;
         public void RunIFrames(float durationMilliseconds)
         {
@@ -109,7 +136,7 @@ namespace OnlyDarker
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
-                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.8F / (_dashFrames.Count - i)), 0F, Origin, 1F, SpriteEffects.None, 0.5F);
+                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, SpriteEffects.None, 0.5F);
                 }
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
             GlobalUse.SpriteBatch.Draw(_handTexture, RightHandPosition, null, Color.White, HandRotation, _handOrigin, 1F, SpriteEffects.None, 0.5F);
@@ -124,18 +151,9 @@ namespace OnlyDarker
         public void Update(float elapsedMilliseconds)
         {
             ControlsManager.UpdatePlayerControls(elapsedMilliseconds);
-            if (DashTimer is not null && DashTimer.IsRunning)
-            {
-                DashTimer.TimeLeft -= elapsedMilliseconds;
-            }
-            if (DashEffectTimer is not null && DashEffectTimer.IsRunning)
-            {
-                DashEffectTimer.TimeLeft -= elapsedMilliseconds;
-            }
-            if (InvincibilityTimer is not null && InvincibilityTimer.IsRunning)
-            {
-                InvincibilityTimer.TimeLeft -= elapsedMilliseconds;
-            }
+            DashTimer?.Update(elapsedMilliseconds);
+            DashEffectTimer?.Update(elapsedMilliseconds);
+            InvincibilityTimer?.Update(elapsedMilliseconds);
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
                 var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();

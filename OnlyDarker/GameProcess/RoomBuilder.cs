@@ -18,9 +18,8 @@ namespace OnlyDarker.GameProcess
         private readonly Point _roomTileSize;
         private readonly Texture2D _roomPresetImage;
         public readonly SpriteStandartTile[,] _tiles;
-        private readonly List<SpriteStandartTile> _tilesYSorted;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
-        private readonly List<SpriteStandartObstacle> _obstaclesYSorted;
+        public List<IYSortable> ObjectsYSorted;
         public List<IPickup> Pickups;
         public List<IDamageable> Damageables;
         public RoomPortalSprite PortalBack { get; private set; }
@@ -57,31 +56,37 @@ namespace OnlyDarker.GameProcess
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
             FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, roomBlueprint.lastRoomDirection, roomBlueprint.nextRoomDirection, roomBlueprint.roomType);
             RoomColliders = new();
+            ObjectsYSorted = new();
             foreach (var obstacle in _standartObstacles)
             {
                 if (obstacle is not null)
                 {
                     RoomColliders.Add(obstacle.MovementCollider);
+                    ObjectsYSorted.Add(obstacle);
                 }
             }
-            
-            _tilesYSorted = _tiles.OfType<SpriteStandartTile>().OrderBy(tile => tile.Position.Y).ToList();
-            _obstaclesYSorted = _standartObstacles.OfType<SpriteStandartObstacle>().OrderBy(obstacle => obstacle.Position.Y).ToList();
+            if (PortalNext is not null)
+             ObjectsYSorted.Add(PortalNext);
+            if (PortalBack is not null)
+                ObjectsYSorted.Add(PortalBack);
+            ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;
         }
 
         public void Draw()
         {
-            foreach (var tile in _tilesYSorted)
+            foreach (var tile in _tiles)
             {
-                tile.Draw();
+                tile?.Draw();
             }
-            foreach (var obstacle in _obstaclesYSorted)
+            foreach (var obj in ObjectsYSorted)
             {
-                obstacle.Draw();
+                obj.Draw();
             }
-            PortalBack?.Draw();
-            PortalNext?.Draw();
+        }
+        public void SortObjectsByY()
+        {
+            ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
         }
         private Texture2D ImportPreset(Floor floor, RoomType roomType)
         {

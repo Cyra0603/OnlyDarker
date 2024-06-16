@@ -13,8 +13,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public static string PickupMessage => $"[E] Pickup ";
         public string PickupSound { get; }
         public bool IsOneUse { get; }
-        public void ShowPickupMessage();
         public Rectangle MovementCollider { get; }
+        public void ShowPickupMessage();
     }
 
     public class PickupSprite

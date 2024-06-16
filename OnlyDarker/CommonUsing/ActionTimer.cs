@@ -12,7 +12,6 @@ namespace OnlyDarker.CommonUsing
     {
         public bool IsRunning { get; private set; }
         public bool Expired { get; private set; }
-        private bool _disposed = false;
         private float _timeLeft;
         public float TimeLeft
         {
@@ -42,10 +41,10 @@ namespace OnlyDarker.CommonUsing
         {
             Debug.WriteLine($"Timer {GetType} disposed");
         }
-        public void Update(GameTime gameTime)
+        public void Update(float milliseconds)
         {
             if (!IsRunning) return;
-            TimeLeft -= (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            TimeLeft -= milliseconds;
         }
         public void Pause() => IsRunning = false;
         public void Unpause() => IsRunning = true;

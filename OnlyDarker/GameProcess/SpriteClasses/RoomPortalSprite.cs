@@ -9,10 +9,10 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class RoomPortalSprite
+    public class RoomPortalSprite : IYSortable
     {
         private readonly Texture2D _texture;
-        public Vector2 Position { get; protected set; }
+        public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         public Vector2 CenterCords { get; protected set; }
         public Vector2 ExitPosition { get; protected set; }

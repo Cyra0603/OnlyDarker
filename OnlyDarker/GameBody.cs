@@ -94,6 +94,11 @@ namespace OnlyDarker
 
             MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
 
+            foreach(var room in SceneManager.CurrentLevel.BuiltFloor)
+            {
+                room.ObjectsYSorted.Add(MainCharacter);
+            }
+
             _characterHealthbar = new(GlobalUse.Content.Load<Texture2D>("UI/Heart"));
 
             _statsBar = new();
@@ -117,6 +122,8 @@ namespace OnlyDarker
         protected override void Update(GameTime gameTime)
         {
             _fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
+
+            SceneManager.CurrentRoom.SortObjectsByY();
 
             if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) GlobalUse.ToggleDebugMode();
 
@@ -144,7 +151,7 @@ namespace OnlyDarker
             //MainScene
             GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
-            MainCharacter.Draw();
+            //MainCharacter.Draw();
             if (_drawHitboxes)
             {
                 foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
