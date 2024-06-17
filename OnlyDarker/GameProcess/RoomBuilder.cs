@@ -34,6 +34,7 @@ namespace OnlyDarker.GameProcess
             {new Vector4(0,0,255,255) , "Portal"},
         };
         public List<Rectangle> RoomColliders { get; private set; }
+        public List<Rectangle> ObstaclesBounds { get; private set; }
         public int OrderNumber { get; private set; }
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
@@ -56,12 +57,14 @@ namespace OnlyDarker.GameProcess
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
             FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, roomBlueprint.lastRoomDirection, roomBlueprint.nextRoomDirection, roomBlueprint.roomType);
             RoomColliders = new();
+            ObstaclesBounds =new();
             ObjectsYSorted = new();
             foreach (var obstacle in _standartObstacles)
             {
                 if (obstacle is not null)
                 {
                     RoomColliders.Add(obstacle.MovementCollider);
+                    ObstaclesBounds.Add(obstacle.Bounds);
                     ObjectsYSorted.Add(obstacle);
                 }
             }
@@ -261,6 +264,13 @@ namespace OnlyDarker.GameProcess
         public void SetOrderNumber(int number)
         {
             OrderNumber = number;
+        }
+        public void UpdateObstaclesTransparency(float elapsedMilliseconds)
+        {
+            foreach (var obstacle in _standartObstacles)
+            {
+                obstacle?.UpdateTransparencyTimer(elapsedMilliseconds);
+            }
         }
     }
 }

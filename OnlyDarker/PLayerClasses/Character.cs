@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
+using System.Reflection.Metadata;
 using System.Runtime.CompilerServices;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,12 +17,11 @@ using OnlyDarker.PlayerClasses;
 namespace OnlyDarker
 {
 
-    public class Character : IDamageable,IYSortable
+    public class Character : IDamageable, IYSortable
     {
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _handTexture;
         private List<Vector2> _dashFrames = new();
-        private Vector2 _beforeDashPos;
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         private Vector2 _handOrigin;
@@ -38,22 +39,8 @@ namespace OnlyDarker
         public IWeapon CurrentWeapon = new WeaponFist();
         public ActionTimer? DashTimer;
         public ActionTimer? DashEffectTimer;
-        private ActionTimer _invincibilityTimer;
-        public ActionTimer? InvincibilityTimer
-        {
-            get => _invincibilityTimer;
-            set
-            {
-                if (_invincibilityTimer is not null && _invincibilityTimer.IsRunning)
-                {
-                    _invincibilityTimer.TimeLeft += value.TimeLeft;
-                    _invincibilityTimer.TimeUpdated += value.TimeUpdated;
-                    _invincibilityTimer.TimeElapsed += value.TimeElapsed;
-                    return;
-                }
-                _invincibilityTimer = value;
-            }
-        }
+        public Timer AttackCooldown = new(0);
+        public Timer InvincibilityTimer = new(0);
         public float Speed { get; private set; } = 1F;
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
@@ -61,8 +48,6 @@ namespace OnlyDarker
         private float _staminaRegenValue = 0.02F;
         private float _dashLength { get; set; } = 100;
         private float _dashEffectLength => _dashLength * 1.5F;
-        private bool _isInvincible = false;
-        private bool _isAttacking = false;
         public float HandRotation { get; set; } = 0;
         private float _maxStamina = 100;
         public float MaxStamina
@@ -73,7 +58,7 @@ namespace OnlyDarker
             }
             set
             {
-                _maxStamina = value;    
+                _maxStamina = value;
                 OnChangingMaxStamina?.Invoke(_maxStamina);
             }
         }
@@ -81,7 +66,7 @@ namespace OnlyDarker
         public float Stamina
         {
             get => _stamina;
-            private set 
+            private set
             {
                 _stamina = value;
                 if (_stamina > MaxStamina)
@@ -122,25 +107,29 @@ namespace OnlyDarker
             //_dashDelegate += DashAction(this, EventArgs.Empty);
         }
         public delegate void ObserveFloatStat(float statValue);
+        public delegate void NoParamsVoid();
+        public event NoParamsVoid OnNotEnoughStamina;
         public event ObserveFloatStat OnChangingHealth;
         public event ObserveFloatStat OnTakingDamage;
         public event ObserveFloatStat OnHealing;
         public event ObserveFloatStat OnChangingStamina;
         public event ObserveFloatStat OnChangingMaxStamina;
-        //private EventHandler _dashDelegate;
         public void RunIFrames(float durationMilliseconds)
         {
-            InvincibilityTimer = new(durationMilliseconds);
+            InvincibilityTimer.TimeLeft = Math.Max(InvincibilityTimer.TimeLeft, durationMilliseconds);
         }
         public void Draw()
         {
+            SpriteEffects flipsf = SpriteEffects.None;
+            if (ControlsManager.MousePosition.X < Position.X)
+                flipsf = SpriteEffects.FlipHorizontally;
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
-                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, SpriteEffects.None, 0.5F);
+                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, flipsf/*SpriteEffects.None*/, 0.5F);
                 }
-            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
-            GlobalUse.SpriteBatch.Draw(_handTexture, RightHandPosition, null, Color.White, HandRotation, _handOrigin, 1F, SpriteEffects.None, 0.5F);
+            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, flipsf/*SpriteEffects.None*/, 0.5F);
+            //GlobalUse.SpriteBatch.Draw(_handTexture, RightHandPosition, null, Color.White, HandRotation, _handOrigin, 1F, SpriteEffects.None, 0.5F);
         }
 
         public void SetRoomBounds(Point roomSize, Point tileSize)
@@ -154,7 +143,7 @@ namespace OnlyDarker
             ControlsManager.UpdatePlayerControls(elapsedMilliseconds);
             DashTimer?.Update(elapsedMilliseconds);
             DashEffectTimer?.Update(elapsedMilliseconds);
-            InvincibilityTimer?.Update(elapsedMilliseconds);
+            InvincibilityTimer.Update(elapsedMilliseconds);
             Stamina += elapsedMilliseconds * _staminaRegenValue;
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
@@ -228,22 +217,31 @@ namespace OnlyDarker
         {
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 return;
-            if(Stamina < 50F)
+            if (Stamina < 50F)
             {
-                //Notify
+                OnNotEnoughStamina.Invoke();
                 return;
             }
             Stamina -= 50F;
-            _dashForce = ControlsManager.GetDirection();
+            //if (ControlsManager.GetDirection() != Vector2.Zero)
+                _dashForce = ControlsManager.GetDirection();
+            //else
+            //{
+            //    var angle = Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X);
+            //    var dir = ControlsManager.GetMaxDirectionVector();
+            //    var transformed = Vector2.Transform(dir, Matrix.CreateRotationZ((float)angle));
+            //    _dashForce = transformed;
+            //}
             DashTimer = new ActionTimer(_dashLength);
             DashEffectTimer = new ActionTimer(_dashEffectLength);
-            InvincibilityTimer = new ActionTimer(_dashEffectLength);
+            RunIFrames(_dashEffectLength);
             DashTimer.TimeUpdated += DashAction;
             DashEffectTimer.TimeElapsed += DashEnded;
         }
         private void DashEnded(object character, EventArgs e)
         {
             _dashFrames.Clear();
+            _dashForce = Vector2.Zero;
         }
         private void DashAction(object character, EventArgs e)
         {
@@ -253,7 +251,7 @@ namespace OnlyDarker
         }
         public void TakeDamage(float damage)
         {
-            if (InvincibilityTimer is null || !InvincibilityTimer.IsRunning)
+            if (InvincibilityTimer.TimeLeft <= 0)
             {
                 HealthPoints -= damage;
                 RunIFrames(I_FRAME_TIME);
@@ -274,7 +272,13 @@ namespace OnlyDarker
         }
         public void Attack()
         {
-            
+            if (AttackCooldown.TimeLeft > 0)
+            {
+                //Notify
+                return;
+            }
+            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeed);
+
         }
     }
 }

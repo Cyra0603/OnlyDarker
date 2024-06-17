@@ -131,6 +131,8 @@ namespace OnlyDarker
 
             SceneManager.CurrentRoom.SortObjectsByY();
 
+            _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
+
             if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) GlobalUse.ToggleDebugMode();
 
             _lastKeyboardState = Keyboard.GetState();
@@ -140,6 +142,7 @@ namespace OnlyDarker
                 CalculateCameraView();
                 MainCharacter.Update(GlobalUse.TicksToMilliseconds(_fixedElapsedTime));
                 SceneManager.CurrentRoom.UpdatePortals();
+                SceneManager.CurrentRoom.UpdateObstaclesTransparency(GlobalUse.TicksToMilliseconds(_fixedElapsedTime));
                 _fixedElapsedTime = 0;
             }
             base.Update(gameTime);
@@ -162,7 +165,11 @@ namespace OnlyDarker
             {
                 foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
                 {
-                    DrawHitbox(hitbox);
+                    DrawRectangleOutline(hitbox, Color.Red, 5);
+                }
+                foreach (var bounds in SceneManager.CurrentRoom.ObstaclesBounds)
+                {
+                    DrawRectangleOutline(bounds, Color.Black, 5);
                 }
                 GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
                 if (SceneManager.CurrentRoom.PortalBack is not null)
@@ -213,7 +220,7 @@ namespace OnlyDarker
             }
         }
 
-        private void DrawHitbox(Rectangle hitbox)
+        private static void DrawHitbox(Rectangle hitbox)
         {
             GlobalUse.SpriteBatch.Draw(_hitboxTexture, hitbox, Color.White);
         }

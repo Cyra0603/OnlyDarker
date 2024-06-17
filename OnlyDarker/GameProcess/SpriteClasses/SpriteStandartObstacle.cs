@@ -9,6 +9,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         public Rectangle MovementCollider { get; private set; }
+        public Rectangle Bounds { get; private set; }
+        private Rectangle _nonTransparentBounds;
+        private float _transparencyFadeTime = 250F;
+        private Timer _transparencyTimer = new(0);
         private Color _shadowColor = new(Color.Black, 0.20F);
         public SpriteStandartObstacle(Texture2D texture, SpriteStandartTile parentTile)
         {
@@ -21,14 +25,29 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 new((int)parentTile.GetTextureWidth(),
                 (int)parentTile.GetTextureHeight())
                 );
+            Bounds = new(new(Position.ToPoint().X - _texture.Width / 2, Position.ToPoint().Y - _texture.Height / 2), new(_texture.Width, _texture.Height));
+            _nonTransparentBounds = new(new(Bounds.Size.X - MovementCollider.Size.X, Bounds.Size.Y - MovementCollider.Size.Y), MovementCollider.Size);
         }
         public void Draw()
         {
-            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.4F);
+            if (Bounds.Intersects(GameBody.MainCharacter.MovementCollider) || GameBody.SceneManager.CurrentRoom.PortalNext is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalNext.MovementCollider) || GameBody.SceneManager.CurrentRoom.PortalBack is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalBack.MovementCollider))
+            {
+                _transparencyTimer.TimeLeft = _transparencyFadeTime;
+                GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White * 0.5F, 0F, Origin, 1F, SpriteEffects.None, 0.4F);
+                GlobalUse.SpriteBatch.Draw(_texture, MovementCollider, _nonTransparentBounds, Color.White);
+            }
+            else
+                GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White * (1F - (0.5F * (_transparencyTimer.TimeLeft / _transparencyFadeTime))),0F , Origin, 1F, SpriteEffects.None, 0.4F);
+            if (_transparencyTimer.TimeLeft > 0.1)
+                GlobalUse.SpriteBatch.Draw(_texture, MovementCollider, _nonTransparentBounds, Color.White);
         }
         public void DrawShadow()
         {
             GlobalUse.SpriteBatch.Draw(_texture, Position, null, _shadowColor, -0.4F, Origin * 1.5F, 1F, SpriteEffects.None, 0.4F);
+        }
+        public void UpdateTransparencyTimer(float elapsedMilliseconds)
+        {
+            _transparencyTimer.Update(elapsedMilliseconds);
         }
     }
 }

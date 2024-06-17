@@ -24,8 +24,6 @@ namespace OnlyDarker.PlayerClasses
         public float AttackSpeed { get; set; }
         public DamageType WeaponDamageType { get; set; }
         public WeaponSprite WeaponPickupSprite { get; set; }
-        public bool IsOnCooldown { get; set; }
-        public void Cooldown();
     }
     //public abstract class Weapon : IWeapon
     //{
@@ -54,18 +52,12 @@ namespace OnlyDarker.PlayerClasses
         public float AttackSpeed { get; set; }
         public DamageType WeaponDamageType { get; set; }
         public WeaponSprite WeaponPickupSprite { get; set; }
-        public bool IsOnCooldown { get; set; }
         public WeaponFist()
         {
             AttackRangeBase = 70F;
             AttackDamageBase = 2F;
             AttackSpeedBase = 2F;
-        }
-        public async void Cooldown()
-        {
-            IsOnCooldown = true;
-            await Task.Delay((int)(1000 / AttackSpeedBase));
-            IsOnCooldown = false;
+            WeaponDamageType = DamageType.Blunt;
         }
     }
     public class WeaponSword : IWeapon
@@ -76,7 +68,6 @@ namespace OnlyDarker.PlayerClasses
         public float AttackDamageBase { get; set; }
         public float AttackSpeed { get; set; }
         public float AttackSpeedBase { get; set; }
-        public bool IsOnCooldown { get; set; }
         public DamageType WeaponDamageType { get; set; }
         public WeaponSprite WeaponPickupSprite { get; set; }
 
@@ -85,14 +76,7 @@ namespace OnlyDarker.PlayerClasses
             AttackRangeBase = 100F;
             AttackDamageBase = 5F;
             AttackSpeedBase = 2F;
-            WeaponDamageType = DamageType.Blunt;
-        }
-
-        public async void Cooldown()
-        {
-            IsOnCooldown = true;
-            await Task.Delay((int)(1000 / AttackSpeedBase));
-            IsOnCooldown = false;
+            WeaponDamageType = DamageType.Slice;
         }
     }
 

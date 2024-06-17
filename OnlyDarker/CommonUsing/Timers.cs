@@ -49,4 +49,28 @@ namespace OnlyDarker.CommonUsing
         public void Pause() => IsRunning = false;
         public void Unpause() => IsRunning = true;
     }
+    public struct Timer
+    {
+        private float _timeLeft = 0;
+        public float TimeLeft
+        {
+            get => _timeLeft;
+            set
+            {
+                _timeLeft = value;
+                //if (_timeLeft > 0.1)
+                //    Debug.WriteLine($"Timer timeleft: {_timeLeft}");
+                if (_timeLeft < 0)
+                    _timeLeft = 0;
+            }
+        }
+        public Timer(float milliseconds)
+        {
+            TimeLeft = milliseconds;
+        }
+        public void Update(float milliseconds)
+        {
+            TimeLeft -= milliseconds;
+        }
+    }
 }

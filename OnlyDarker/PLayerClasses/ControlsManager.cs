@@ -13,7 +13,7 @@ namespace OnlyDarker
     {
         private static BindManager _bindManager;
         private static Vector2 _direction;
-        public static Vector2 ForceSum;     
+        public static Vector2 ForceSum;
         public static Vector2 MousePosition
         {
             get
@@ -43,6 +43,7 @@ namespace OnlyDarker
 
         public static void UpdatePlayerControls(float elapsedMilliseconds)
         {
+            NegateVectorFractionalValues();
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
@@ -57,6 +58,15 @@ namespace OnlyDarker
             AddFriction();
             ForceSum = Vector2.Zero;
         }
+
+        private static void NegateVectorFractionalValues()
+        {
+            if (Math.Abs(_direction.Y) < 0.01F)
+                _direction.Y = 0;
+            if (Math.Abs(_direction.X) < 0.01F)
+                _direction.X = 0;
+        }
+
         private static void ClampDirectionVector()
         {
             _direction = Vector2.Clamp(_direction, new(-DIRECTION_X_MAX_VALUE, -DIRECTION_Y_MAX_VALUE), new(DIRECTION_X_MAX_VALUE, DIRECTION_Y_MAX_VALUE));
@@ -92,7 +102,7 @@ namespace OnlyDarker
             _direction.X *= _friction;
         }
 
-        public static async void CharacterParalyze(int milliseconds) //rework to ingame time
+        public static void CharacterParalyze(int milliseconds) //rework to ingame time
         {
             //InputsBlocked = Paralyzed = true;
             //_direction.X = _direction.Y = 0;
@@ -110,6 +120,10 @@ namespace OnlyDarker
         public static Vector2 GetDirection()
         {
             return _direction;
+        }
+        public static Vector2 GetMaxDirectionVector()
+        {
+            return new Vector2(DIRECTION_X_MAX_VALUE, DIRECTION_X_MAX_VALUE);
         }
         public static void ZeroDirectionY()
         {
