@@ -18,7 +18,7 @@ namespace OnlyDarker
         private MainCanvas _mainCanvas;
         private GraphicsDeviceManager _graphics;
         public static SceneManager SceneManager { get; private set; }
-        public static BindManager BindManager { get; private set; }   
+        public static BindManager BindManager { get; private set; }
         public static Character? MainCharacter { get; private set; } = null;
         private static CharacterHealthbar _characterHealthbar;
         private static CharacterStaminaBar _staminaBar;
@@ -27,6 +27,7 @@ namespace OnlyDarker
         private static Texture2D _hitboxTexture;
         private static Texture2D _emptyTexture;
         private static Minimap _minimap;
+        public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         private long _fixedElapsedTime = 0; //add fixed elapsed time event
 
         public const long ONE_TICK = 78125L;
@@ -90,7 +91,7 @@ namespace OnlyDarker
 
             MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
 
-            foreach(var room in SceneManager.CurrentLevel.BuiltFloor)
+            foreach (var room in SceneManager.CurrentLevel.BuiltFloor)
             {
                 room.ObjectsYSorted.Add(MainCharacter);
             }
@@ -122,6 +123,14 @@ namespace OnlyDarker
             _fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
 
             SceneManager.CurrentRoom.SortObjectsByY();
+
+            foreach (var mngr in EffectAnimationManagers)
+            {
+                if(mngr.IsActive)
+                    mngr.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
+            }
+
+            EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
 
             _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
 
@@ -164,6 +173,11 @@ namespace OnlyDarker
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalBack.MovementCollider, Color.Blue);
                 if (SceneManager.CurrentRoom.PortalNext is not null)
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalNext.MovementCollider, Color.Blue);
+            }
+            foreach (var mngr in EffectAnimationManagers)
+            {
+                if (mngr.IsActive)
+                    mngr.Draw();
             }
             GlobalUse.SpriteBatch.End();
             _mainCanvas.Deactivate();

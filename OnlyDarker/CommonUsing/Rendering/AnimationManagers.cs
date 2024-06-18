@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -52,7 +53,7 @@ namespace OnlyDarker.CommonUsing.Rendering
         public void Update(float elapsedMilliseconds)
         {
             FrameTimer.Update(elapsedMilliseconds);
-            if(FrameTimer.TimeLeft <= 0)
+            if (FrameTimer.TimeLeft <= 0)
             {
                 FrameTimer.TimeLeft = AnimationFrequency / FrequencyModifier;
                 Step++;
@@ -61,7 +62,7 @@ namespace OnlyDarker.CommonUsing.Rendering
             }
         }
         public void Draw(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
-        { 
+        {
             GlobalUse.SpriteBatch.Draw(
                 _spriteAtlas,
                 position,
@@ -71,51 +72,99 @@ namespace OnlyDarker.CommonUsing.Rendering
                 _defaultOrigin,
                 scale,
                 spriteEffect,
-                layerDepth);   
+                layerDepth);
         }
-        public class EffectAnimationManager
+       
+    }
+    public class EffectAnimationManager
+    {
+        private readonly Texture2D _spriteSheet;
+        public Point SourceRectangleSize;
+        private Vector2 _defaultOrigin;
+        public float AnimationFrequency;
+        public float FrequencyModifier = 1F;
+        public int Step;
+        private int _maxSteps;
+        public Timer FrameTimer;
+        public bool IsActive = false;
+        public DrawCallArgs? DrawCallArgs;
+        public EffectAnimationManager(Texture2D spriteSheet, int sourceRectWidth, int sourceRectHeight, int maxSteps, float animationFrequency = 42F)
         {
-            private readonly Texture2D _spriteSheet;
-            public Point SourceRectangleSize;
-            private Vector2 _defaultOrigin;
-            public float AnimationFrequency;
-            public float FrequencyModifier = 1F;
-            public int Step;
-            private int _maxSteps;
-            public Timer FrameTimer;
-            public EffectAnimationManager(Texture2D spriteSheet, int sourceRectWidth, int sourceRectHeight, int maxSteps, float animationFrequency = 42F)
+            _spriteSheet = spriteSheet;
+            _maxSteps = maxSteps;
+            SourceRectangleSize = new(sourceRectWidth, sourceRectHeight);
+            _defaultOrigin = new(SourceRectangleSize.X / 2, SourceRectangleSize.Y / 2);
+            AnimationFrequency = animationFrequency;
+            FrameTimer = new(animationFrequency);
+        }
+        public void Update(float elapsedMilliseconds)
+        {
+            FrameTimer.Update(elapsedMilliseconds);
+            if (FrameTimer.TimeLeft <= 0)
             {
-                _spriteSheet = spriteSheet;
-                _maxSteps = maxSteps;
-                SourceRectangleSize = new(sourceRectWidth, sourceRectHeight);
-                _defaultOrigin = new(SourceRectangleSize.X / 2, SourceRectangleSize.Y / 2);
-                AnimationFrequency = animationFrequency;
-                FrameTimer = new(animationFrequency);
-            }
-            public void Update(float elapsedMilliseconds)
-            {
-                FrameTimer.Update(elapsedMilliseconds);
-                if (FrameTimer.TimeLeft <= 0)
+                FrameTimer.TimeLeft = AnimationFrequency / FrequencyModifier;
+                Step++;
+                if (Step > _maxSteps)
                 {
-                    FrameTimer.TimeLeft = AnimationFrequency / FrequencyModifier;
-                    Step++;
-                    if (Step > _maxSteps)
-                        Step = 0;
+                    Step = 0;
+                    IsActive = false;
                 }
             }
-            public void Draw(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
+        }
+        public void Draw(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
+        {
+            GlobalUse.SpriteBatch.Draw(
+                _spriteSheet,
+                position,
+                new Rectangle(Step * SourceRectangleSize.X, 0, SourceRectangleSize.X, SourceRectangleSize.Y),
+                Color.White,
+                rotation,
+                _defaultOrigin,
+                scale,
+                spriteEffect,
+                layerDepth);
+        }
+        public void Draw()
+        {
+            GlobalUse.SpriteBatch.Draw(
+                _spriteSheet,
+                DrawCallArgs.Position,
+                new Rectangle(Step * SourceRectangleSize.X, 0, SourceRectangleSize.X, SourceRectangleSize.Y),
+                Color.White,
+                DrawCallArgs.Rotation,
+                _defaultOrigin,
+                DrawCallArgs.Scale,
+                DrawCallArgs.SpriteEffect,
+                DrawCallArgs.LayerDepth);
+        }
+        public void Activate(DrawCallArgs drawCallArgs)
+        {
+            if (IsActive)
+                return;
+            Step = 0;
+            IsActive = true;
+            DrawCallArgs = drawCallArgs;
+            GameBody.EffectAnimationManagers.Add(this);
+        }
+    }
+    public class DrawCallArgs
+    {
+        public Vector2 Position;
+        public float Rotation;
+        public float Scale;
+        public SpriteEffects SpriteEffect;
+        public float LayerDepth;
+        public DrawCallArgs(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
+        {
+            Position = position;
+            Rotation = rotation;
+            Scale = scale;
+            SpriteEffect = spriteEffect;
+            LayerDepth = layerDepth;
+        }
+        ~DrawCallArgs()
             {
-                GlobalUse.SpriteBatch.Draw(
-                    _spriteSheet,
-                    position,
-                    new Rectangle(Step * SourceRectangleSize.X, 0, SourceRectangleSize.X, SourceRectangleSize.Y),
-                    Color.White,
-                    rotation,
-                    _defaultOrigin,
-                    scale,
-                    spriteEffect,
-                    layerDepth);
-            }
+            Debug.WriteLine("Drawcallargs disposed");
         }
     }
 }

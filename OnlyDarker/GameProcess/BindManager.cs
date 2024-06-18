@@ -20,7 +20,7 @@ namespace OnlyDarker.GameProcess
         public readonly Bind ClickAction;
         public readonly Bind DamageCharacter;
         public readonly Bind HealCharacter;
-        public readonly Bind Jump;
+        public readonly Bind Attack;
         public delegate void KeyPress();
         public BindManager()
         {
@@ -37,6 +37,7 @@ namespace OnlyDarker.GameProcess
             Dash = new(Keys.LeftShift, !canBeHold);
             DamageCharacter = new(Keys.F11, !canBeHold);
             HealCharacter = new(Keys.F12, !canBeHold);
+            Attack = new(Keys.Enter, !canBeHold);
             _managerInstance = this;
         }
         public void SetControlKey(Bind bind)

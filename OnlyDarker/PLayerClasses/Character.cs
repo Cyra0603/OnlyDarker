@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 using OnlyDarker.CommonUsing;
+using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
 using OnlyDarker.PlayerClasses;
@@ -37,6 +38,7 @@ namespace OnlyDarker
         public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
         public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
         public IWeapon CurrentWeapon = new WeaponFist();
+        private EffectAnimationManager _attackAnimationManager;
         public ActionTimer? DashTimer;
         public ActionTimer? DashEffectTimer;
         public Timer AttackCooldown = new(0);
@@ -104,6 +106,7 @@ namespace OnlyDarker
             _handOrigin = new(handTexture.Width / 2, handTexture.Height / 2);
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
+            _attackAnimationManager = new(GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation"), 128, 64,12, animationFrequency: 16.6F);
             //_dashDelegate += DashAction(this, EventArgs.Empty);
         }
         public delegate void ObserveFloatStat(float statValue);
@@ -129,7 +132,6 @@ namespace OnlyDarker
                     GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, flipsf/*SpriteEffects.None*/, 0.5F);
                 }
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, flipsf/*SpriteEffects.None*/, 0.5F);
-            //GlobalUse.SpriteBatch.Draw(_handTexture, RightHandPosition, null, Color.White, HandRotation, _handOrigin, 1F, SpriteEffects.None, 0.5F);
         }
 
         public void SetRoomBounds(Point roomSize, Point tileSize)
@@ -144,6 +146,7 @@ namespace OnlyDarker
             DashTimer?.Update(elapsedMilliseconds);
             DashEffectTimer?.Update(elapsedMilliseconds);
             InvincibilityTimer.Update(elapsedMilliseconds);
+            AttackCooldown.Update(elapsedMilliseconds);
             Stamina += elapsedMilliseconds * _staminaRegenValue;
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
@@ -274,11 +277,11 @@ namespace OnlyDarker
         {
             if (AttackCooldown.TimeLeft > 0)
             {
-                //Notify
+                Debug.WriteLine("attack is on cooldown");
                 return;
             }
-            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeed);
-
+            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeedBase); //IMPLEMENT ATTACKSPEED!
+            _attackAnimationManager.Activate(new(Position, rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X), scale: 7F));
         }
     }
 }

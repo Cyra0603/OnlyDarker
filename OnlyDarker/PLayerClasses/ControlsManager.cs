@@ -39,6 +39,7 @@ namespace OnlyDarker
             _bindManager.HealCharacter.KeyPressed += GameBody.MainCharacter.TestTakingDamage;
             _bindManager.DamageCharacter.KeyPressed += GameBody.MainCharacter.TestHealing;
             _bindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
+            _bindManager.Attack.KeyPressed += GameBody.MainCharacter.Attack;
         }
 
         public static void UpdatePlayerControls(float elapsedMilliseconds)

@@ -39,7 +39,7 @@ namespace OnlyDarker.CommonUsing
         }
         ~ActionTimer()
         {
-            Debug.WriteLine($"Timer {GetType} disposed");
+            Debug.WriteLine($"Timer disposed");
         }
         public void Update(float milliseconds)
         {
