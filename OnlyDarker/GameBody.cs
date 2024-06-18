@@ -36,14 +36,6 @@ namespace OnlyDarker
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
         private static float _cameraZoom = 0.5F;
-        private bool _drawHitboxes
-        {
-            get
-            {
-                return GlobalUse.IsDebugMode;
-            }
-        }
-        private KeyboardState _lastKeyboardState;
 
         public GameBody()
         {
@@ -133,10 +125,6 @@ namespace OnlyDarker
 
             _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
 
-            if (Keyboard.GetState().IsKeyDown(Keys.F1) && !_lastKeyboardState.IsKeyDown(Keys.F1)) GlobalUse.ToggleDebugMode();
-
-            _lastKeyboardState = Keyboard.GetState();
-
             if (_fixedElapsedTime >= ONE_TICK)
             {
                 CalculateCameraView();
@@ -161,7 +149,7 @@ namespace OnlyDarker
             GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
             //MainCharacter.Draw();
-            if (_drawHitboxes)
+            if (GlobalUse.IsDebugMode)
             {
                 foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
                 {
