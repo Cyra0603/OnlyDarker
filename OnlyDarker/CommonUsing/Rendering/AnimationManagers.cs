@@ -10,7 +10,7 @@ namespace OnlyDarker.CommonUsing.Rendering
     {
         public enum EntityState
         {
-            Idle = 1,
+            Idle,
             Walking,
             Attacking1,
             Attacking2,
@@ -57,7 +57,7 @@ namespace OnlyDarker.CommonUsing.Rendering
                 FrameTimer.TimeLeft = AnimationFrequency / FrequencyModifier;
                 Step++;
                 if (Step > _maxSteps)
-                    Step = 1;
+                    Step = 0;
             }
         }
         public void Draw(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
@@ -72,6 +72,50 @@ namespace OnlyDarker.CommonUsing.Rendering
                 scale,
                 spriteEffect,
                 layerDepth);   
+        }
+        public class EffectAnimationManager
+        {
+            private readonly Texture2D _spriteSheet;
+            public Point SourceRectangleSize;
+            private Vector2 _defaultOrigin;
+            public float AnimationFrequency;
+            public float FrequencyModifier = 1F;
+            public int Step;
+            private int _maxSteps;
+            public Timer FrameTimer;
+            public EffectAnimationManager(Texture2D spriteSheet, int sourceRectWidth, int sourceRectHeight, int maxSteps, float animationFrequency = 42F)
+            {
+                _spriteSheet = spriteSheet;
+                _maxSteps = maxSteps;
+                SourceRectangleSize = new(sourceRectWidth, sourceRectHeight);
+                _defaultOrigin = new(SourceRectangleSize.X / 2, SourceRectangleSize.Y / 2);
+                AnimationFrequency = animationFrequency;
+                FrameTimer = new(animationFrequency);
+            }
+            public void Update(float elapsedMilliseconds)
+            {
+                FrameTimer.Update(elapsedMilliseconds);
+                if (FrameTimer.TimeLeft <= 0)
+                {
+                    FrameTimer.TimeLeft = AnimationFrequency / FrequencyModifier;
+                    Step++;
+                    if (Step > _maxSteps)
+                        Step = 0;
+                }
+            }
+            public void Draw(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
+            {
+                GlobalUse.SpriteBatch.Draw(
+                    _spriteSheet,
+                    position,
+                    new Rectangle(Step * SourceRectangleSize.X, 0, SourceRectangleSize.X, SourceRectangleSize.Y),
+                    Color.White,
+                    rotation,
+                    _defaultOrigin,
+                    scale,
+                    spriteEffect,
+                    layerDepth);
+            }
         }
     }
 }
