@@ -43,6 +43,7 @@ namespace OnlyDarker
         public ActionTimer? DashEffectTimer;
         public Timer AttackCooldown = new(0);
         public Timer InvincibilityTimer = new(0);
+        private SpriteEffects _flipEffect = SpriteEffects.None;
         public float Speed { get; private set; } = 1F;
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
@@ -123,15 +124,16 @@ namespace OnlyDarker
         }
         public void Draw()
         {
-            SpriteEffects flipsf = SpriteEffects.None;
             if (ControlsManager.MousePosition.X < Position.X)
-                flipsf = SpriteEffects.FlipHorizontally;
+                _flipEffect = SpriteEffects.FlipHorizontally;
+            else
+                _flipEffect = SpriteEffects.None;
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
-                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, flipsf/*SpriteEffects.None*/, 0.5F);
+                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
                 }
-            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, flipsf/*SpriteEffects.None*/, 0.5F);
+            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
         }
 
         public void SetRoomBounds(Point roomSize, Point tileSize)
@@ -167,8 +169,6 @@ namespace OnlyDarker
                 GameBody.SceneManager.CurrentRoom.Pickups.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)).ShowPickupMessage();
             }
             Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
-            //var cursorPointer = ControlsManager.MousePosition - RightHandPosition;
-            HandRotation = 0;
         }
 
         private void CalculatePossibleCollisions(List<Rectangle> obstacles, ref Vector2 currentDirection)
@@ -232,8 +232,8 @@ namespace OnlyDarker
             //{
             //    var angle = Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X);
             //    var dir = ControlsManager.GetMaxDirectionVector();
-            //    var transformed = Vector2.Transform(dir, Matrix.CreateRotationZ((float)angle));
-            //    _dashForce = transformed;
+            //    var facingCursorDirection = new Vector2((float)Math.Sin(angle * ((Math.PI * 2) / 360)), (float)Math.Cos(angle * ((Math.PI * 2) / 360)));
+            //    _dashForce = facingCursorDirection * dir;
             //}
             DashTimer = new ActionTimer(_dashLength);
             DashEffectTimer = new ActionTimer(_dashEffectLength);
@@ -280,8 +280,15 @@ namespace OnlyDarker
                 Debug.WriteLine("attack is on cooldown");
                 return;
             }
+            var flipsf = SpriteEffects.None;
+            if (ControlsManager.MousePosition.X < Position.X)
+                flipsf = SpriteEffects.FlipVertically;
             AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeedBase); //IMPLEMENT ATTACKSPEED!
-            _attackAnimationManager.Activate(new(Position, rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X), scale: 7F));
+            _attackAnimationManager.Activate(
+                new(Position,
+                rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X),
+                scale: 7F,
+                spriteEffect: flipsf));
         }
     }
 }

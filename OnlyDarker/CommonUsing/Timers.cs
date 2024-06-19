@@ -58,8 +58,6 @@ namespace OnlyDarker.CommonUsing
             set
             {
                 _timeLeft = value;
-                //if (_timeLeft > 0.1)
-                //    Debug.WriteLine($"Timer timeleft: {_timeLeft}");
                 if (_timeLeft < 0)
                     _timeLeft = 0;
             }

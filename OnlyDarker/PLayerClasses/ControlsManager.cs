@@ -1,4 +1,5 @@
-﻿using OnlyDarker.CommonUsing;
+﻿
+using OnlyDarker.CommonUsing;
 using OnlyDarker.GameProcess;
 using System;
 using System.Collections.Generic;
@@ -44,13 +45,17 @@ namespace OnlyDarker
 
         public static void UpdatePlayerControls(float elapsedMilliseconds)
         {
-            NegateVectorFractionalValues();
+            NegateCloseToZeroValues();
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
                 foreach (var bind in BindManager.BindList)
                 {
                     bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
+                    if (bind.Key == Keys.None)
+                    {
+                        bind.IsKeyDown = ButtonStateToBool(Mouse.GetState().LeftButton);
+                    }
                 }
             }
             ClampDirectionVector();
@@ -60,14 +65,19 @@ namespace OnlyDarker
             ForceSum = Vector2.Zero;
         }
 
-        private static void NegateVectorFractionalValues()
+        private static void NegateCloseToZeroValues()
         {
             if (Math.Abs(_direction.Y) < 0.01F)
                 _direction.Y = 0;
             if (Math.Abs(_direction.X) < 0.01F)
                 _direction.X = 0;
         }
-
+        private static bool ButtonStateToBool(ButtonState buttonState)
+        {
+            if (buttonState == ButtonState.Pressed)
+                return true;
+            else return false;
+        }
         private static void ClampDirectionVector()
         {
             _direction = Vector2.Clamp(_direction, new(-DIRECTION_X_MAX_VALUE, -DIRECTION_Y_MAX_VALUE), new(DIRECTION_X_MAX_VALUE, DIRECTION_Y_MAX_VALUE));
@@ -77,26 +87,10 @@ namespace OnlyDarker
             if (_direction != Vector2.Zero)
                 Vector2.Normalize(_direction);
         }
-        private static void PlayerMoveUp()
-        {
-            _direction.Y--;
-            //_direction.Y = MathHelper.Max(_direction.Y, -DIRECTION_Y_MAX_VALUE);
-        }
-        private static void PlayerMoveDown()
-        {
-            _direction.Y++;
-            //_direction.Y = MathHelper.Min(_direction.Y, DIRECTION_Y_MAX_VALUE);
-        }
-        private static void PlayerMoveLeft()
-        {
-            _direction.X--;
-            //_direction.X = MathHelper.Max(_direction.X, -DIRECTION_X_MAX_VALUE);
-        }
-        private static void PlayerMoveRight()
-        {
-            _direction.X++;
-            //_direction.X = MathHelper.Min(_direction.X, DIRECTION_X_MAX_VALUE);
-        }
+        private static void PlayerMoveUp() => _direction.Y--;
+        private static void PlayerMoveDown() => _direction.Y++;
+        private static void PlayerMoveLeft() => _direction.X--;
+        private static void PlayerMoveRight() => _direction.X++;
         public static void AddFriction()
         {
             _direction.Y *= _friction;

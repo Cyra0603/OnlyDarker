@@ -9,6 +9,7 @@ namespace OnlyDarker.GameProcess
     public class BindManager
     {
         private BindManager _managerInstance = null;
+        public readonly MouseState _defaultState = new();
         public readonly static List<Bind> BindList = new();
         public readonly Bind ToggleDebug;
         public readonly Bind ExitApplication;
@@ -37,7 +38,7 @@ namespace OnlyDarker.GameProcess
             Dash = new(Keys.LeftShift, !canBeHold);
             DamageCharacter = new(Keys.F11, !canBeHold);
             HealCharacter = new(Keys.F12, !canBeHold);
-            Attack = new(Keys.Enter, !canBeHold);
+            Attack = new(_defaultState.LeftButton, canBeHold);
             _managerInstance = this;
         }
         public void SetControlKey(Bind bind)
@@ -47,6 +48,7 @@ namespace OnlyDarker.GameProcess
         public class Bind
         {
             public Keys Key { get; set; }
+            public ButtonState ButtonState { get; set; }
             public bool CanBeHold { get; }
             private bool _lastIskeyDown;
             public bool IsKeyDown
@@ -62,6 +64,14 @@ namespace OnlyDarker.GameProcess
             public Bind(Keys key, bool canBeHold)
             {
                 Key = key;
+                ButtonState = ButtonState.Released;
+                CanBeHold = canBeHold;
+                BindList.Add(this);
+            }
+            public Bind(ButtonState buttonstate, bool canBeHold)
+            {
+                Key = Keys.None;
+                ButtonState = buttonstate;
                 CanBeHold = canBeHold;
                 BindList.Add(this);
             }

@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.Win32;
 using Microsoft.Xna.Framework.Graphics;
 using OnlyDarker.CommonUsing;
 using OnlyDarker.CommonUsing.Rendering;
@@ -28,9 +29,20 @@ namespace OnlyDarker
         private static Texture2D _emptyTexture;
         private static Minimap _minimap;
         public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
-        private long _fixedElapsedTime = 0; //add fixed elapsed time event
-
-        public const long ONE_TICK = 78125L;
+        private float _fixedElapsedTimeMilliseconds;
+        private float _fixedElapsedTime 
+        {
+            get => _fixedElapsedTimeMilliseconds;
+            set
+            {
+                _fixedElapsedTimeMilliseconds = value;
+                if (_fixedElapsedTimeMilliseconds >= FIXED_TIME_STEP)
+                    _timeElapsed.Invoke(_fixedElapsedTimeMilliseconds);
+            }
+        }
+        private delegate void TimeElapsed(float milliseconds);
+        private event TimeElapsed _timeElapsed;
+        public const float FIXED_TIME_STEP = 7.8125F;
         private string _netgraph = "0";
         private int FPS = 0;
         private Vector2 _netgraphPosition;
@@ -69,6 +81,8 @@ namespace OnlyDarker
             BindManager = new();
 
             BindManager.ExitApplication.KeyPressed += Exit;
+
+            _timeElapsed += FixedTimeStepUpdate;
 
             BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
 
@@ -120,7 +134,7 @@ namespace OnlyDarker
 
         protected override void Update(GameTime gameTime)
         {
-            _fixedElapsedTime += gameTime.ElapsedGameTime.Ticks;
+            _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
             SceneManager.CurrentRoom.SortObjectsByY();
 
@@ -134,15 +148,15 @@ namespace OnlyDarker
 
             _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
 
-            if (_fixedElapsedTime >= ONE_TICK)
-            {
-                CalculateCameraView();
-                MainCharacter.Update(GlobalUse.TicksToMilliseconds(_fixedElapsedTime));
-                SceneManager.CurrentRoom.UpdatePortals();
-                SceneManager.CurrentRoom.UpdateObstaclesTransparency(GlobalUse.TicksToMilliseconds(_fixedElapsedTime));
-                _fixedElapsedTime = 0;
-            }
             base.Update(gameTime);
+        }
+        private void FixedTimeStepUpdate(float milliseconds)
+        {
+            CalculateCameraView();
+            MainCharacter.Update(milliseconds);
+            SceneManager.CurrentRoom.UpdatePortals();
+            SceneManager.CurrentRoom.UpdateObstaclesTransparency(milliseconds);
+            _fixedElapsedTime = 0;
         }
 
         protected override void Draw(GameTime gameTime)
@@ -157,7 +171,6 @@ namespace OnlyDarker
             //MainScene
             GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
-            //MainCharacter.Draw();
             if (GlobalUse.IsDebugMode)
             {
                 foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
@@ -220,11 +233,6 @@ namespace OnlyDarker
                 FPS = 0;
                 await Task.Delay(1000);
             }
-        }
-
-        private static void DrawHitbox(Rectangle hitbox)
-        {
-            GlobalUse.SpriteBatch.Draw(_hitboxTexture, hitbox, Color.White);
         }
         public static void DrawRectangleOutline(Rectangle rect, Color color, int borderWidth = 1)
         {

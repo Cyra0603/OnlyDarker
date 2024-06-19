@@ -30,17 +30,25 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Draw()
         {
-            if (Bounds.Intersects(GameBody.MainCharacter.MovementCollider) || GameBody.SceneManager.CurrentRoom.PortalNext is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalNext.MovementCollider) || GameBody.SceneManager.CurrentRoom.PortalBack is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalBack.MovementCollider))
+            if (IntersectsEssentialObjects())
             {
                 _transparencyTimer.TimeLeft = _transparencyFadeTime;
                 GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White * 0.5F, 0F, Origin, 1F, SpriteEffects.None, 0.4F);
                 GlobalUse.SpriteBatch.Draw(_texture, MovementCollider, _nonTransparentBounds, Color.White);
             }
             else
-                GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White * (1F - (0.5F * (_transparencyTimer.TimeLeft / _transparencyFadeTime))),0F , Origin, 1F, SpriteEffects.None, 0.4F);
+                GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White * (1F - (0.5F * (_transparencyTimer.TimeLeft / _transparencyFadeTime))), 0F, Origin, 1F, SpriteEffects.None, 0.4F);
             if (_transparencyTimer.TimeLeft > 0.1)
                 GlobalUse.SpriteBatch.Draw(_texture, MovementCollider, _nonTransparentBounds, Color.White);
         }
+
+        private bool IntersectsEssentialObjects()
+        {
+            return Bounds.Intersects(GameBody.MainCharacter.MovementCollider) 
+                || GameBody.SceneManager.CurrentRoom.PortalNext is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalNext.MovementCollider) 
+                || GameBody.SceneManager.CurrentRoom.PortalBack is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalBack.MovementCollider);
+        }
+
         public void DrawShadow()
         {
             GlobalUse.SpriteBatch.Draw(_texture, Position, null, _shadowColor, -0.4F, Origin * 1.5F, 1F, SpriteEffects.None, 0.4F);

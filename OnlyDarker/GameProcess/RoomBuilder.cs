@@ -57,7 +57,7 @@ namespace OnlyDarker.GameProcess
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
             FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, roomBlueprint.lastRoomDirection, roomBlueprint.nextRoomDirection, roomBlueprint.roomType);
             RoomColliders = new();
-            ObstaclesBounds =new();
+            ObstaclesBounds = new();
             ObjectsYSorted = new();
             foreach (var obstacle in _standartObstacles)
             {
@@ -69,7 +69,7 @@ namespace OnlyDarker.GameProcess
                 }
             }
             if (PortalNext is not null)
-             ObjectsYSorted.Add(PortalNext);
+                ObjectsYSorted.Add(PortalNext);
             if (PortalBack is not null)
                 ObjectsYSorted.Add(PortalBack);
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
@@ -116,7 +116,7 @@ namespace OnlyDarker.GameProcess
             {
                 for (int y = 0; y < _tiles.GetLength(1); y++)
                 {
-                    if (_presetColorTranslator.TryGetValue(ColorToVector4(presetData[x, y]), out string presetCellAlias))
+                    if (_presetColorTranslator.TryGetValue(ColorToVector4(presetData[x, y]), out string presetCellAlias)) //i need to remove this garbage
                         switch (presetCellAlias)
                         {
                             case "Tile":
