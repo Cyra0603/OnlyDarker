@@ -54,7 +54,7 @@ namespace OnlyDarker.PlayerClasses
         public WeaponSprite WeaponPickupSprite { get; set; }
         public WeaponFist()
         {
-            AttackRangeBase = 70F;
+            AttackRangeBase = 256F;
             AttackDamageBase = 2F;
             AttackSpeedBase = 2F;
             WeaponDamageType = DamageType.Blunt;

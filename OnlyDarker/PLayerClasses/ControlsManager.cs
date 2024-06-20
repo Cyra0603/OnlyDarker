@@ -14,7 +14,7 @@ namespace OnlyDarker
     {
         private static BindManager _bindManager;
         private static Vector2 _direction;
-        public static Vector2 ForceSum;
+        public static Vector2 ForceSum { get; set; }
         public static Vector2 MousePosition
         {
             get
@@ -45,7 +45,7 @@ namespace OnlyDarker
 
         public static void UpdatePlayerControls(float elapsedMilliseconds)
         {
-            NegateCloseToZeroValues();
+            ////NegateCloseToZeroValues();
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
@@ -60,8 +60,9 @@ namespace OnlyDarker
             }
             ClampDirectionVector();
             _direction += ForceSum;
-            NormalizeDirectionVector();
             AddFriction();
+            //NormalizeDirectionVector();
+
             ForceSum = Vector2.Zero;
         }
 
@@ -76,7 +77,8 @@ namespace OnlyDarker
         {
             if (buttonState == ButtonState.Pressed)
                 return true;
-            else return false;
+            else 
+                return false;
         }
         private static void ClampDirectionVector()
         {
@@ -85,7 +87,8 @@ namespace OnlyDarker
         private static void NormalizeDirectionVector()
         {
             if (_direction != Vector2.Zero)
-                Vector2.Normalize(_direction);
+                _direction = Vector2.Normalize(_direction);
+            
         }
         private static void PlayerMoveUp() => _direction.Y--;
         private static void PlayerMoveDown() => _direction.Y++;

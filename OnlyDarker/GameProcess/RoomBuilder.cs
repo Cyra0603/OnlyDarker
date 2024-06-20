@@ -49,6 +49,10 @@ namespace OnlyDarker.GameProcess
             CurrentBackground = new(roomBlueprint.floorType);
             _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
+            ObjectsYSorted = new();
+            RoomColliders = new();
+            ObstaclesBounds = new();
+            Damageables = new();
             GridCords = roomBlueprint.gridCords;
             List<Texture2D> tileTextures = ImportTileTextures(roomBlueprint.floorType, roomBlueprint.roomType);
             List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(roomBlueprint.floorType, roomBlueprint.roomType);
@@ -56,9 +60,6 @@ namespace OnlyDarker.GameProcess
             TileSize = new(tileTextures[0].Width, tileTextures[0].Height);
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
             FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, roomBlueprint.lastRoomDirection, roomBlueprint.nextRoomDirection, roomBlueprint.roomType);
-            RoomColliders = new();
-            ObstaclesBounds = new();
-            ObjectsYSorted = new();
             foreach (var obstacle in _standartObstacles)
             {
                 if (obstacle is not null)
@@ -121,6 +122,14 @@ namespace OnlyDarker.GameProcess
                         {
                             case "Tile":
                                 BuildTile(tileTextures, x, y);
+                                if(roomType == RoomType.Entry && x == 15 && y == 10)
+                                {
+                                    var targetDummy = new TargetDummySprite(_tiles[x, y]);
+                                    ObjectsYSorted.Add(targetDummy);
+                                    Damageables.Add(targetDummy);
+                                    RoomColliders.Add(targetDummy.MovementCollider);
+                                    ObstaclesBounds.Add(targetDummy.BodyHitbox);
+                                }
                                 break;
                             case "Obstacle":
                                 BuildTile(tileTextures, x, y);
@@ -271,6 +280,10 @@ namespace OnlyDarker.GameProcess
             {
                 obstacle?.UpdateTransparencyTimer(elapsedMilliseconds);
             }
+        }
+        public void AddDrawableRect(Rectangle rect)
+        {
+            ObstaclesBounds.Add(rect);  
         }
     }
 }

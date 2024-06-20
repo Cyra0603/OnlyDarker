@@ -64,6 +64,11 @@ namespace OnlyDarker.UI
                 GlobalUse.SpriteBatch.Draw(_notifiedTexture, new Rectangle(_notifiedLocation, new Point((int)(_stamina * 2), _barBounds.Height)), Color.White);
                 GameBody.DrawRectangleOutline(_barBounds, Color.Black, 2);
             }
+            else if (_stamina < CurrentCharacter.StaminaCost)
+            {
+                GlobalUse.SpriteBatch.Draw(_notifiedTexture, new Rectangle(_barBounds.Location, new Point((int)(_stamina * 2), _barBounds.Height)), Color.White);
+                GameBody.DrawRectangleOutline(_barBounds, Color.Black, 2);
+            }
             else
             {
                 GlobalUse.SpriteBatch.Draw(_texture, new Rectangle(_barBounds.Location, new Point((int)(_stamina * 2), _barBounds.Height)), Color.White);

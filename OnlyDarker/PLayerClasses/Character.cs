@@ -14,6 +14,7 @@ using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
 using OnlyDarker.PlayerClasses;
+using SharpDX.Direct2D1;
 
 namespace OnlyDarker
 {
@@ -53,6 +54,7 @@ namespace OnlyDarker
         private float _dashEffectLength => _dashLength * 1.5F;
         public float HandRotation { get; set; } = 0;
         private float _maxStamina = 100;
+        public float StaminaCost = 50;
         public float MaxStamina
         {
             get
@@ -220,26 +222,27 @@ namespace OnlyDarker
         {
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 return;
-            if (Stamina < 50F)
+            if (Stamina < StaminaCost)
             {
                 OnNotEnoughStamina.Invoke();
                 return;
             }
-            Stamina -= 50F;
-            //if (ControlsManager.GetDirection() != Vector2.Zero)
+            Stamina -= StaminaCost;
+            if (ControlsManager.GetDirection() != Vector2.Zero)
                 _dashForce = ControlsManager.GetDirection();
-            //else
-            //{
-            //    var angle = Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X);
-            //    var dir = ControlsManager.GetMaxDirectionVector();
-            //    var facingCursorDirection = new Vector2((float)Math.Sin(angle * ((Math.PI * 2) / 360)), (float)Math.Cos(angle * ((Math.PI * 2) / 360)));
-            //    _dashForce = facingCursorDirection * dir;
-            //}
+            else
+            {
+                var angle = Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X);
+                var dir = ControlsManager.GetMaxDirectionVector();
+                var facingCursorDirection = new Vector2((float)Math.Sin(angle * ((Math.PI * 2) / 360)), (float)Math.Cos(angle * ((Math.PI * 2) / 360)));
+                _dashForce = facingCursorDirection * dir;
+            }
             DashTimer = new ActionTimer(_dashLength);
             DashEffectTimer = new ActionTimer(_dashEffectLength);
             RunIFrames(_dashEffectLength);
             DashTimer.TimeUpdated += DashAction;
             DashEffectTimer.TimeElapsed += DashEnded;
+            Debug.WriteLine($"{_dashForce.Length()}");
         }
         private void DashEnded(object character, EventArgs e)
         {
@@ -289,6 +292,14 @@ namespace OnlyDarker
                 rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X),
                 scale: 7F,
                 spriteEffect: flipsf));
+            var attackRect = new Rectangle(new
+                ((int)Position.X + _bodyTexture.Width / 2,(int) Position.Y - (int)CurrentWeapon.AttackRangeBase / 2),
+                new((int)CurrentWeapon.AttackRangeBase, (int)CurrentWeapon.AttackRangeBase));
+            //THIS DOES NOT WORK PROPERLY
+            foreach ( var target in GameBody.SceneManager.CurrentRoom.Damageables.Where(item => item.BodyHitbox.Intersects(attackRect)))
+            {
+                target.TakeDamage(CurrentWeapon.AttackDamageBase);
+            }
         }
     }
 }

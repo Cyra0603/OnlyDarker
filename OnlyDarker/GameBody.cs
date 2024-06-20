@@ -200,11 +200,11 @@ namespace OnlyDarker
             //Drawing
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
 
-            _minimap.StandaloneDraw();
             _characterHealthbar.StandaloneDraw();
-            GlobalUse.SpriteBatch.Begin();
+            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
+            _minimap.Draw();
             ShowFPS();
-            _statsBar.DrawStats();
+            _statsBar.Draw();
             _currentFloorBar.Draw();
             _staminaBar.Draw();
             GlobalUse.SpriteBatch.End();

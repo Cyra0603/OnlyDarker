@@ -94,11 +94,9 @@ namespace OnlyDarker.UI
             _graphicsDevice.SetRenderTarget(null);
             _graphicsDevice.Clear(Color.Transparent);
         }
-        public void StandaloneDraw()
+        public void Draw()
         {
-            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
             GlobalUse.SpriteBatch.Draw(_minimapTarget, Bounds, Color.White);
-            GlobalUse.SpriteBatch.End();
         }
     }
 }

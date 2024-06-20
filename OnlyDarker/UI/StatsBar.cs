@@ -14,7 +14,7 @@ namespace OnlyDarker.UI
         {
             _statsPosition = new(0, GlobalUse.WindowSize.Y / 5);
         }
-        public void DrawStats()
+        public void Draw()
         {
             GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, ($" HP: {GameBody.MainCharacter.HealthPoints}\n\n Speed: {GameBody.MainCharacter.Speed}"), _statsPosition, Color.White, 0F, _statsPosition, 0.6F, SpriteEffects.None, 0F);
         }
