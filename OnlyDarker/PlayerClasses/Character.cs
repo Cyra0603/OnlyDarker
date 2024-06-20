@@ -295,7 +295,7 @@ namespace OnlyDarker
             var attackRect = new Rectangle(new
                 ((int)Position.X + _bodyTexture.Width / 2,(int) Position.Y - (int)CurrentWeapon.AttackRangeBase / 2),
                 new((int)CurrentWeapon.AttackRangeBase, (int)CurrentWeapon.AttackRangeBase));
-            //THIS DOES NOT WORK PROPERLY rework
+            //THIS DOES NOT WORK PROPERLY
             foreach ( var target in GameBody.SceneManager.CurrentRoom.Damageables.Where(item => item.BodyHitbox.Intersects(attackRect)))
             {
                 target.TakeDamage(CurrentWeapon.AttackDamageBase);
