@@ -35,6 +35,7 @@ namespace OnlyDarker.GameProcess
         };
         public List<Rectangle> RoomColliders { get; private set; }
         public List<Rectangle> ObstaclesBounds { get; private set; }
+        public List<Rectangle> TempRectDrawList;
         public int OrderNumber { get; private set; }
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
@@ -53,6 +54,7 @@ namespace OnlyDarker.GameProcess
             RoomColliders = new();
             ObstaclesBounds = new();
             Damageables = new();
+            TempRectDrawList = new();
             GridCords = roomBlueprint.gridCords;
             List<Texture2D> tileTextures = ImportTileTextures(roomBlueprint.floorType, roomBlueprint.roomType);
             List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(roomBlueprint.floorType, roomBlueprint.roomType);
@@ -281,9 +283,14 @@ namespace OnlyDarker.GameProcess
                 obstacle?.UpdateTransparencyTimer(elapsedMilliseconds);
             }
         }
-        public void AddDrawableRect(Rectangle rect)
+        public void AddTempDrawableRect(Rectangle rect)
         {
-            ObstaclesBounds.Add(rect);  
+            TempRectDrawList.Add(rect);  
+        }
+        public void ClearTempDrawables()
+        {
+            if(TempRectDrawList.Any())
+                TempRectDrawList.Clear();
         }
     }
 }

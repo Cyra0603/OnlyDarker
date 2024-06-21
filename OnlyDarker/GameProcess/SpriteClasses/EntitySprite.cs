@@ -1,6 +1,7 @@
 ﻿using OnlyDarker.CommonUsing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -21,6 +22,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
         public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
+        public Armor BaseArmor { get; private set; } = new();
         public float Speed { get; private set; } = 0.5F;
         private bool _isInvincible = false;
         private float _healthPoints = 10;
@@ -137,13 +139,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Position = position;
         }
-        public void TakeDamage(float damage)
+        public void TakeDamage(DamageInstance damage)
         {
+            var test = Stopwatch.StartNew();
             if (!_isInvincible)
             {
-                HealthPoints -= damage;
+                HealthPoints -= damage.ExtractValue(BaseArmor.Resistances.AsParallel().First(res => res.Type == damage.Type));
             }
             else return;
+            test.Stop();
+            Debug.WriteLine($"taking damage took {test.ElapsedMilliseconds} ms");
         }
         public void Heal(float healAmount)
         {

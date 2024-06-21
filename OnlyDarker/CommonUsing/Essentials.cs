@@ -3,7 +3,9 @@ global using Microsoft.Xna.Framework;
 global using Microsoft.Xna.Framework.Graphics;
 global using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using Microsoft.Xna.Framework.Content;
@@ -59,14 +61,29 @@ namespace OnlyDarker.CommonUsing
         public static SpriteBatch SpriteBatch { get; set; }
         public static Point WindowSize { get; set; }
         public readonly static Random RNG = new();
+        public readonly static RandomNumberGenerator rnjesus = RandomNumberGenerator.Create();
         public static bool IsDebugMode { get; private set; } = false;
-        public static float TicksToMilliseconds(long ticks)
-        {
-            return ticks / 10000;
-        }
         public static void ToggleDebugMode()
         {
             IsDebugMode = !IsDebugMode;
+        }
+        public static bool TryChance (float chance)
+        {
+            var test = Stopwatch.StartNew();
+            var value = RandomNumberGenerator.GetInt32(0, 101);
+
+            Debug.WriteLine($"counting chance took {test.ElapsedTicks} ticks");
+            test.Stop();
+            return value < chance;
+        }
+        public static bool TryBasicRNG(float chance)
+        {
+            var test = Stopwatch.StartNew();
+            var value = RNG.Next(0,101);
+
+            Debug.WriteLine($"counting basic rng took {test.ElapsedTicks} ticks");
+            test.Stop();
+            return value < chance;
         }
     }
 }

@@ -16,7 +16,12 @@ namespace OnlyDarker.UI
         }
         public void Draw()
         {
-            GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, ($" HP: {GameBody.MainCharacter.HealthPoints}\n\n Speed: {GameBody.MainCharacter.Speed}"), _statsPosition, Color.White, 0F, _statsPosition, 0.6F, SpriteEffects.None, 0F);
+            GlobalUse.SpriteBatch.DrawString(
+                GlobalUse.MainFont, (
+                $" HP: {GameBody.MainCharacter.HealthPoints}\n\n " +
+                $"Speed: {GameBody.MainCharacter.Speed}\n\n"
+                ),
+                _statsPosition, Color.White, 0F, _statsPosition, 0.6F, SpriteEffects.None, 0F);
         }
     }
 }

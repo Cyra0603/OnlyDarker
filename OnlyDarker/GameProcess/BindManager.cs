@@ -38,7 +38,7 @@ namespace OnlyDarker.GameProcess
             Dash = new(Keys.LeftShift, !canBeHold);
             DamageCharacter = new(Keys.F11, !canBeHold);
             HealCharacter = new(Keys.F12, !canBeHold);
-            Attack = new(_defaultState.LeftButton, canBeHold);
+            Attack = new(_defaultState.LeftButton, !canBeHold);
             _managerInstance = this;
         }
         public void SetControlKey(Bind bind)

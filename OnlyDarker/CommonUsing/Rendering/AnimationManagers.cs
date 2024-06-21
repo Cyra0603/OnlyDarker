@@ -147,6 +147,44 @@ namespace OnlyDarker.CommonUsing.Rendering
             GameBody.EffectAnimationManagers.Add(this);
         }
     }
+    public class DamageNumberAnimationManager
+    {
+        public const float COMMON_LIFETIME = 800;
+        public const float CRIT_LIFETIME = 1000;
+        public Vector2 Position;
+        public float ColorDencity = 1F;
+        public const float CONST_DENCITY = 0.3F;
+        public Timer FrameTimer;
+        public bool IsCritical;
+        public bool IsActive = true;
+        private string _message;
+        public DamageNumberAnimationManager(Vector2 position, string message, bool isCritical)
+        {
+            Position = position;
+            _message = message;
+            IsCritical = isCritical;
+            if(isCritical)
+                FrameTimer = new(CRIT_LIFETIME);
+            else
+                FrameTimer = new(COMMON_LIFETIME);
+            GameBody.DamageNumberAnimationManagers.Add(this);
+        }
+        public void Update(float elapsedMilliseconds)
+        {
+            FrameTimer.Update(elapsedMilliseconds);
+            if (FrameTimer.TimeLeft <= 0)
+                    IsActive = false;
+            Position = new(Position.X, Position.Y - elapsedMilliseconds / 8);
+            ColorDencity = FrameTimer.TimeLeft / CRIT_LIFETIME + CONST_DENCITY;
+        }
+        public void Draw()
+        {
+            if (IsCritical)
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, _message, Position, Color.Red * ColorDencity, 0F, Vector2.Zero, 1F, SpriteEffects.None, 0F);
+            else
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, _message, Position, Color.White * ColorDencity, 0F, Vector2.Zero, 0.8F, SpriteEffects.None, 0F);
+        }
+    }
     public class DrawCallArgs
     {
         public Vector2 Position;

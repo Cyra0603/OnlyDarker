@@ -29,6 +29,7 @@ namespace OnlyDarker
         private static Texture2D _emptyTexture;
         private static Minimap _minimap;
         public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
+        public static List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
         private float _fixedElapsedTimeMilliseconds;
         private float _fixedElapsedTime 
         {
@@ -134,8 +135,6 @@ namespace OnlyDarker
 
         protected override void Update(GameTime gameTime)
         {
-            _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
             SceneManager.CurrentRoom.SortObjectsByY();
 
             foreach (var mngr in EffectAnimationManagers)
@@ -143,10 +142,18 @@ namespace OnlyDarker
                 if(mngr.IsActive)
                     mngr.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
             }
+            foreach (var mngr in DamageNumberAnimationManagers)
+            {
+                if (mngr.IsActive)
+                    mngr.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
+            }
 
             EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
+            DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
 
             _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
+
+            _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
 
             base.Update(gameTime);
         }
@@ -181,6 +188,10 @@ namespace OnlyDarker
                 {
                     DrawRectangleOutline(bounds, Color.Black, 5);
                 }
+                foreach (var bounds in SceneManager.CurrentRoom.TempRectDrawList)
+                {
+                    DrawRectangleOutline(bounds, Color.Black, 5);
+                }
                 GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
                 if (SceneManager.CurrentRoom.PortalBack is not null)
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalBack.MovementCollider, Color.Blue);
@@ -188,6 +199,11 @@ namespace OnlyDarker
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalNext.MovementCollider, Color.Blue);
             }
             foreach (var mngr in EffectAnimationManagers)
+            {
+                if (mngr.IsActive)
+                    mngr.Draw();
+            }
+            foreach (var mngr in DamageNumberAnimationManagers)
             {
                 if (mngr.IsActive)
                     mngr.Draw();

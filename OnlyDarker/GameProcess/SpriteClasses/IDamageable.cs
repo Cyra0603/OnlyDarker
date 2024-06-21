@@ -8,7 +8,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 {
     public interface IDamageable
     {
+        Vector2 Position { get; set; }
         public Rectangle BodyHitbox { get;}
-        public void TakeDamage(float damage);
+        public void TakeDamage(DamageInstance damage);
     }
 }
