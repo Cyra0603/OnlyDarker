@@ -38,8 +38,9 @@ namespace OnlyDarker
             );
         public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
         public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
+        public Armor BaseArmor { get; private set; } = new();
         public IWeapon CurrentWeapon = new WeaponFist();
-        private EffectAnimationManager _attackAnimationManager;
+        private Texture2D _attackAnimation = GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation");
         public ActionTimer? DashTimer;
         public ActionTimer? DashEffectTimer;
         public Timer AttackCooldown = new(0);
@@ -49,6 +50,8 @@ namespace OnlyDarker
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
         public const float I_FRAME_TIME = 500F;
+        public float CritChance = 5F;
+        public float CritDamage = 200F;
         private float _staminaRegenValue = 0.02F;
         private float _dashLength { get; set; } = 100;
         private float _dashEffectLength => _dashLength * 1.5F;
@@ -109,7 +112,6 @@ namespace OnlyDarker
             _handOrigin = new(handTexture.Width / 2, handTexture.Height / 2);
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
-            _attackAnimationManager = new(GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation"), 128, 64,12, animationFrequency: 16.6F);
             //_dashDelegate += DashAction(this, EventArgs.Empty);
         }
         public delegate void ObserveFloatStat(float statValue);
@@ -242,7 +244,6 @@ namespace OnlyDarker
             RunIFrames(_dashEffectLength);
             DashTimer.TimeUpdated += DashAction;
             DashEffectTimer.TimeElapsed += DashEnded;
-            Debug.WriteLine($"{_dashForce.Length()}");
         }
         private void DashEnded(object character, EventArgs e)
         {
@@ -255,18 +256,20 @@ namespace OnlyDarker
             var pos = Position;
             _dashFrames.Add(pos);
         }
-        public void TakeDamage(float damage)
+        public void TakeDamage(DamageInstance damage)
         {
             if (InvincibilityTimer.TimeLeft <= 0)
             {
-                HealthPoints -= damage;
+                HealthPoints -= damage.ExtractValue(BaseArmor.Resistances.First(res => res.Type == damage.Type));
                 RunIFrames(I_FRAME_TIME);
             }
             else return;
         }
         public void TestTakingDamage()
         {
-            TakeDamage(1);
+            TakeDamage(new(1, 1, DamageType.Blunt, false));
+            TakeDamage(new(1, 1, DamageType.Slice, false));
+            TakeDamage(new(1, 1, DamageType.Poke, false));
         }
         public void TestHealing()
         {
@@ -280,26 +283,57 @@ namespace OnlyDarker
         {
             if (AttackCooldown.TimeLeft > 0)
             {
-                Debug.WriteLine("attack is on cooldown");
+                //Debug.WriteLine("attack is on cooldown");
                 return;
             }
             var flipsf = SpriteEffects.None;
             if (ControlsManager.MousePosition.X < Position.X)
                 flipsf = SpriteEffects.FlipVertically;
             AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeedBase); //IMPLEMENT ATTACKSPEED!
-            _attackAnimationManager.Activate(
+            var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
+            var direction = difference / difference.Length();
+            var range = (int)CurrentWeapon.AttackRangeBase;
+            var attackRect = new Rectangle(new
+                ((int)(Position.X + (direction.X * range) - range / 2), (int)(Position.Y + (direction.Y * range) - range / 2)),
+                new(range, range));
+            var attackRect2 = new Rectangle(new
+                ((int)(Position.X + (direction.X * range / 2) - range / 2), (int)(Position.Y + (direction.Y * range / 2) - range / 2)),
+                new(range, range));
+            {
+                var animation = new EffectAnimationManager(_attackAnimation, 128, 64, 12, animationFrequency: 16.6F);
+                animation.Activate(
                 new(Position,
                 rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X),
-                scale: 7F,
+                scale: range / animation.SourceRectangleSize.X * 4F,
                 spriteEffect: flipsf));
-            var attackRect = new Rectangle(new
-                ((int)Position.X + _bodyTexture.Width / 2,(int) Position.Y - (int)CurrentWeapon.AttackRangeBase / 2),
-                new((int)CurrentWeapon.AttackRangeBase, (int)CurrentWeapon.AttackRangeBase));
-            //THIS DOES NOT WORK PROPERLY
-            foreach ( var target in GameBody.SceneManager.CurrentRoom.Damageables.Where(item => item.BodyHitbox.Intersects(attackRect)))
-            {
-                target.TakeDamage(CurrentWeapon.AttackDamageBase);
             }
+                    var critModifier = CritDamage / 100F;
+            //THIS DOES NOT WORK FINE
+            foreach (var target in GameBody.SceneManager.CurrentRoom.Damageables.Where(target => target.BodyHitbox.Intersects(attackRect) || target.BodyHitbox.Intersects(attackRect2)))
+            {
+                bool proc = GlobalUse.TryChance(CritChance);
+                if (!proc)
+                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase, 1, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                else
+                {
+                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase * critModifier, 1, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                }
+            }
+            if (GlobalUse.IsDebugMode)
+            {
+                GameBody.SceneManager.CurrentRoom.AddTempDrawableRect(attackRect);
+                GameBody.SceneManager.CurrentRoom.AddTempDrawableRect(attackRect2);
+            }
+            else
+            {
+                GameBody.SceneManager.CurrentRoom.ClearTempDrawables();
+            }
+            //testing
+            //var l1 = new Vector2(1, 1);
+            //var l2 = new Vector2(-89,1560);
+            //var l3 = l2 - l1;
+            //Debug.WriteLine(l3.Length());
+            //Debug.WriteLine($"{Vector2.Normalize(Vector2.Lerp(l1,l2, 1 / l3.Length()))}");
         }
     }
 }

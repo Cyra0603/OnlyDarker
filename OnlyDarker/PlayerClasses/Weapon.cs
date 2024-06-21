@@ -56,7 +56,7 @@ namespace OnlyDarker.PlayerClasses
         {
             AttackRangeBase = 256F;
             AttackDamageBase = 4F;
-            AttackSpeedBase = 200F;
+            AttackSpeedBase = 2F;
             WeaponDamageType = DamageType.Blunt;
         }
     }

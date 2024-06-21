@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -154,6 +155,8 @@ namespace OnlyDarker.CommonUsing.Rendering
         public Vector2 Position;
         public float ColorDencity = 1F;
         public const float CONST_DENCITY = 0.3F;
+        public const int POSITION_DISPLACEMENT = 10;
+        private int _positionDisplacement;
         public Timer FrameTimer;
         public bool IsCritical;
         public bool IsActive = true;
@@ -167,6 +170,9 @@ namespace OnlyDarker.CommonUsing.Rendering
                 FrameTimer = new(CRIT_LIFETIME);
             else
                 FrameTimer = new(COMMON_LIFETIME);
+            _positionDisplacement = RandomNumberGenerator.GetInt32(-POSITION_DISPLACEMENT, POSITION_DISPLACEMENT);
+            Position.X += _positionDisplacement;
+            Position.Y += _positionDisplacement;
             GameBody.DamageNumberAnimationManagers.Add(this);
         }
         public void Update(float elapsedMilliseconds)
