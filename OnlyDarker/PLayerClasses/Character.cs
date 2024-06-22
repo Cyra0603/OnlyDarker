@@ -38,9 +38,9 @@ namespace OnlyDarker
             );
         public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
         public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
-        public Armor BaseArmor { get; private set; } = new();
+        public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
+        public List<Armor> ArmorSet { get; set; } = new();
         public IWeapon CurrentWeapon = new WeaponFist();
-        private EffectAnimationManager _attackAnimationManager;
         private Texture2D _attackAnimation = GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation");
         public ActionTimer? DashTimer;
         public ActionTimer? DashEffectTimer;
@@ -87,7 +87,7 @@ namespace OnlyDarker
         public float HealthPoints
         {
             get => _healthPoints;
-            private set
+            set
             {
                 var previousValue = _healthPoints;
                 _healthPoints = value;
@@ -104,6 +104,11 @@ namespace OnlyDarker
                     }
                 }
             }
+        }
+        public bool IsInvincible
+        {
+            get => InvincibilityTimer.TimeLeft <= 0;
+            set { }
         }
 
         public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteStandartTile parentTile)
@@ -245,7 +250,6 @@ namespace OnlyDarker
             RunIFrames(_dashEffectLength);
             DashTimer.TimeUpdated += DashAction;
             DashEffectTimer.TimeElapsed += DashEnded;
-            Debug.WriteLine($"{_dashForce.Length()}");
         }
         private void DashEnded(object character, EventArgs e)
         {
@@ -258,20 +262,20 @@ namespace OnlyDarker
             var pos = Position;
             _dashFrames.Add(pos);
         }
-        public void TakeDamage(DamageInstance damage)
-        {
-            if (InvincibilityTimer.TimeLeft <= 0)
-            {
-                HealthPoints -= damage.ExtractValue(BaseArmor.Resistances.First(res => res.Type == damage.Type));
-                RunIFrames(I_FRAME_TIME);
-            }
-            else return;
-        }
+        //public void TakeDamage(DamageInstance damage)
+        //{
+        //    if (InvincibilityTimer.TimeLeft <= 0)
+        //    {
+        //        HealthPoints -= damage.ExtractValue(BaseArmor.Resistances.First(res => res.Type == damage.Type));
+        //        RunIFrames(I_FRAME_TIME);
+        //    }
+        //    else return;
+        //}
         public void TestTakingDamage()
         {
-            TakeDamage(new(1, 1, DamageType.Blunt, false));
-            TakeDamage(new(1, 1, DamageType.Slice, false));
-            TakeDamage(new(1, 1, DamageType.Poke, false));
+            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Blunt, false));
+            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Slice, false));
+            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Poke, false));
         }
         public void TestHealing()
         {
@@ -315,10 +319,10 @@ namespace OnlyDarker
             {
                 bool proc = GlobalUse.TryChance(CritChance);
                 if (!proc)
-                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase, 1, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
                 else
                 {
-                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase * critModifier, 1, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
                 }
             }
             if (GlobalUse.IsDebugMode)

@@ -22,14 +22,15 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
         public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
-        public Armor BaseArmor { get; private set; } = new();
+        public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
+        public List<Armor> ArmorSet { get; set; } = new();
         public float Speed { get; private set; } = 0.5F;
-        private bool _isInvincible = false;
+        public bool IsInvincible { get; set; } = false;
         private float _healthPoints = 10;
         public float HealthPoints
         {
             get => _healthPoints;
-            private set
+            set
             {
                 var previousValue = _healthPoints;
                 _healthPoints = value;
@@ -139,17 +140,17 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Position = position;
         }
-        public void TakeDamage(DamageInstance damage)
-        {
-            var test = Stopwatch.StartNew();
-            if (!_isInvincible)
-            {
-                HealthPoints -= damage.ExtractValue(BaseArmor.Resistances.AsParallel().First(res => res.Type == damage.Type));
-            }
-            else return;
-            test.Stop();
-            Debug.WriteLine($"taking damage took {test.ElapsedMilliseconds} ms");
-        }
+        //public void TakeDamage(DamageInstance damage)
+        //{
+        //    var test = Stopwatch.StartNew();
+        //    if (!IsInvincible)
+        //    {
+        //        HealthPoints -= damage.ExtractValue(BaseArmor.Resistances.AsParallel().First(res => res.Type == damage.Type));
+        //    }
+        //    else return;
+        //    test.Stop();
+        //    Debug.WriteLine($"taking damage took {test.ElapsedMilliseconds} ms");
+        //}
         public void Heal(float healAmount)
         {
             HealthPoints += healAmount;

@@ -12,6 +12,15 @@ using Microsoft.Xna.Framework.Content;
 
 namespace OnlyDarker.CommonUsing
 {
+    public enum ArmorType
+    {
+        Base,
+        Helmet,
+        Chest,
+        Pants,
+        Gloves,
+        Boots,
+    }
     public enum DamageType
     {
         Slice,

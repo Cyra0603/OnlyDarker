@@ -14,16 +14,18 @@ namespace OnlyDarker.GameProcess
         public Resistance PokeResistance { get; private set; }
         public Resistance BluntResistance { get; private set; }
         public List<Resistance> Resistances { get; } = new();
+        public ArmorType Type { get; }
 
-        public Armor(float sliceX = 1F, float pokeX = 1F, float bluntX = 1F)
+        public Armor(ArmorType armorType, float sliceX = 1F, float pokeX = 1F, float bluntX = 1F)
         {
+            Type = armorType;
             Resistances.Add(SliceResistance = new(DamageType.Slice, sliceX));
             Resistances.Add(PokeResistance = new(DamageType.Poke, pokeX));
             Resistances.Add(BluntResistance = new(DamageType.Blunt, bluntX));
         }
         public void AddFlatArmor(float value)
         {
-            foreach (Resistance res in Resistances)
+            foreach (var res in Resistances)
             {
                 res.AddFlatValue(value);
             }
@@ -36,7 +38,7 @@ namespace OnlyDarker.GameProcess
             }
         }
     }
-    public struct Resistance
+    public class Resistance
     {
         public float Modifier { get; private set; } = 1F;
         public float FlatValue { get; private set; }

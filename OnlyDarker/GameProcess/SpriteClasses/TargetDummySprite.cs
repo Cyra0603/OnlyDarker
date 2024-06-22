@@ -16,13 +16,14 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 Origin { get; protected set; }
         public Rectangle MovementCollider;
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
-        private Armor BaseArmor = new();
-        private bool _isInvincible = false;
+        public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
+        public List<Armor> ArmorSet { get; } = new();
+        public bool IsInvincible { get; set; }
         private float _healthPoints = 10000;
         public float HealthPoints
         {
             get => _healthPoints;
-            private set
+            set
             {
                 var previousValue = _healthPoints;
                 _healthPoints = value;
@@ -47,6 +48,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
             MovementCollider = BodyHitbox;
+            ArmorSet.Add(BaseArmor);
+            ArmorSet.Add(new(ArmorType.Helmet, bluntX: 0.8F));
+            //foreach(var armor in ArmorSet)d
+            //{
+            //    armor.AddFlatArmor(5F);
+            //}
         }
         public delegate void ObserveHP(float healthPoints);
         public event ObserveHP OnChangingHealth;
@@ -72,16 +79,20 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Position = position;
         }
-        public void TakeDamage(DamageInstance damage)
-        {
-            if (!_isInvincible)
-            {
-                var dmgTaken = damage.ExtractValue(BaseArmor.Resistances.First(res => res.Type == damage.Type));
-                Debug.WriteLine($"Dummy took {dmgTaken} damage");
-                new DamageNumberAnimationManager(new(Position.X, Position.Y - _bodyTexture.Height), dmgTaken.ToString(),damage.IsCritical);
-                HealthPoints -= dmgTaken;
-            }            
-            else return;
-        }
+        //public void TakeDamage(DamageInstance damage)
+        //{
+        //    if (!_isInvincible)
+        //    {
+        //        var locald = damage;
+        //        foreach (var armor in ArmorSet)
+        //        {
+        //            locald *= armor.Resistances.First(res => res.Type == locald.Type);
+        //        }
+        //        var dmgTaken = damage.ExtractValue();
+        //        var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), dmgTaken.ToString(),damage.IsCritical);
+        //        HealthPoints -= dmgTaken;
+        //    }            
+        //    else return;
+        //}
     }
 }

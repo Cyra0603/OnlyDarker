@@ -55,7 +55,7 @@ namespace OnlyDarker.PlayerClasses
         public WeaponFist()
         {
             AttackRangeBase = 256F;
-            AttackDamageBase = 4F;
+            AttackDamageBase = 50F;
             AttackSpeedBase = 2F;
             WeaponDamageType = DamageType.Blunt;
         }
