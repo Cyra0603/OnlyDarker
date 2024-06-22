@@ -30,6 +30,7 @@ namespace OnlyDarker
         private static Minimap _minimap;
         public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         public static List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
+        public static List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
         private float _fixedElapsedTimeMilliseconds;
         private float _fixedElapsedTime 
         {
@@ -147,7 +148,10 @@ namespace OnlyDarker
                 if (mngr.IsActive)
                     mngr.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
             }
-
+            foreach(var proj in ProjectileSprites)
+            {
+                proj.Update();
+            }
             EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
             DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
 
@@ -162,6 +166,7 @@ namespace OnlyDarker
             CalculateCameraView();
             MainCharacter.Update(milliseconds);
             SceneManager.CurrentRoom.UpdatePortals();
+            SceneManager.CurrentRoom.Update(milliseconds);
             SceneManager.CurrentRoom.UpdateObstaclesTransparency(milliseconds);
             _fixedElapsedTime = 0;
         }
@@ -207,6 +212,10 @@ namespace OnlyDarker
             {
                 if (mngr.IsActive)
                     mngr.Draw();
+            }
+            foreach (var proj in ProjectileSprites)
+            {
+                proj.Draw();
             }
             GlobalUse.SpriteBatch.End();
             _mainCanvas.Deactivate();

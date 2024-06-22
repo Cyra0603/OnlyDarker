@@ -37,8 +37,8 @@ namespace OnlyDarker
             _bindManager.MoveDown.KeyPressed += PlayerMoveDown;
             _bindManager.MoveLeft.KeyPressed += PlayerMoveLeft;
             _bindManager.MoveRight.KeyPressed += PlayerMoveRight;
-            _bindManager.HealCharacter.KeyPressed += GameBody.MainCharacter.TestTakingDamage;
-            _bindManager.DamageCharacter.KeyPressed += GameBody.MainCharacter.TestHealing;
+            _bindManager.HealCharacter.KeyPressed += GameBody.MainCharacter.TestHealing;
+            _bindManager.DamageCharacter.KeyPressed += GameBody.MainCharacter.TestTakingDamage;
             _bindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
             _bindManager.Attack.KeyPressed += GameBody.MainCharacter.Attack;
         }

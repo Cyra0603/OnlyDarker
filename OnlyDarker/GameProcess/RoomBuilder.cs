@@ -22,6 +22,7 @@ namespace OnlyDarker.GameProcess
         public List<IYSortable> ObjectsYSorted;
         public List<IPickup> Pickups;
         public List<IDamageable> Damageables;
+        public List<IMyUpdateable> Updateables;
         public RoomPortalSprite PortalBack { get; private set; }
         public RoomPortalSprite PortalNext { get; private set; }
         public readonly BackgroundSprite CurrentBackground;
@@ -54,6 +55,7 @@ namespace OnlyDarker.GameProcess
             RoomColliders = new();
             ObstaclesBounds = new();
             Damageables = new();
+            Updateables = new();
             TempRectDrawList = new();
             GridCords = roomBlueprint.gridCords;
             List<Texture2D> tileTextures = ImportTileTextures(roomBlueprint.floorType, roomBlueprint.roomType);
@@ -132,6 +134,15 @@ namespace OnlyDarker.GameProcess
                                     RoomColliders.Add(targetDummy.MovementCollider);
                                     ObstaclesBounds.Add(targetDummy.BodyHitbox);
                                 }
+                                if (roomType == RoomType.Entry && x == 14 && y == 10)
+                                {
+                                    var targetDummy = new TargetDummyShooterSprite(_tiles[x, y],this);
+                                    ObjectsYSorted.Add(targetDummy);
+                                    Damageables.Add(targetDummy);
+                                    RoomColliders.Add(targetDummy.MovementCollider);
+                                    ObstaclesBounds.Add(targetDummy.BodyHitbox);
+                                    Updateables.Add(targetDummy);
+                                }
                                 break;
                             case "Obstacle":
                                 BuildTile(tileTextures, x, y);
@@ -189,6 +200,13 @@ namespace OnlyDarker.GameProcess
         {
             PortalBack?.Update();
             PortalNext?.Update();
+        }
+        public void Update(float elapsedMilliseconds)
+        {
+            foreach(var item in Updateables)
+            {
+                item.Update(elapsedMilliseconds);
+            }
         }
         private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
         {

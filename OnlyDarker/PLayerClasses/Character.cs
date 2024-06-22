@@ -107,7 +107,7 @@ namespace OnlyDarker
         }
         public bool IsInvincible
         {
-            get => InvincibilityTimer.TimeLeft <= 0;
+            get => InvincibilityTimer.TimeLeft > 0;
             set { }
         }
 
@@ -118,6 +118,7 @@ namespace OnlyDarker
             _handOrigin = new(handTexture.Width / 2, handTexture.Height / 2);
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
+            OnTakingDamage += RunIFrames;
             //_dashDelegate += DashAction(this, EventArgs.Empty);
         }
         public delegate void ObserveFloatStat(float statValue);
@@ -128,9 +129,9 @@ namespace OnlyDarker
         public event ObserveFloatStat OnHealing;
         public event ObserveFloatStat OnChangingStamina;
         public event ObserveFloatStat OnChangingMaxStamina;
-        public void RunIFrames(float durationMilliseconds)
+        public void RunIFrames(float temp)
         {
-            InvincibilityTimer.TimeLeft = Math.Max(InvincibilityTimer.TimeLeft, durationMilliseconds);
+            InvincibilityTimer.TimeLeft = Math.Max(InvincibilityTimer.TimeLeft, I_FRAME_TIME);
         }
         public void Draw()
         {
@@ -273,7 +274,7 @@ namespace OnlyDarker
         //}
         public void TestTakingDamage()
         {
-            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Blunt, false));
+            (this as IDamageable).TakeDamage(new(1, 1.5F, DamageType.Blunt, false));
             (this as IDamageable).TakeDamage(new(1, 1, DamageType.Slice, false));
             (this as IDamageable).TakeDamage(new(1, 1, DamageType.Poke, false));
         }
@@ -295,10 +296,10 @@ namespace OnlyDarker
             var flipsf = SpriteEffects.None;
             if (ControlsManager.MousePosition.X < Position.X)
                 flipsf = SpriteEffects.FlipVertically;
-            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeedBase); //IMPLEMENT ATTACKSPEED!
+            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeed); //IMPLEMENT ATTACKSPEED!
             var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
             var direction = difference / difference.Length();
-            var range = (int)CurrentWeapon.AttackRangeBase;
+            var range = (int)CurrentWeapon.AttackRange;
             var attackRect = new Rectangle(new
                 ((int)(Position.X + (direction.X * range) - range / 2), (int)(Position.Y + (direction.Y * range) - range / 2)),
                 new(range, range));
@@ -313,16 +314,16 @@ namespace OnlyDarker
                 scale: range / animation.SourceRectangleSize.X * 4F,
                 spriteEffect: flipsf));
             }
-                    var critModifier = CritDamage / 100F;
+            var critModifier = CritDamage / 100F;
             //THIS DOES NOT WORK FINE
             foreach (var target in GameBody.SceneManager.CurrentRoom.Damageables.Where(target => target.BodyHitbox.Intersects(attackRect) || target.BodyHitbox.Intersects(attackRect2)))
             {
                 bool proc = GlobalUse.TryChance(CritChance);
                 if (!proc)
-                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                    target.TakeDamage(new(CurrentWeapon.AttackDamage, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
                 else
                 {
-                    target.TakeDamage(new(CurrentWeapon.AttackDamageBase * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                    target.TakeDamage(new(CurrentWeapon.AttackDamage * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
                 }
             }
             if (GlobalUse.IsDebugMode)
