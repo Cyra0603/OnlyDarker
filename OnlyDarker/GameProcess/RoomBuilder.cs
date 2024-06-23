@@ -201,9 +201,10 @@ namespace OnlyDarker.GameProcess
             PortalBack?.Update();
             PortalNext?.Update();
         }
-        public void Update(float elapsedMilliseconds)
+        public void Update (float elapsedMilliseconds)
         {
-            foreach(var item in Updateables)
+            UpdatePortals();
+            foreach (var item in Updateables)
             {
                 item.Update(elapsedMilliseconds);
             }

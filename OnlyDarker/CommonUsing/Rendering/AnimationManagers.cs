@@ -186,9 +186,9 @@ namespace OnlyDarker.CommonUsing.Rendering
         public void Draw()
         {
             if (IsCritical)
-                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, _message, Position, Color.Red * ColorDencity, 0F, Vector2.Zero, 1F, SpriteEffects.None, 0F);
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.Red * ColorDencity, 0F, Vector2.Zero, 1F, SpriteEffects.None, 0F);
             else
-                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, _message, Position, Color.White * ColorDencity, 0F, Vector2.Zero, 0.8F, SpriteEffects.None, 0F);
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.White * ColorDencity, 0F, Vector2.Zero, 0.8F, SpriteEffects.None, 0F);
         }
     }
     public class DrawCallArgs

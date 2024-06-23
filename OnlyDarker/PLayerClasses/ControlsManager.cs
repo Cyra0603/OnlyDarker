@@ -45,7 +45,7 @@ namespace OnlyDarker
 
         public static void UpdatePlayerControls(float elapsedMilliseconds)
         {
-            ////NegateCloseToZeroValues();
+            NegateCloseToZeroValues();
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
@@ -62,7 +62,6 @@ namespace OnlyDarker
             _direction += ForceSum;
             AddFriction();
             //NormalizeDirectionVector();
-
             ForceSum = Vector2.Zero;
         }
 
@@ -75,10 +74,7 @@ namespace OnlyDarker
         }
         private static bool ButtonStateToBool(ButtonState buttonState)
         {
-            if (buttonState == ButtonState.Pressed)
-                return true;
-            else 
-                return false;
+            return buttonState == ButtonState.Pressed;
         }
         private static void ClampDirectionVector()
         {
@@ -121,7 +117,7 @@ namespace OnlyDarker
         }
         public static Vector2 GetMaxDirectionVector()
         {
-            return new Vector2(DIRECTION_X_MAX_VALUE, DIRECTION_X_MAX_VALUE);
+            return new Vector2(DIRECTION_X_MAX_VALUE, DIRECTION_Y_MAX_VALUE);
         }
         public static void ZeroDirectionY()
         {

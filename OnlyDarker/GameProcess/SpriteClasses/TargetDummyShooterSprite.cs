@@ -16,7 +16,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 Origin { get; protected set; }
         public Rectangle MovementCollider;
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
-        private Timer _attackCooldown = new(500F); 
+        private Timer _attackCooldown;
+        public readonly float AttackCooldownTime = 1000F;
         public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
         public List<Armor> ArmorSet { get; } = new();
         public bool IsInvincible { get; set; }
@@ -51,6 +52,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
             MovementCollider = BodyHitbox;
+            _attackCooldown = new(AttackCooldownTime);
             ArmorSet.Add(BaseArmor);
             //foreach(var armor in ArmorSet)
             //{
@@ -75,9 +77,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             var difference = Vector2.Normalize(GameBody.MainCharacter.Position - Position);
             var direction = difference / difference.Length();
-            var projectile = new ProjectileSprite(_projectileTexture, Position, direction * 3F, new(1, 1, DamageType.Blunt, false));
+            var projectile = new ProjectileSprite(_projectileTexture, Position, direction / 2, new(1, 1, DamageType.Blunt, false), 10000F);
             GameBody.ProjectileSprites.Add(projectile);
-            _attackCooldown.TimeLeft += 500F;
+            _attackCooldown.TimeLeft += AttackCooldownTime;
         }
 
         public void Update(float elapsedMilliseconds)

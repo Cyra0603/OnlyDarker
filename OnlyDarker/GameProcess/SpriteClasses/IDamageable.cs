@@ -27,8 +27,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                     locald *= armor.Resistances.First(res => res.Type == locald.Type);
                 }
                 var dmgTaken = locald.ExtractValue();
-                var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), dmgTaken.ToString(), damage.IsCritical);
                 HealthPoints -= dmgTaken;
+                var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
                 Debug.WriteLineIf(GlobalUse.IsDebugMode, $"Counting damage took {test.ElapsedTicks} ticks");
             }
             else return;

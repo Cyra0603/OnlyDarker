@@ -36,7 +36,7 @@ namespace OnlyDarker
             (int)Position.X - _bodyTexture.Width / 2, (int)Position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
-        public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
+        public Rectangle BodyHitbox => new(new((int)(Position.X - _bodyTexture.Width/2), (int)(Position.Y - _bodyTexture.Height / 2)), new(_bodyTexture.Width, _bodyTexture.Height));
         public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
         public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
         public List<Armor> ArmorSet { get; set; } = new();
@@ -46,6 +46,7 @@ namespace OnlyDarker
         public ActionTimer? DashEffectTimer;
         public Timer AttackCooldown = new(0);
         public Timer InvincibilityTimer = new(0);
+        public Timer DamagedEffectTimer = new(0);
         private SpriteEffects _flipEffect = SpriteEffects.None;
         public float Speed { get; private set; } = 1F;
         public const float MAX_CHARACTER_SPEED = 2F;
@@ -118,7 +119,6 @@ namespace OnlyDarker
             _handOrigin = new(handTexture.Width / 2, handTexture.Height / 2);
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
-            OnTakingDamage += RunIFrames;
             //_dashDelegate += DashAction(this, EventArgs.Empty);
         }
         public delegate void ObserveFloatStat(float statValue);
@@ -129,22 +129,20 @@ namespace OnlyDarker
         public event ObserveFloatStat OnHealing;
         public event ObserveFloatStat OnChangingStamina;
         public event ObserveFloatStat OnChangingMaxStamina;
-        public void RunIFrames(float temp)
+        public void RunIFrames(float durationMilliseconds)
         {
-            InvincibilityTimer.TimeLeft = Math.Max(InvincibilityTimer.TimeLeft, I_FRAME_TIME);
+            InvincibilityTimer.TimeLeft = Math.Max(InvincibilityTimer.TimeLeft, durationMilliseconds);
         }
         public void Draw()
         {
-            if (ControlsManager.MousePosition.X < Position.X)
-                _flipEffect = SpriteEffects.FlipHorizontally;
-            else
-                _flipEffect = SpriteEffects.None;
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
                     GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
                 }
-            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
+                GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
+            if (DamagedEffectTimer.TimeLeft > 0)
+                GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
         }
 
         public void SetRoomBounds(Point roomSize, Point tileSize)
@@ -158,9 +156,14 @@ namespace OnlyDarker
             ControlsManager.UpdatePlayerControls(elapsedMilliseconds);
             DashTimer?.Update(elapsedMilliseconds);
             DashEffectTimer?.Update(elapsedMilliseconds);
+            DamagedEffectTimer.Update(elapsedMilliseconds);
             InvincibilityTimer.Update(elapsedMilliseconds);
             AttackCooldown.Update(elapsedMilliseconds);
             Stamina += elapsedMilliseconds * _staminaRegenValue;
+            if (ControlsManager.MousePosition.X < Position.X)
+                _flipEffect = SpriteEffects.FlipHorizontally;
+            else
+                _flipEffect = SpriteEffects.None;
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
                 var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
@@ -241,10 +244,8 @@ namespace OnlyDarker
                 _dashForce = ControlsManager.GetDirection();
             else
             {
-                var angle = Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X);
-                var dir = ControlsManager.GetMaxDirectionVector();
-                var facingCursorDirection = new Vector2((float)Math.Sin(angle * ((Math.PI * 2) / 360)), (float)Math.Cos(angle * ((Math.PI * 2) / 360)));
-                _dashForce = facingCursorDirection * dir;
+                var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
+                _dashForce = difference / difference.Length() * ControlsManager.GetMaxDirectionVector();;
             }
             DashTimer = new ActionTimer(_dashLength);
             DashEffectTimer = new ActionTimer(_dashEffectLength);
@@ -274,7 +275,7 @@ namespace OnlyDarker
         //}
         public void TestTakingDamage()
         {
-            (this as IDamageable).TakeDamage(new(1, 1.5F, DamageType.Blunt, false));
+            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Blunt, false));
             (this as IDamageable).TakeDamage(new(1, 1, DamageType.Slice, false));
             (this as IDamageable).TakeDamage(new(1, 1, DamageType.Poke, false));
         }
@@ -326,6 +327,13 @@ namespace OnlyDarker
                     target.TakeDamage(new(CurrentWeapon.AttackDamage * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
                 }
             }
+            foreach (var target in GameBody.ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
+            {
+                var posDif = Vector2.Normalize(ControlsManager.MousePosition - Position);
+                var newForce = difference / difference.Length();
+                target.ChangeForce(newForce);
+                target.Lifetime.TimeLeft /= 2;
+            }
             if (GlobalUse.IsDebugMode)
             {
                 GameBody.SceneManager.CurrentRoom.AddTempDrawableRect(attackRect);
@@ -341,6 +349,25 @@ namespace OnlyDarker
             //var l3 = l2 - l1;
             //Debug.WriteLine(l3.Length());
             //Debug.WriteLine($"{Vector2.Normalize(Vector2.Lerp(l1,l2, 1 / l3.Length()))}");
+        }
+        public void TakeDamage(DamageInstance damage)
+        {
+            if (!IsInvincible)
+            {
+                var test = Stopwatch.StartNew();
+                var locald = damage;
+                foreach (var armor in ArmorSet)
+                {
+                    locald *= armor.Resistances.First(res => res.Type == locald.Type);
+                }
+                var dmgTaken = locald.ExtractValue();
+                var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), dmgTaken.ToString(), damage.IsCritical);
+                HealthPoints -= dmgTaken;
+                RunIFrames(I_FRAME_TIME);
+                DamagedEffectTimer.TimeLeft += I_FRAME_TIME;
+                Debug.WriteLineIf(GlobalUse.IsDebugMode, $"Counting damage took {test.ElapsedTicks} ticks");
+            }
+            else return;
         }
     }
 }

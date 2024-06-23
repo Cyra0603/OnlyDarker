@@ -35,7 +35,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             if (MovementCollider.Intersects(GameBody.MainCharacter.MovementCollider) && _isActive)
             {
-                Debug.WriteLine("Found intersection at" + ParentRoomReference.OrderNumber.ToString());
                 PlayerTeleport();
             }
         }
@@ -77,14 +76,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         private void PlayerTeleport()
         {
-            Debug.WriteLine("teleporting from" + GameBody.SceneManager.CurrentRoom.OrderNumber.ToString());
             ParentRoomReference.DeactivatePortals();
             ExitRoom.DeactivatePortals();
             GameBody.SceneManager.GoToRoom(ExitRoom.OrderNumber);
             GameBody.MainCharacter.SetPosition(ExitPosition);
-            Debug.WriteLine("to" + GameBody.SceneManager.CurrentRoom.OrderNumber.ToString());
             ParentRoomReference.ActivatePortals(2000);
             ExitRoom.ActivatePortals(2000);
+            GameBody.ProjectileSprites.Clear();
             GC.Collect();
         }
     }

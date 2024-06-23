@@ -9,6 +9,7 @@ using OnlyDarker.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 
@@ -25,9 +26,9 @@ namespace OnlyDarker
         private static CharacterStaminaBar _staminaBar;
         private static StatsBar _statsBar;
         private static CurrentFloorBar _currentFloorBar;
+        private static Minimap _minimap;
         private static Texture2D _hitboxTexture;
         private static Texture2D _emptyTexture;
-        private static Minimap _minimap;
         public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         public static List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
         public static List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
@@ -150,10 +151,11 @@ namespace OnlyDarker
             }
             foreach(var proj in ProjectileSprites)
             {
-                proj.Update();
+                proj.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
             }
             EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
             DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
+            ProjectileSprites.RemoveAll(proj => proj.Lifetime.TimeLeft <= 0);
 
             _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
 
@@ -165,7 +167,6 @@ namespace OnlyDarker
         {
             CalculateCameraView();
             MainCharacter.Update(milliseconds);
-            SceneManager.CurrentRoom.UpdatePortals();
             SceneManager.CurrentRoom.Update(milliseconds);
             SceneManager.CurrentRoom.UpdateObstaclesTransparency(milliseconds);
             _fixedElapsedTime = 0;
@@ -197,11 +198,16 @@ namespace OnlyDarker
                 {
                     DrawRectangleOutline(bounds, Color.Black, 5);
                 }
+                foreach (var proj in ProjectileSprites)
+                {
+                    DrawRectangleOutline(proj.HurtBox, Color.Black, 2);
+                }
                 GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
                 if (SceneManager.CurrentRoom.PortalBack is not null)
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalBack.MovementCollider, Color.Blue);
                 if (SceneManager.CurrentRoom.PortalNext is not null)
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalNext.MovementCollider, Color.Blue);
+                DrawRectangleOutline(MainCharacter.BodyHitbox, Color.Red, 5);
             }
             foreach (var mngr in EffectAnimationManagers)
             {
