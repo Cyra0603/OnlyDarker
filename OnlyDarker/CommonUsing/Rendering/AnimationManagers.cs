@@ -75,7 +75,7 @@ namespace OnlyDarker.CommonUsing.Rendering
                 spriteEffect,
                 layerDepth);
         }
-       
+
     }
     public class EffectAnimationManager
     {
@@ -166,7 +166,7 @@ namespace OnlyDarker.CommonUsing.Rendering
             Position = position;
             _message = message;
             IsCritical = isCritical;
-            if(isCritical)
+            if (isCritical)
                 FrameTimer = new(CRIT_LIFETIME);
             else
                 FrameTimer = new(COMMON_LIFETIME);
@@ -179,7 +179,7 @@ namespace OnlyDarker.CommonUsing.Rendering
         {
             FrameTimer.Update(elapsedMilliseconds);
             if (FrameTimer.TimeLeft <= 0)
-                    IsActive = false;
+                IsActive = false;
             Position = new(Position.X, Position.Y - elapsedMilliseconds / 8);
             ColorDencity = FrameTimer.TimeLeft / CRIT_LIFETIME + CONST_DENCITY;
         }
@@ -207,7 +207,7 @@ namespace OnlyDarker.CommonUsing.Rendering
             LayerDepth = layerDepth;
         }
         ~DrawCallArgs()
-            {
+        {
             Debug.WriteLine("Drawcallargs disposed");
         }
     }

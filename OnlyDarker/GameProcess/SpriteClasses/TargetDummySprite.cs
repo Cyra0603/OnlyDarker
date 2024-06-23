@@ -50,10 +50,14 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             MovementCollider = BodyHitbox;
             ArmorSet.Add(BaseArmor);
             ArmorSet.Add(new(ArmorType.Helmet, bluntX: 0.8F));
-            //foreach(var armor in ArmorSet)
-            //{
-            //    armor.AddFlatArmor(5F);
-            //}
+            ArmorSet.Add(new(ArmorType.Pants, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Chest, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Boots, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Gloves, bluntX: 0.8F));
+            foreach (var armor in ArmorSet)
+            {
+                armor.AddFlatArmor(5F);
+            }
         }
         public delegate void ObserveHP(float healthPoints);
         public event ObserveHP OnChangingHealth;
