@@ -25,8 +25,8 @@ namespace OnlyDarker
                     new Vector2(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
             }
         }
-        public const float DIRECTION_X_MAX_VALUE = 7F;
-        public const float DIRECTION_Y_MAX_VALUE = 4.667F;
+        public const float DIRECTION_X_MAX_VALUE = 1.75F;
+        public const float DIRECTION_Y_MAX_VALUE = 1.15F;
         private static readonly float _friction = 0.88F;
         public static bool InputsBlocked { get; private set; } = true;
         public static bool Paralyzed { get; private set; } = false;
@@ -46,7 +46,7 @@ namespace OnlyDarker
 
         public static void UpdatePlayerControls(float elapsedMilliseconds)
         {
-            NegateCloseToZeroValues();
+            //NegateCloseToZeroValues();
             if (!InputsBlocked)
             {
                 var keyboardState = Keyboard.GetState();
@@ -85,12 +85,12 @@ namespace OnlyDarker
         {
             if (_direction != Vector2.Zero)
                 _direction = Vector2.Normalize(_direction);
-            
+
         }
-        private static void PlayerMoveUp() => _direction.Y--;
-        private static void PlayerMoveDown() => _direction.Y++;
-        private static void PlayerMoveLeft() => _direction.X--;
-        private static void PlayerMoveRight() => _direction.X++;
+        private static void PlayerMoveUp() => _direction.Y-=0.33F;
+        private static void PlayerMoveDown() => _direction.Y += 0.33F;
+        private static void PlayerMoveLeft() => _direction.X -= 0.33F;
+        private static void PlayerMoveRight() => _direction.X += 0.33F;
         public static void AddFriction()
         {
             _direction.Y *= _friction;

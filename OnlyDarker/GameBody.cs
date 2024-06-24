@@ -52,7 +52,7 @@ namespace OnlyDarker
         private Vector2 _netgraphPosition;
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
-        private static float _cameraZoom = 1F;
+        private static float _cameraZoom = 2F;
         private static float _collectiblesTimeAccumulator = 0F;
 
         public GameBody()
@@ -193,26 +193,28 @@ namespace OnlyDarker
             {
                 foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
                 {
-                    DrawRectangleOutline(hitbox, Color.Red, 5);
+                    DrawRectangleOutline(hitbox, Color.Red, 2);
                 }
                 foreach (var bounds in SceneManager.CurrentRoom.ObstaclesBounds)
                 {
-                    DrawRectangleOutline(bounds, Color.Black, 5);
+                    DrawRectangleOutline(bounds, Color.Black, 2);
                 }
                 foreach (var bounds in SceneManager.CurrentRoom.TempRectDrawList)
                 {
-                    DrawRectangleOutline(bounds, Color.Black, 5);
+                    DrawRectangleOutline(bounds, Color.Black, 2);
                 }
                 foreach (var proj in ProjectileSprites)
                 {
                     DrawRectangleOutline(proj.HurtBox, Color.Black, 2);
                 }
-                GlobalUse.SpriteBatch.Draw(_hitboxTexture, MainCharacter.MovementCollider, Color.Blue);
+                DrawRectangleOutline(MainCharacter.MovementCollider, Color.Black);
+                DrawRectangleOutline(MainCharacter.MovementCollisionAura, Color.Black);
+                DrawRectangleOutline(MainCharacter.InteractionAura, Color.Yellow);
                 if (SceneManager.CurrentRoom.PortalBack is not null)
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalBack.MovementCollider, Color.Blue);
                 if (SceneManager.CurrentRoom.PortalNext is not null)
                     GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalNext.MovementCollider, Color.Blue);
-                DrawRectangleOutline(MainCharacter.BodyHitbox, Color.Red, 5);
+                DrawRectangleOutline(MainCharacter.BodyHitbox, Color.Red, 2);
             }
             foreach (var mngr in EffectAnimationManagers)
             {

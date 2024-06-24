@@ -31,7 +31,7 @@ namespace OnlyDarker.PlayerClasses
         public WeaponSprite WeaponPickupSprite { get; }
         public WeaponFist()
         {
-            AttackRange = 256F;
+            AttackRange = 64F;
             AttackDamage = 2F;
             AttackSpeed = 2F;
             WeaponDamageType = DamageType.Blunt;
@@ -47,7 +47,7 @@ namespace OnlyDarker.PlayerClasses
 
         public WeaponSword(WeaponSprite spriteRef)
         {
-            AttackRange = 333F;
+            AttackRange = 84F;
             AttackDamage = 5F;
             AttackSpeed = 2F;
             WeaponDamageType = DamageType.Slice;
@@ -64,7 +64,7 @@ namespace OnlyDarker.PlayerClasses
 
         public WeaponStick(WeaponSprite spriteRef)
         {
-            AttackRange = 400F;
+            AttackRange = 100F;
             AttackDamage = 2F;
             AttackSpeed = 3F;
             WeaponDamageType = DamageType.Blunt;
@@ -81,7 +81,7 @@ namespace OnlyDarker.PlayerClasses
 
         public WeaponLance(WeaponSprite spriteRef)
         {
-            AttackRange = 400F;
+            AttackRange = 100F;
             AttackDamage = 7F;
             AttackSpeed = 1.5F;
             WeaponDamageType = DamageType.Poke;

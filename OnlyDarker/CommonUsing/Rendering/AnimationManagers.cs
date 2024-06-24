@@ -112,7 +112,7 @@ namespace OnlyDarker.CommonUsing.Rendering
                 }
             }
         }
-        public void Draw(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
+        public void Draw(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 1F)
         {
             GlobalUse.SpriteBatch.Draw(
                 _spriteSheet,
@@ -154,7 +154,7 @@ namespace OnlyDarker.CommonUsing.Rendering
         public const float CRIT_LIFETIME = 1000;
         public Vector2 Position;
         public float ColorDencity = 1F;
-        public const float CONST_DENCITY = 0.3F;
+        public const float CONST_DENCITY = 0.5F;
         public const int POSITION_DISPLACEMENT = 10;
         private int _positionDisplacement;
         public Timer FrameTimer;
@@ -180,15 +180,15 @@ namespace OnlyDarker.CommonUsing.Rendering
             FrameTimer.Update(elapsedMilliseconds);
             if (FrameTimer.TimeLeft <= 0)
                 IsActive = false;
-            Position = new(Position.X, Position.Y - elapsedMilliseconds / 8);
+            Position = new(Position.X, Position.Y - elapsedMilliseconds / 32);
             ColorDencity = FrameTimer.TimeLeft / CRIT_LIFETIME + CONST_DENCITY;
         }
         public void Draw()
         {
             if (IsCritical)
-                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.Red * ColorDencity, 0F, Vector2.Zero, 1F, SpriteEffects.None, 0F);
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.Red * ColorDencity, 0F, Vector2.Zero, 0.25F, SpriteEffects.None, 0F);
             else
-                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.White * ColorDencity, 0F, Vector2.Zero, 0.8F, SpriteEffects.None, 0F);
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.White * ColorDencity, 0F, Vector2.Zero, 0.2F, SpriteEffects.None, 0F);
         }
     }
     public class DrawCallArgs

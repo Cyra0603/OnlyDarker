@@ -11,8 +11,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     {
         Texture2D Texture { get; }
         Vector2 Position { get; set; }
-        static Vector2 SwayOffset => new(0,(float)Math.Cos(GameBody.GetSwayFunctionValue() * SwayAmplitude));
-        const float SwayAmplitude = 5F;
+        static Vector2 SwayOffset => new(0,(float)Math.Sin(GameBody.GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
+        const float SWAY_AMPLITUDE = 2F;
+        const float SWAY_FREQUENCY = 5F;
         void Collect();
         void DynamicDraw()
         {

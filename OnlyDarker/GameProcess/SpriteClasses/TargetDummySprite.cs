@@ -68,9 +68,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
             if (GlobalUse.IsDebugMode)
             {
-                GameBody.DrawRectangleOutline(BodyHitbox, Color.Black, 4);
-                GameBody.DrawRectangleOutline(MovementCollider, Color.Black, 4);
-                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X,Position.Y - _bodyTexture.Height * 2), Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
+                GameBody.DrawRectangleOutline(BodyHitbox, Color.Black, 2);
+                GameBody.DrawRectangleOutline(MovementCollider, Color.Black, 2);
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X,Position.Y - _bodyTexture.Height), Color.White, 0F, Origin, 0.25F, SpriteEffects.None, 0.5F);
             }
         }
 

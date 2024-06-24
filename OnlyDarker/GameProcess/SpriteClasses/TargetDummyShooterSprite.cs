@@ -68,16 +68,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
             if (GlobalUse.IsDebugMode)
             {
-                GameBody.DrawRectangleOutline(BodyHitbox, Color.Black, 4);
-                GameBody.DrawRectangleOutline(MovementCollider, Color.Black, 4);
-                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X, Position.Y - _bodyTexture.Height * 2), Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
+                GameBody.DrawRectangleOutline(BodyHitbox, Color.Black, 2);
+                GameBody.DrawRectangleOutline(MovementCollider, Color.Black, 2);
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X, Position.Y - _bodyTexture.Height), Color.White, 0F, Origin, 0.25F, SpriteEffects.None, 0.5F);
             }
         }
         public void Shoot()
         {
             var difference = Vector2.Normalize(GameBody.MainCharacter.Position - Position);
             var direction = difference / difference.Length();
-            var projectile = new ProjectileSprite(_projectileTexture, Position, direction / 2, new(1, 1, DamageType.Blunt, false), 10000F);
+            var projectile = new ProjectileSprite(_projectileTexture, Position, direction / 6, new(1, 1, DamageType.Blunt, false), 10000F);
             GameBody.ProjectileSprites.Add(projectile);
             _attackCooldown.TimeLeft += AttackCooldownTime;
         }
