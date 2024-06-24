@@ -12,7 +12,7 @@ namespace OnlyDarker
 {
     public static class ControlsManager
     {
-        private static BindManager _bindManager;
+        public static BindManager BindManager { get; }
         private static Vector2 _direction;
         public static Vector2 ForceSum { get; set; }
         public static Vector2 MousePosition
@@ -32,15 +32,16 @@ namespace OnlyDarker
         public static bool Paralyzed { get; private set; } = false;
         static ControlsManager()
         {
-            _bindManager = GameBody.BindManager;
-            _bindManager.MoveUp.KeyPressed += PlayerMoveUp;
-            _bindManager.MoveDown.KeyPressed += PlayerMoveDown;
-            _bindManager.MoveLeft.KeyPressed += PlayerMoveLeft;
-            _bindManager.MoveRight.KeyPressed += PlayerMoveRight;
-            _bindManager.HealCharacter.KeyPressed += GameBody.MainCharacter.TestHealing;
-            _bindManager.DamageCharacter.KeyPressed += GameBody.MainCharacter.TestTakingDamage;
-            _bindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
-            _bindManager.Attack.KeyPressed += GameBody.MainCharacter.Attack;
+            BindManager = GameBody.BindManager;
+            BindManager.MoveUp.KeyPressed += PlayerMoveUp;
+            BindManager.MoveDown.KeyPressed += PlayerMoveDown;
+            BindManager.MoveLeft.KeyPressed += PlayerMoveLeft;
+            BindManager.MoveRight.KeyPressed += PlayerMoveRight;
+            BindManager.Interact.KeyPressed += GameBody.MainCharacter.Interact;
+            BindManager.HealCharacter.KeyPressed += GameBody.MainCharacter.TestHealing;
+            BindManager.DamageCharacter.KeyPressed += GameBody.MainCharacter.TestTakingDamage;
+            BindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
+            BindManager.Attack.KeyPressed += GameBody.MainCharacter.Attack;
         }
 
         public static void UpdatePlayerControls(float elapsedMilliseconds)

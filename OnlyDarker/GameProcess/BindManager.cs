@@ -8,7 +8,7 @@ namespace OnlyDarker.GameProcess
 {
     public class BindManager
     {
-        private BindManager _managerInstance = null;
+        private static BindManager _managerInstance = null;
         public readonly MouseState _defaultState = new();
         public readonly static List<Bind> BindList = new();
         public readonly Bind ToggleDebug;
@@ -19,15 +19,13 @@ namespace OnlyDarker.GameProcess
         public readonly Bind MoveDown;
         public readonly Bind Dash;
         public readonly Bind ClickAction;
+        public readonly Bind Interact;
         public readonly Bind DamageCharacter;
         public readonly Bind HealCharacter;
         public readonly Bind Attack;
         public delegate void KeyPress();
-        public BindManager()
+        protected BindManager()
         {
-            if (_managerInstance is not null)
-                throw new Exception("BindManager instance already exists");
-
             bool canBeHold = true;
             ToggleDebug = new(Keys.F1, !canBeHold);
             ExitApplication = new(Keys.Back, !canBeHold);
@@ -36,10 +34,18 @@ namespace OnlyDarker.GameProcess
             MoveUp = new(Keys.W, canBeHold);
             MoveDown = new(Keys.S, canBeHold);
             Dash = new(Keys.LeftShift, !canBeHold);
+            Interact = new(Keys.E, !canBeHold);
             DamageCharacter = new(Keys.F11, !canBeHold);
             HealCharacter = new(Keys.F12, !canBeHold);
             Attack = new(_defaultState.LeftButton, !canBeHold);
             _managerInstance = this;
+        }
+        public static BindManager GetBindManagerInstance()
+        {
+            if (_managerInstance == null)
+                return _managerInstance = new BindManager();
+            else 
+                return _managerInstance;
         }
         public void SetControlKey(Bind bind)
         {

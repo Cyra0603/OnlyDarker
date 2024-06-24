@@ -1,6 +1,7 @@
 ﻿using OnlyDarker.CommonUsing;
 using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess.SpriteClasses;
+using OnlyDarker.PlayerClasses;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -20,7 +21,7 @@ namespace OnlyDarker.GameProcess
         public readonly SpriteStandartTile[,] _tiles;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
         public List<IYSortable> ObjectsYSorted;
-        public List<IPickup> Pickups;
+        public List<IInteractive> Interactives;
         public List<IDamageable> Damageables;
         public List<IMyUpdateable> Updateables;
         public RoomPortalSprite PortalBack { get; private set; }
@@ -55,6 +56,7 @@ namespace OnlyDarker.GameProcess
             RoomColliders = new();
             ObstaclesBounds = new();
             Damageables = new();
+            Interactives = new();   
             Updateables = new();
             TempRectDrawList = new();
             GridCords = roomBlueprint.gridCords;
@@ -142,6 +144,12 @@ namespace OnlyDarker.GameProcess
                                     RoomColliders.Add(targetDummy.MovementCollider);
                                     ObstaclesBounds.Add(targetDummy.BodyHitbox);
                                     Updateables.Add(targetDummy);
+                                }
+                                if (roomType == RoomType.Entry && x == 13 && y == 10)
+                                {
+                                    var weaponTest = new WeaponSword(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()));
+                                    ObjectsYSorted.Add(weaponTest.WeaponPickupSprite);
+                                    Interactives.Add(weaponTest.WeaponPickupSprite);
                                 }
                                 break;
                             case "Obstacle":

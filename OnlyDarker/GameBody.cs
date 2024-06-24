@@ -26,6 +26,7 @@ namespace OnlyDarker
         private static CharacterStaminaBar _staminaBar;
         private static StatsBar _statsBar;
         private static CurrentFloorBar _currentFloorBar;
+        private static InteractionMessageBar _interactionMessageBar;
         private static Minimap _minimap;
         private static Texture2D _hitboxTexture;
         private static Texture2D _emptyTexture;
@@ -51,7 +52,8 @@ namespace OnlyDarker
         private Vector2 _netgraphPosition;
         public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
-        private static float _cameraZoom = 0.5F;
+        private static float _cameraZoom = 1F;
+        private static float _collectiblesTimeAccumulator = 0F;
 
         public GameBody()
         {
@@ -81,7 +83,7 @@ namespace OnlyDarker
 
             _graphics.ApplyChanges();
 
-            BindManager = new();
+            BindManager = BindManager.GetBindManagerInstance();
 
             BindManager.ExitApplication.KeyPressed += Exit;
 
@@ -123,6 +125,8 @@ namespace OnlyDarker
 
             _staminaBar = new(_graphics.GraphicsDevice);
 
+            _interactionMessageBar = InteractionMessageBar.GetInstance();
+
             UpdateFPS();
 
             ControlsManager.CharacterInputsDisabled(false);
@@ -138,7 +142,7 @@ namespace OnlyDarker
         protected override void Update(GameTime gameTime)
         {
             SceneManager.CurrentRoom.SortObjectsByY();
-
+            _collectiblesTimeAccumulator += (float)gameTime.ElapsedGameTime.TotalSeconds;
             foreach (var mngr in EffectAnimationManagers)
             {
                 if(mngr.IsActive)
@@ -165,8 +169,9 @@ namespace OnlyDarker
         }
         private void FixedTimeStepUpdate(float milliseconds)
         {
-            CalculateCameraView();
+            _interactionMessageBar.Update();
             MainCharacter.Update(milliseconds);
+            CalculateCameraView();
             SceneManager.CurrentRoom.Update(milliseconds);
             SceneManager.CurrentRoom.UpdateObstaclesTransparency(milliseconds);
             _fixedElapsedTime = 0;
@@ -238,12 +243,12 @@ namespace OnlyDarker
             _statsBar.Draw();
             _currentFloorBar.Draw();
             _staminaBar.Draw();
+            _interactionMessageBar.Draw();
             GlobalUse.SpriteBatch.End();
 
             base.Draw(gameTime);
             FPS++;
         }
-
         private void CalculateCameraView()
         {
             var lx = GlobalUse.WindowSize.X / 2 / _cameraZoom - MainCharacter.Position.X;
@@ -264,6 +269,10 @@ namespace OnlyDarker
                 FPS = 0;
                 await Task.Delay(1000);
             }
+        }
+        public static float GetSwayFunctionValue()
+        {
+            return _collectiblesTimeAccumulator;
         }
         public static void DrawRectangleOutline(Rectangle rect, Color color, int borderWidth = 1)
         {

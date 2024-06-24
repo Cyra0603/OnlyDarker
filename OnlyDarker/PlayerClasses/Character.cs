@@ -40,6 +40,7 @@ namespace OnlyDarker
         public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
         public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
         public List<Armor> ArmorSet { get; set; } = new();
+        private Stack<IInteractive> _thingsToInteract = new();
         public IWeapon CurrentWeapon = new WeaponFist();
         private Texture2D _attackAnimation = GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation");
         public ActionTimer? DashTimer;
@@ -55,11 +56,11 @@ namespace OnlyDarker
         public float CritChance = 5F;
         public float CritDamage = 200F;
         private float _staminaRegenValue = 0.02F;
-        private float _dashLength { get; set; } = 100;
+        private float _dashLength { get; set; } = 100F;
         private float _dashEffectLength => _dashLength * 1.5F;
-        public float HandRotation { get; set; } = 0;
-        private float _maxStamina = 100;
-        public float StaminaCost = 50;
+        public float HandRotation { get; set; } = 0F;
+        private float _maxStamina = 100F;
+        public float StaminaCost = 50F;
         public float MaxStamina
         {
             get
@@ -150,10 +151,14 @@ namespace OnlyDarker
             _minPosition = new Vector2((-tileSize.X / 2) + Origin.X, (-tileSize.Y / 2) + Origin.Y - _bodyTexture.Height + GlobalUse.PIXEL_OFFSET);
             _maxPosition = new Vector2(roomSize.X - (tileSize.X / 2) - Origin.X, roomSize.Y - (tileSize.Y / 2) - Origin.Y);
         }
-
+        public void Interact()
+        {
+            _thingsToInteract.Peek().Interact();    
+        }
         public void Update(float elapsedMilliseconds)
         {
             ControlsManager.UpdatePlayerControls(elapsedMilliseconds);
+            _thingsToInteract.Clear();
             DashTimer?.Update(elapsedMilliseconds);
             DashEffectTimer?.Update(elapsedMilliseconds);
             DamagedEffectTimer.Update(elapsedMilliseconds);
@@ -178,9 +183,10 @@ namespace OnlyDarker
             {
                 Position += ControlsManager.GetDirection() * Speed;
             }
-            if (GameBody.SceneManager.CurrentRoom.Pickups is not null && GameBody.SceneManager.CurrentRoom.Pickups.Any(collider => collider.MovementCollider.Intersects(MovementCollisionAura)))
+            if (GameBody.SceneManager.CurrentRoom.Interactives is not null && GameBody.SceneManager.CurrentRoom.Interactives.Any(collider => collider.MovementCollider.Intersects(MovementCollisionAura)))
             {
-                GameBody.SceneManager.CurrentRoom.Pickups.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)).ShowPickupMessage();
+                GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)).ShowInteractionMessage();
+                _thingsToInteract.Push(GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)));
             }
             Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
         }

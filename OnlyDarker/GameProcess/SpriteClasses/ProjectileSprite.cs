@@ -14,6 +14,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 Position { get; private set; }
         public Vector2 Origin { get; }
         public Vector2 Force { get; private set; }
+
         public Timer Lifetime;
         public Rectangle HurtBox => new(new((int)Position.X - _texture.Width, (int)Position.Y - _texture.Height), new(_texture.Width, _texture.Height));
         private DamageInstance _damageInstance;
@@ -30,6 +31,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Position += Force;
             Lifetime.Update(elapsedMilliseconds);
+            //_accumulatedTime += elapsedMilliseconds / 50;
+            //_swayTest = new((float)Math.Cos(_accumulatedTime), (float)Math.Cos(_accumulatedTime));
             if (Lifetime.TimeLeft > 0 && this.HurtBox.Intersects(GameBody.MainCharacter.BodyHitbox))
             {
                 GameBody.MainCharacter.TakeDamage(_damageInstance);

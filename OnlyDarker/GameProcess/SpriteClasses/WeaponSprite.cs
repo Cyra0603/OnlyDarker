@@ -8,28 +8,38 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class WeaponSprite : IPickup
+    public class WeaponSprite : IYSortable,IInteractive,ICollectible
     {
-        private Texture2D _texture;
-        private Vector2 Position;
-        public Rectangle MovementCollider { get; }
+        public Texture2D Texture { get; }
+        public Vector2 Position { get; set; }
+        public Rectangle MovementCollider => new((int)Position.X - Texture.Width / 2, (int)Position.Y - Texture.Height / 2, Texture.Width, Texture.Height);
+        private IWeapon _weaponReference;
 
-        public string PickupName { get; set; }
+        public string Name { get; set; }
         public string PickupSound { get; } //temp
-        private string _pickupMessage;
-        public bool IsOneUse => false;
 
-        public WeaponSprite(Vector2 position, WeaponType weaponType)
+        public string InteractionMessage => "pick up ";
+
+
+        public WeaponSprite(IWeapon weaponReference, Vector2 position, string weaponName)
         {
-            _texture = GlobalUse.Content.Load<Texture2D>("");
+            Texture = GlobalUse.Content.Load<Texture2D>("Weapons/" + weaponName);
+            _weaponReference = weaponReference;
             Position = position;
-            PickupName = weaponType.ToString();
-            _pickupMessage = IPickup.PickupMessage + PickupName;
-            MovementCollider = new(Position.ToPoint(), _texture.Bounds.Size);
+            Name = weaponName;
         }
-        public void ShowPickupMessage()
+        public void Draw()
         {
-            GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, _pickupMessage, new Vector2(GlobalUse.WindowSize.Y, GlobalUse.WindowSize.X - GlobalUse.MainFont.MeasureString(_pickupMessage).X), Color.White);
+            (this as ICollectible).DynamicDraw();  
+        }
+        public void Interact()
+        {
+            //SoundManager.PlaySoundEffect(PickupSound);
+            Collect();
+        }
+        public void Collect()
+        {
+            GameBody.MainCharacter.CurrentWeapon = _weaponReference;
         }
     }
 }
