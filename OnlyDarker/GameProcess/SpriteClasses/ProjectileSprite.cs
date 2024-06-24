@@ -31,8 +31,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Position += Force;
             Lifetime.Update(elapsedMilliseconds);
-            //_accumulatedTime += elapsedMilliseconds / 50;
-            //_swayTest = new((float)Math.Cos(_accumulatedTime), (float)Math.Cos(_accumulatedTime));
             if (Lifetime.TimeLeft > 0 && this.HurtBox.Intersects(GameBody.MainCharacter.BodyHitbox))
             {
                 GameBody.MainCharacter.TakeDamage(_damageInstance);

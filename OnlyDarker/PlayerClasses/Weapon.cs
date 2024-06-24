@@ -33,7 +33,7 @@ namespace OnlyDarker.PlayerClasses
         {
             AttackRange = 256F;
             AttackDamage = 2F;
-            AttackSpeed = 3F;
+            AttackSpeed = 2F;
             WeaponDamageType = DamageType.Blunt;
         }
     }
@@ -45,13 +45,13 @@ namespace OnlyDarker.PlayerClasses
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
 
-        public WeaponSword(Vector2 position)
+        public WeaponSword(WeaponSprite spriteRef)
         {
             AttackRange = 333F;
             AttackDamage = 5F;
             AttackSpeed = 2F;
             WeaponDamageType = DamageType.Slice;
-            WeaponPickupSprite = new(this, position, "Sword");
+            WeaponPickupSprite = spriteRef;
         }
     }
     public class WeaponStick : IWeapon
@@ -62,13 +62,13 @@ namespace OnlyDarker.PlayerClasses
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
 
-        public WeaponStick(Vector2 position)
+        public WeaponStick(WeaponSprite spriteRef)
         {
             AttackRange = 400F;
             AttackDamage = 2F;
             AttackSpeed = 3F;
             WeaponDamageType = DamageType.Blunt;
-            WeaponPickupSprite = new(this, position, "Stick");
+            WeaponPickupSprite = spriteRef;
         }
     }
     public class WeaponLance : IWeapon
@@ -79,13 +79,13 @@ namespace OnlyDarker.PlayerClasses
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
 
-        public WeaponLance(Vector2 position)
+        public WeaponLance(WeaponSprite spriteRef)
         {
             AttackRange = 400F;
             AttackDamage = 7F;
             AttackSpeed = 1.5F;
             WeaponDamageType = DamageType.Poke;
-            WeaponPickupSprite = new(this, position, "Lance");
+            WeaponPickupSprite = spriteRef;
         }
     }
 

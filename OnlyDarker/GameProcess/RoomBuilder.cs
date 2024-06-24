@@ -147,9 +147,24 @@ namespace OnlyDarker.GameProcess
                                 }
                                 if (roomType == RoomType.Entry && x == 13 && y == 10)
                                 {
-                                    var weaponTest = new WeaponSword(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()));
-                                    ObjectsYSorted.Add(weaponTest.WeaponPickupSprite);
-                                    Interactives.Add(weaponTest.WeaponPickupSprite);
+                                    var weaponTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), "Sword"); 
+                                    weaponTest.WeaponInstance = new WeaponSword(weaponTest);
+                                    ObjectsYSorted.Add(weaponTest);
+                                    Interactives.Add(weaponTest);
+                                }
+                                if (roomType == RoomType.Entry && x == 12 && y == 10)
+                                {
+                                    var weaponTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), "Lance");
+                                    weaponTest.WeaponInstance = new WeaponLance(weaponTest);
+                                    ObjectsYSorted.Add(weaponTest);
+                                    Interactives.Add(weaponTest);
+                                }
+                                if (roomType == RoomType.Entry && x == 11 && y == 10)
+                                {
+                                    var weaponTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), "Stick");
+                                    weaponTest.WeaponInstance = new WeaponStick(weaponTest);
+                                    ObjectsYSorted.Add(weaponTest);
+                                    Interactives.Add(weaponTest);
                                 }
                                 break;
                             case "Obstacle":

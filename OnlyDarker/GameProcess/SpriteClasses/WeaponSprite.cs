@@ -8,29 +8,37 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class WeaponSprite : IYSortable,IInteractive,ICollectible
+    public class WeaponSprite : IYSortable, IInteractive, ICollectible
     {
         public Texture2D Texture { get; }
         public Vector2 Position { get; set; }
         public Rectangle MovementCollider => new((int)Position.X - Texture.Width / 2, (int)Position.Y - Texture.Height / 2, Texture.Width, Texture.Height);
-        private IWeapon _weaponReference;
+        public IWeapon WeaponInstance;
 
         public string Name { get; set; }
         public string PickupSound { get; } //temp
 
-        public string InteractionMessage => "pick up ";
+        public string InteractionMessage
+        {
+            get
+            {
+                if (GameBody.MainCharacter.CurrentWeapon is WeaponFist)
+                    return "pick up ";
+                else
+                    return "swap to ";
+            }
+        }
 
 
-        public WeaponSprite(IWeapon weaponReference, Vector2 position, string weaponName)
+        public WeaponSprite(Vector2 position, string weaponName)
         {
             Texture = GlobalUse.Content.Load<Texture2D>("Weapons/" + weaponName);
-            _weaponReference = weaponReference;
             Position = position;
             Name = weaponName;
         }
         public void Draw()
         {
-            (this as ICollectible).DynamicDraw();  
+            (this as ICollectible).DynamicDraw();
         }
         public void Interact()
         {
@@ -39,7 +47,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Collect()
         {
-            GameBody.MainCharacter.CurrentWeapon = _weaponReference;
+            if (GameBody.MainCharacter.CurrentWeapon is not WeaponFist)
+            {
+                GameBody.MainCharacter.CurrentWeapon.WeaponPickupSprite.Position = Position;
+                GameBody.SceneManager.CurrentRoom.Interactives.Add(GameBody.MainCharacter.CurrentWeapon.WeaponPickupSprite);
+                GameBody.SceneManager.CurrentRoom.ObjectsYSorted.Add(GameBody.MainCharacter.CurrentWeapon.WeaponPickupSprite);
+            }
+            GameBody.MainCharacter.CurrentWeapon = WeaponInstance;
+            GameBody.SceneManager.CurrentRoom.Interactives.Remove(this);
+            GameBody.SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
+
         }
     }
 }

@@ -20,16 +20,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             if (!IsInvincible)
             {
-                var test = Stopwatch.StartNew();
                 var locald = damage;
                 foreach (var armor in ArmorSet)
                 {
                     locald *= armor.Resistances.First(res => res.Type == locald.Type);
                 }
                 var dmgTaken = locald.ExtractValue();
+                if (dmgTaken < 0) 
+                    dmgTaken = 0;
                 HealthPoints -= dmgTaken;
                 var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
-                Debug.WriteLineIf(GlobalUse.IsDebugMode, $"Counting damage took {test.ElapsedTicks} ticks");
             }
             else return;
         }

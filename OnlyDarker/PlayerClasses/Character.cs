@@ -36,7 +36,7 @@ namespace OnlyDarker
             (int)Position.X - _bodyTexture.Width / 2, (int)Position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 8),
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
             );
-        public Rectangle BodyHitbox => new(new((int)(Position.X - _bodyTexture.Width/2), (int)(Position.Y - _bodyTexture.Height / 2)), new(_bodyTexture.Width, _bodyTexture.Height));
+        public Rectangle BodyHitbox => new(new((int)(Position.X - _bodyTexture.Width / 2), (int)(Position.Y - _bodyTexture.Height / 2)), new(_bodyTexture.Width, _bodyTexture.Height));
         public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
         public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
         public List<Armor> ArmorSet { get; set; } = new();
@@ -141,7 +141,7 @@ namespace OnlyDarker
                 {
                     GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
                 }
-                GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
+            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
             if (DamagedEffectTimer.TimeLeft > 0)
                 GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
         }
@@ -153,7 +153,8 @@ namespace OnlyDarker
         }
         public void Interact()
         {
-            _thingsToInteract.Peek().Interact();    
+            if (_thingsToInteract.Count > 0)
+                _thingsToInteract.Peek().Interact();
         }
         public void Update(float elapsedMilliseconds)
         {
@@ -169,6 +170,23 @@ namespace OnlyDarker
                 _flipEffect = SpriteEffects.FlipHorizontally;
             else
                 _flipEffect = SpriteEffects.None;
+
+            CheckForCollisions();
+            CheckForInteractions();
+            Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
+        }
+
+        private void CheckForInteractions()
+        {
+            if (GameBody.SceneManager.CurrentRoom.Interactives is not null && GameBody.SceneManager.CurrentRoom.Interactives.Any(collider => collider.MovementCollider.Intersects(MovementCollisionAura)))
+            {
+                GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)).ShowInteractionMessage();
+                _thingsToInteract.Push(GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)));
+            }
+        }
+
+        private void CheckForCollisions()
+        {
             if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
                 var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
@@ -183,12 +201,6 @@ namespace OnlyDarker
             {
                 Position += ControlsManager.GetDirection() * Speed;
             }
-            if (GameBody.SceneManager.CurrentRoom.Interactives is not null && GameBody.SceneManager.CurrentRoom.Interactives.Any(collider => collider.MovementCollider.Intersects(MovementCollisionAura)))
-            {
-                GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)).ShowInteractionMessage();
-                _thingsToInteract.Push(GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(MovementCollisionAura)));
-            }
-            Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
         }
 
         private void CalculatePossibleCollisions(List<Rectangle> obstacles, ref Vector2 currentDirection)
@@ -251,7 +263,7 @@ namespace OnlyDarker
             else
             {
                 var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
-                _dashForce = difference / difference.Length() * ControlsManager.GetMaxDirectionVector();;
+                _dashForce = difference / difference.Length() * ControlsManager.GetMaxDirectionVector(); ;
             }
             DashTimer = new ActionTimer(_dashLength);
             DashEffectTimer = new ActionTimer(_dashEffectLength);
