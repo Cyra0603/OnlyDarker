@@ -166,6 +166,10 @@ namespace OnlyDarker.GameProcess
                                     ObjectsYSorted.Add(weaponTest);
                                     Interactives.Add(weaponTest);
                                 }
+                                if (roomType == RoomType.Entry && x == 4 && y == 16)
+                                {
+                                    var chestTest = new ChestSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), this);
+                                }
                                 break;
                             case "Obstacle":
                                 BuildTile(tileTextures, x, y);
@@ -219,7 +223,7 @@ namespace OnlyDarker.GameProcess
             PortalBack?.ActivatePortal();
             PortalNext?.ActivatePortal();
         }
-        public void UpdatePortals()
+        private void UpdatePortals()
         {
             PortalBack?.Update();
             PortalNext?.Update();
@@ -231,6 +235,7 @@ namespace OnlyDarker.GameProcess
             {
                 item.Update(elapsedMilliseconds);
             }
+            Updateables.RemoveAll(item => item.IsExpired);
         }
         private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
         {

@@ -8,6 +8,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 {
     public interface IMyUpdateable
     {
+        bool IsExpired { get; }
         void Update(float elapsedMilliseconds);
     }
 }

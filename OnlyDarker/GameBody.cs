@@ -83,6 +83,8 @@ namespace OnlyDarker
 
             _graphics.ApplyChanges();
 
+            TextureMapper.LoadTextures();
+
             BindManager = BindManager.GetBindManagerInstance();
 
             BindManager.ExitApplication.KeyPressed += Exit;

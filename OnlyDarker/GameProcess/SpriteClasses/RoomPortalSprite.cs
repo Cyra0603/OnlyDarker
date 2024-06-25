@@ -81,6 +81,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GameBody.SceneManager.GoToRoom(ExitRoom.OrderNumber);
             GameBody.MainCharacter.SetPosition(ExitPosition);
             ParentRoomReference.ActivatePortals(2000);
+            ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
             ExitRoom.ActivatePortals(2000);
             GameBody.ProjectileSprites.Clear();
             GC.Collect();

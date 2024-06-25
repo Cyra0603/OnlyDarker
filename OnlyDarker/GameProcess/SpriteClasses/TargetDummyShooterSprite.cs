@@ -20,6 +20,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public readonly float AttackCooldownTime = 1000F;
         public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
         public List<Armor> ArmorSet { get; } = new();
+        public bool IsExpired { get; private set; } = false;
         public bool IsInvincible { get; set; }
         private float _healthPoints = 10000;
         public float HealthPoints
@@ -77,7 +78,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             var difference = Vector2.Normalize(GameBody.MainCharacter.Position - Position);
             var direction = difference / difference.Length();
-            var projectile = new ProjectileSprite(_projectileTexture, Position, direction / 6, new(1, 1, DamageType.Blunt, false), 10000F);
+            var projectile = new ProjectileSprite(_projectileTexture, Position, direction / 6, new(1, 1, DamageType.Blunt, false), 15000F);
             GameBody.ProjectileSprites.Add(projectile);
             _attackCooldown.TimeLeft += AttackCooldownTime;
         }

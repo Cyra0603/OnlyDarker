@@ -19,7 +19,9 @@ namespace OnlyDarker.UI
             GlobalUse.SpriteBatch.DrawString(
                 GlobalUse.MainFont, (
                 $" HP: {GameBody.MainCharacter.HealthPoints}\n\n " +
-                $"Speed: {GameBody.MainCharacter.Speed}\n\n"
+                $"Speed: {GameBody.MainCharacter.Speed}\n\n" +
+                $"Tile X: {(int)(GameBody.MainCharacter.Position.X / 64)}\n\n" +
+                $"Tile Y: {(int)(GameBody.MainCharacter.Position.Y / 42)}\n\n"
                 ),
                 _statsPosition, Color.White, 0F, _statsPosition, 0.6F, SpriteEffects.None, 0F);
         }

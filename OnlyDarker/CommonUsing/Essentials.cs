@@ -12,6 +12,13 @@ using Microsoft.Xna.Framework.Content;
 
 namespace OnlyDarker.CommonUsing
 {
+    public enum ChestType
+    {
+        Wooden,
+        Iron,
+        Golden,
+        Luxurious
+    }
     public enum ArmorType
     {
         Base,

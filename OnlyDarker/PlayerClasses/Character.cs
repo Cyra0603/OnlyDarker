@@ -341,7 +341,6 @@ namespace OnlyDarker
             }
             foreach (var target in GameBody.ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
             {
-                var posDif = Vector2.Normalize(ControlsManager.MousePosition - Position);
                 var newForce = Vector2.Lerp(difference / difference.Length(), target.Force, 0.5F);
                 target.ChangeForce(newForce);
                 target.Lifetime.TimeLeft /= 2;
