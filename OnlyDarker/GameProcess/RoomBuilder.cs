@@ -34,6 +34,12 @@ namespace OnlyDarker.GameProcess
             {new Vector4(255,0,0,255) , "Obstacle"},
             {new Vector4(0,255,0,255) , "Tile"},
             {new Vector4(0,0,255,255) , "Portal"},
+            {new Vector4(60,60,60,255) , "TargetDummy" },
+            {new Vector4(60,70,60,255) , "TargetDummyShooter" },
+            {new Vector4(150,100,100,255) , "WeaponStick" },
+            {new Vector4(100,150,100,255) , "WeaponSword" },
+            {new Vector4(100,100,150,255) , "WeaponLance" },
+            {new Vector4(200,200,0,255) , "WoodenChest" },
         };
         public List<Rectangle> RoomColliders { get; private set; }
         public List<Rectangle> ObstaclesBounds { get; private set; }
@@ -127,49 +133,7 @@ namespace OnlyDarker.GameProcess
                         switch (presetCellAlias)
                         {
                             case "Tile":
-                                BuildTile(tileTextures, x, y);
-                                if(roomType == RoomType.Entry && x == 15 && y == 10)
-                                {
-                                    var targetDummy = new TargetDummySprite(_tiles[x, y]);
-                                    ObjectsYSorted.Add(targetDummy);
-                                    Damageables.Add(targetDummy);
-                                    RoomColliders.Add(targetDummy.MovementCollider);
-                                    ObstaclesBounds.Add(targetDummy.BodyHitbox);
-                                }
-                                if (roomType == RoomType.Entry && x == 14 && y == 10)
-                                {
-                                    var targetDummy = new TargetDummyShooterSprite(_tiles[x, y],this);
-                                    ObjectsYSorted.Add(targetDummy);
-                                    Damageables.Add(targetDummy);
-                                    RoomColliders.Add(targetDummy.MovementCollider);
-                                    ObstaclesBounds.Add(targetDummy.BodyHitbox);
-                                    Updateables.Add(targetDummy);
-                                }
-                                if (roomType == RoomType.Entry && x == 13 && y == 10)
-                                {
-                                    var weaponTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), "Sword"); 
-                                    weaponTest.WeaponInstance = new WeaponSword(weaponTest);
-                                    ObjectsYSorted.Add(weaponTest);
-                                    Interactives.Add(weaponTest);
-                                }
-                                if (roomType == RoomType.Entry && x == 12 && y == 10)
-                                {
-                                    var weaponTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), "Lance");
-                                    weaponTest.WeaponInstance = new WeaponLance(weaponTest);
-                                    ObjectsYSorted.Add(weaponTest);
-                                    Interactives.Add(weaponTest);
-                                }
-                                if (roomType == RoomType.Entry && x == 11 && y == 10)
-                                {
-                                    var weaponTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), "Stick");
-                                    weaponTest.WeaponInstance = new WeaponStick(weaponTest);
-                                    ObjectsYSorted.Add(weaponTest);
-                                    Interactives.Add(weaponTest);
-                                }
-                                if (roomType == RoomType.Entry && x == 4 && y == 16)
-                                {
-                                    var chestTest = new ChestSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), this);
-                                }
+                                BuildTile(tileTextures, x, y);                              
                                 break;
                             case "Obstacle":
                                 BuildTile(tileTextures, x, y);
@@ -191,6 +155,48 @@ namespace OnlyDarker.GameProcess
                                 {
                                     BuildTile(tileTextures, x, y);
                                 }
+                                break;
+                            case "TargetDummy":
+                                BuildTile(tileTextures, x, y);
+                                var targetDummy = new TargetDummySprite(_tiles[x, y]);
+                                ObjectsYSorted.Add(targetDummy);
+                                Damageables.Add(targetDummy);
+                                RoomColliders.Add(targetDummy.MovementCollider);
+                                ObstaclesBounds.Add(targetDummy.BodyHitbox);
+                                break;
+                            case "TargetDummyShooter":
+                                BuildTile(tileTextures, x, y);
+                                var targetDummyShooter = new TargetDummyShooterSprite(_tiles[x, y], this);
+                                ObjectsYSorted.Add(targetDummyShooter);
+                                Damageables.Add(targetDummyShooter);
+                                RoomColliders.Add(targetDummyShooter.MovementCollider);
+                                ObstaclesBounds.Add(targetDummyShooter.BodyHitbox);
+                                Updateables.Add(targetDummyShooter);
+                                break;
+                            case "WeaponStick":
+                                BuildTile(tileTextures, x, y);
+                                var stickTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Stick");
+                                stickTest.WeaponInstance = new WeaponStick(stickTest);
+                                ObjectsYSorted.Add(stickTest);
+                                Interactives.Add(stickTest);
+                                break;
+                            case "WeaponSword":
+                                BuildTile(tileTextures, x, y);
+                                var swordTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Sword");
+                                swordTest.WeaponInstance = new WeaponSword(swordTest);
+                                ObjectsYSorted.Add(swordTest);
+                                Interactives.Add(swordTest);
+                                break;
+                            case "WeaponLance":
+                                BuildTile(tileTextures, x, y);
+                                var lanceTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Lance");
+                                lanceTest.WeaponInstance = new WeaponLance(lanceTest);
+                                ObjectsYSorted.Add(lanceTest);
+                                Interactives.Add(lanceTest);
+                                break;
+                            case "WoodenChest":
+                                BuildTile(tileTextures, x, y);
+                                var chestTest = new ChestSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), this);
                                 break;
                             default:
                                 BuildTile(tileTextures, x, y);

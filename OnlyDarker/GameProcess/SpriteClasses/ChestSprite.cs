@@ -93,8 +93,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             //}
             for(int i = 0; i < 5; i++)
             {
-                var offset = RandomNumberGenerator.GetInt32(-50, 51);
-                loot.Add(new HeartPickupSprite(TextureMapper.HeartPickupSpriteTexture, Position, new Vector2(Position.X + offset, Position.Y + offset)));
+                var offsetx = RandomNumberGenerator.GetInt32(-50, 51);
+                var offsety = RandomNumberGenerator.GetInt32(-50, 51);
+                loot.Add(new HeartPickupSprite(TextureMapper.HeartPickupSpriteTexture, Position, new Vector2(Position.X + offsetx, Position.Y + offsety)));
             }
         }
     }
