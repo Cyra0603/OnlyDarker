@@ -24,8 +24,7 @@ namespace OnlyDarker.GameProcess
         public List<IInteractive> Interactives;
         public List<IDamageable> Damageables;
         public List<IMyUpdateable> Updateables;
-        public RoomPortalSprite PortalBack { get; private set; }
-        public RoomPortalSprite PortalNext { get; private set; }
+        public List<RoomPortalSprite> Portals { get; private set; } = new();
         public readonly BackgroundSprite CurrentBackground;
         public readonly Level ParentLevelReference;
         public readonly RoomType InstanceRoomType;
@@ -44,34 +43,33 @@ namespace OnlyDarker.GameProcess
         public List<Rectangle> RoomColliders { get; private set; }
         public List<Rectangle> ObstaclesBounds { get; private set; }
         public List<Rectangle> TempRectDrawList;
-        public int OrderNumber { get; private set; }
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
         public Point GridCords { get; private set; }
-        public Room(RoomBlueprint roomBlueprint, Level parentLevelReference)
+        public Room(EmptyRoom emptyRoom, Level parentLevelReference)
         {
-            _roomPresetImage = ImportPreset(roomBlueprint.floorType, roomBlueprint.roomType);
-            InstanceRoomType = roomBlueprint.roomType;
+            _roomPresetImage = ImportPreset(emptyRoom.FloorType, emptyRoom.RoomType);
+            InstanceRoomType = emptyRoom.RoomType;
             var presetData = TextureTo2DArray(_roomPresetImage);
             _roomTileSize.Y = presetData.GetLength(1);
             _roomTileSize.X = presetData.GetLength(0);
-            CurrentBackground = new(roomBlueprint.floorType);
+            CurrentBackground = new(emptyRoom.FloorType);
             _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
             ObjectsYSorted = new();
             RoomColliders = new();
             ObstaclesBounds = new();
             Damageables = new();
-            Interactives = new();   
+            Interactives = new();
             Updateables = new();
             TempRectDrawList = new();
-            GridCords = roomBlueprint.gridCords;
-            List<Texture2D> tileTextures = ImportTileTextures(roomBlueprint.floorType, roomBlueprint.roomType);
-            List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(roomBlueprint.floorType, roomBlueprint.roomType);
-            List<Texture2D> portalTextures = ImportPortalTextures(roomBlueprint.floorType, roomBlueprint.roomType);
+            GridCords = new(emptyRoom.X, emptyRoom.Y);
+            List<Texture2D> tileTextures = ImportTileTextures(emptyRoom.FloorType, emptyRoom.RoomType);
+            List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(emptyRoom.FloorType, emptyRoom.RoomType);
+            List<Texture2D> portalTextures = ImportPortalTextures(emptyRoom.FloorType, emptyRoom.RoomType);
             TileSize = new(tileTextures[0].Width, tileTextures[0].Height);
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
-            FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, roomBlueprint.lastRoomDirection, roomBlueprint.nextRoomDirection, roomBlueprint.roomType);
+            FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, emptyRoom);
             foreach (var obstacle in _standartObstacles)
             {
                 if (obstacle is not null)
@@ -81,10 +79,10 @@ namespace OnlyDarker.GameProcess
                     ObjectsYSorted.Add(obstacle);
                 }
             }
-            if (PortalNext is not null)
-                ObjectsYSorted.Add(PortalNext);
-            if (PortalBack is not null)
-                ObjectsYSorted.Add(PortalBack);
+            foreach (var portal in Portals)
+            {
+                ObjectsYSorted.Add(portal);
+            }
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;
         }
@@ -123,7 +121,7 @@ namespace OnlyDarker.GameProcess
 
             return colors2D;
         }
-        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, List<Texture2D> portalTextures, Color[,] presetData, Direction lastRoomDirection, Direction nextRoomDirection, RoomType roomType)
+        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, List<Texture2D> portalTextures, Color[,] presetData, EmptyRoom emptyRoom)
         {
             for (int x = 0; x < _tiles.GetLength(0); x++)
             {
@@ -133,28 +131,23 @@ namespace OnlyDarker.GameProcess
                         switch (presetCellAlias)
                         {
                             case "Tile":
-                                BuildTile(tileTextures, x, y);                              
+                                BuildTile(tileTextures, x, y);
                                 break;
                             case "Obstacle":
                                 BuildTile(tileTextures, x, y);
                                 BuildObstacle(standartObstacleTextures, x, y);
                                 break;
                             case "Portal":
+                                BuildTile(tileTextures, x, y);
                                 var portalDirection = CheckPortalDirection(_roomPresetImage, x, y);
-                                if (portalDirection == lastRoomDirection && roomType != RoomType.Entry)
-                                {
-                                    BuildPortal(portalTextures, x, y, true);
-                                    Debug.WriteLine("Built backPortal");
-                                }
-                                else if (portalDirection == nextRoomDirection && roomType != RoomType.Boss)
-                                {
-                                    BuildPortal(portalTextures, x, y, false);
-                                    Debug.WriteLine("Built forwardPortal\n");
-                                }
-                                else
-                                {
-                                    BuildTile(tileTextures, x, y);
-                                }
+                                if (portalDirection == Direction.Left && emptyRoom.Left == true)
+                                    BuildPortal(portalTextures, x, y, Direction.Left);
+                                else if (portalDirection == Direction.Right && emptyRoom.Right == true)
+                                    BuildPortal(portalTextures, x, y, Direction.Right);
+                                else if (portalDirection == Direction.Up && emptyRoom.Up == true)
+                                    BuildPortal(portalTextures, x, y, Direction.Up);
+                                else if (portalDirection == Direction.Down && emptyRoom.Down == true)
+                                    BuildPortal(portalTextures, x, y, Direction.Down);
                                 break;
                             case "TargetDummy":
                                 BuildTile(tileTextures, x, y);
@@ -220,21 +213,27 @@ namespace OnlyDarker.GameProcess
         }
         public void DeactivatePortals()
         {
-            PortalBack?.DeactivatePortal();
-            PortalNext?.DeactivatePortal();
+            foreach (var portal in Portals)
+            {
+                portal.DeactivatePortal();
+            }
         }
         public async void ActivatePortals(int milliseconds) //REWORK TO INGAME TIME
         {
             await Task.Delay(milliseconds);
-            PortalBack?.ActivatePortal();
-            PortalNext?.ActivatePortal();
+            foreach (var portal in Portals)
+            {
+                portal.ActivatePortal();
+            }
         }
         private void UpdatePortals()
         {
-            PortalBack?.Update();
-            PortalNext?.Update();
+            foreach (var portal in Portals)
+            {
+                portal.Update();
+            }
         }
-        public void Update (float elapsedMilliseconds)
+        public void Update(float elapsedMilliseconds)
         {
             UpdatePortals();
             foreach (var item in Updateables)
@@ -255,17 +254,10 @@ namespace OnlyDarker.GameProcess
             _tiles[x, y] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
         }
 
-        private void BuildPortal(List<Texture2D> portalTextures, int x, int y, bool portalBack)
+        private void BuildPortal(List<Texture2D> portalTextures, int x, int y, Direction portalDirection)
         {
             int i = GlobalUse.RNG.Next(0, portalTextures.Count);
-            if (portalBack)
-            {
-                PortalBack = new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), this);
-            }
-            else
-            {
-                PortalNext = new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), this);
-            }
+            Portals.Add(new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), portalDirection, this));
         }
         private static Vector4 ColorToVector4(Color color)
         {
@@ -325,10 +317,6 @@ namespace OnlyDarker.GameProcess
 
             return portalTextures;
         }
-        public void SetOrderNumber(int number)
-        {
-            OrderNumber = number;
-        }
         public void UpdateObstaclesTransparency(float elapsedMilliseconds)
         {
             foreach (var obstacle in _standartObstacles)
@@ -338,11 +326,11 @@ namespace OnlyDarker.GameProcess
         }
         public void AddTempDrawableRect(Rectangle rect)
         {
-            TempRectDrawList.Add(rect);  
+            TempRectDrawList.Add(rect);
         }
         public void ClearTempDrawables()
         {
-            if(TempRectDrawList.Any())
+            if (TempRectDrawList.Any())
                 TempRectDrawList.Clear();
         }
     }

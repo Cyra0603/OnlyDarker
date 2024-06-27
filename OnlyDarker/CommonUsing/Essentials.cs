@@ -59,6 +59,7 @@ namespace OnlyDarker.CommonUsing
     }
     public enum RoomType
     {
+        Empty,
         Entry,
         Treasure,
         Encounter,

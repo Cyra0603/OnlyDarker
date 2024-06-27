@@ -7,6 +7,8 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Net.Http.Headers;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
@@ -28,178 +30,177 @@ namespace OnlyDarker.GameProcess
         };
         public readonly Floor FloorType;
         private readonly IFloorConfig _floorConfig;
-        public List<Room> BuiltFloor { get; private set; }
-        //private RoomBlueprint[,] _localLevelGrid;
+        public List<Room> BuiltFloor { get; private set; } = new();
         public Room[,] LevelGrid { get; private set; }
         public byte[,] _translatedLevelGrid;
         public Level(Floor floor)
         {
             FloorType = floor;
             _floorConfigPairs.TryGetValue(floor, out _floorConfig);
-
-            var level = new List<Room>();
-            List<RoomBlueprint> levelBlueprint = new();
-
-            for (int i = 0; i < _floorConfig.Encounters; i++)
+            FailedGenerationRetryMark:
+            var grid = new EmptyRoom[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
+            grid[_floorConfig.GridSize.Y / 2, _floorConfig.GridSize.X / 2] = new EmptyRoom(floor, _floorConfig.GridSize.X / 2, _floorConfig.GridSize.Y / 2);
+            int rooms = _floorConfig.MaxRooms;
+            int testIterations = 0;
+            while (rooms > 0)
             {
-                levelBlueprint.Add(new(floor, RoomType.Encounter));
-            }
-            levelBlueprint = levelBlueprint.Prepend(new(floor, RoomType.Entry)).ToList();
-            levelBlueprint.Add(new(floor, RoomType.Boss));
-            levelBlueprint.Insert(levelBlueprint.Count / 2, new(floor, RoomType.Treasure));
-            levelBlueprint.Insert(levelBlueprint.Count / 2, new(floor, RoomType.Puzzle));
-            GenerateDirections(levelBlueprint);
-            //var secretRoom = new RoomBlueprint(floor, RoomType.Secret);
-            //secretRoom.lastRoomDirection = (_direction)Roll4();
-            foreach (var blueprint in levelBlueprint)
-            {
-                level.Add(new Room(blueprint, this));
-                Debug.WriteLine(blueprint.roomType);
-            }
-            for (int i = 0; i < level.Count; i++)
-            {
-                level[i].SetOrderNumber(i);
-            }
-            BuiltFloor = level;
-            LevelGrid = new Room[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
-            foreach (var room in BuiltFloor)
-            {
-                LevelGrid[room.GridCords.Y, room.GridCords.X] = room;
-            }
-            //_translatedLevelGrid = GetTranslatedLevelGrid();
-            LinkPortals();
-        }
-        private void GenerateDirections(List<RoomBlueprint> levelBlueprint)
-        {
-            if (LevelGrid is not null) { return; }
-            var localLevelGrid = new RoomBlueprint[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
-            var blockedDirection = (Direction)Roll4();
-            var blockedDirectionTwo = BlockSecondDirection(blockedDirection);
-            _oppositeDirectionPairs.TryGetValue(blockedDirection, out Direction oppositeDirection);
-            Point currentCell = new((_floorConfig.GridSize.X - 1) / 2,(_floorConfig.GridSize.Y - 1) / 2);
-            for (int i = 0; i < levelBlueprint.Count; i++)
-            {
-                localLevelGrid[currentCell.Y, currentCell.X] = levelBlueprint[i];
-                levelBlueprint[i].gridCords = currentCell;
-                Direction newDirection;
-                if (levelBlueprint[i].roomType is not RoomType.Boss)
+                foreach (var emptyRoom in grid.OfType<EmptyRoom>().Where(room => room is not null && !room.IsUsed))
                 {
-                    var newCell = GetNextCell(blockedDirection, blockedDirectionTwo, currentCell, oppositeDirection, out newDirection);
-                    SetDirections(localLevelGrid, currentCell, newDirection, oppositeDirection);
-                    _oppositeDirectionPairs.TryGetValue(newDirection, out oppositeDirection);
-                    currentCell = newCell;
+                    int random;
+                    random = RandomNumberGenerator.GetInt32(0, 3);
+                    if (random < 2)
+                    {
+                        if (grid[emptyRoom.Y, emptyRoom.X - 2] is null && grid[emptyRoom.Y - 1, emptyRoom.X - 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X - 1] is null && rooms > 0)
+                        {
+                            grid[emptyRoom.Y, emptyRoom.X - 1] = new EmptyRoom(floor, emptyRoom.X - 1, emptyRoom.Y);
+                            grid[emptyRoom.Y, emptyRoom.X - 1].Neighbours++;
+                            rooms--;
+                            emptyRoom.Neighbours++;
+                        }  
+                    }
+
+                    random = RandomNumberGenerator.GetInt32(0, 3);
+                    if (random < 2)
+                    {
+                        if (grid[emptyRoom.Y, emptyRoom.X + 2] is null && grid[emptyRoom.Y - 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X + 1] is null && rooms > 0)
+                        {
+                            grid[emptyRoom.Y, emptyRoom.X + 1] = new EmptyRoom(floor, emptyRoom.X + 1, emptyRoom.Y);
+                            grid[emptyRoom.Y, emptyRoom.X + 1].Neighbours++;
+                            rooms--;
+                            emptyRoom.Neighbours++;
+                        }
+                    }
+
+                    random = RandomNumberGenerator.GetInt32(0, 3);
+                    if (random < 2)
+                    {
+                        if (grid[emptyRoom.Y - 2, emptyRoom.X] is null && grid[emptyRoom.Y - 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y - 1, emptyRoom.X - 1] is null && rooms > 0)
+                        {
+                            grid[emptyRoom.Y - 1, emptyRoom.X] = new EmptyRoom(floor, emptyRoom.X, emptyRoom.Y - 1);
+                            grid[emptyRoom.Y - 1, emptyRoom.X].Neighbours++;
+                            rooms--;
+                            emptyRoom.Neighbours++;
+                        }
+                    }
+
+                    random = RandomNumberGenerator.GetInt32(0, 3);
+                    if(random < 2)
+                    {
+                        if (grid[emptyRoom.Y + 2, emptyRoom.X] is null && grid[emptyRoom.Y + 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X - 1] is null && rooms > 0)
+                        {
+                            grid[emptyRoom.Y + 1, emptyRoom.X] = new EmptyRoom(floor, emptyRoom.X, emptyRoom.Y + 1);
+                            grid[emptyRoom.Y + 1, emptyRoom.X].Neighbours++;
+                            rooms--;
+                            emptyRoom.Neighbours++;
+                        }
+                    }
+                    emptyRoom.IsUsed = true;
+                }
+                testIterations++;
+                if (testIterations > 10000000)
+                    goto FailedGenerationRetryMark;
+            }
+            if (!(grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1).Count() >= 4))
+            {
+                goto FailedGenerationRetryMark;
+            }
+            var startingRoom = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1);
+            startingRoom.RoomType = RoomType.Entry;
+            int maxManhattanDistance = 0;
+            EmptyRoom furthestRoom = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
+            {
+                int lx, ly;
+                lx = Math.Abs(room.X - startingRoom.X);
+                ly = Math.Abs(room.Y - startingRoom.Y);
+                if (lx + ly > maxManhattanDistance)
+                {
+                    maxManhattanDistance = lx + ly;
+                    furthestRoom = room;
+                }
+            }
+            furthestRoom.RoomType = RoomType.Boss;
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
+            {
+                int rng = RandomNumberGenerator.GetInt32(0, 2);
+                if(rng == 0)
+                {
+                    room.RoomType = RoomType.Treasure;
                 }
                 else
                 {
-                    SetDirections(localLevelGrid, currentCell, oppositeDirection, oppositeDirection);
+                    room.RoomType = RoomType.Puzzle;
                 }
             }
-        }
-        //public byte[,] GetTranslatedLevelGrid()
-        //{
-        //    byte[,] grid = new byte[LevelGrid.GetLength(0), LevelGrid.GetLength(1)];
-        //    for (int y = 0; y < LevelGrid.GetLength(0); y++)
-        //    {
-        //        for (int x = 0; x < LevelGrid.GetLength(1); x++)
-        //        {
-        //            if (LevelGrid[y, x] is null)
-        //            {
-        //                grid[y, x] = 99;
-        //                Debug.Write("#");
-        //            }
-        //            else
-        //            {
-        //                grid[y, x] = (byte)LevelGrid[y, x].InstanceRoomType;
-        //                Debug.Write(grid[y, x].ToString());
-        //            }
-        //        }
-        //        Debug.WriteLine("");
-        //    }
-        //    return grid;
-        //}
-        private static int Roll4()
-        {
-            return GlobalUse.RNG.Next(0, 4);
-        }
-        private Point GetNextCell(Direction blockedDirection, Direction blockedDirectionTwo, Point currentCell, Direction oppositeDirection, out Direction newDirection)
-        {
-            do
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.RoomType == RoomType.Empty))
             {
-                newDirection = (Direction)Roll4();
+                room.RoomType = RoomType.Encounter;
             }
-            while (newDirection == blockedDirection || newDirection == oppositeDirection || newDirection == blockedDirectionTwo);
-            Point newCell;
-            switch (newDirection)
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room is not null))
             {
-                case Direction.Down:
-                    newCell = new Point(currentCell.X, currentCell.Y + 1);
-                    break;
-                case Direction.Up:
-                    newCell = new Point(currentCell.X, currentCell.Y - 1);
-                    break;
-                case Direction.Left:
-                    newCell = new Point(currentCell.X - 1, currentCell.Y);
-                    break;
-                case Direction.Right:
-                    newCell = new Point(currentCell.X + 1, currentCell.Y);
-                    break;
-                default:
-                    newCell = Point.Zero;
-                    break;
+                if (grid[room.Y - 1, room.X] is not null)
+                    room.Up = true;
+                if (grid[room.Y + 1, room.X] is not null)
+                    room.Down = true;
+                if (grid[room.Y, room.X - 1] is not null)
+                    room.Left = true;
+                if (grid[room.Y, room.X + 1] is not null)
+                    room.Right = true;
             }
-            return newCell;
-        }
-        private Direction BlockSecondDirection(Direction blockedDirection)
-        {
-            Direction blockedDirectionTwo;
-            _oppositeDirectionPairs.TryGetValue(blockedDirection, out Direction oppositeDirection);
-            do
+                LevelGrid = new Room[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room is not null))
             {
-                blockedDirectionTwo = (Direction)Roll4();
+                LevelGrid[room.Y, room.X] = new Room(room,this);
+                BuiltFloor.Add(LevelGrid[room.Y, room.X]);
             }
-            while (blockedDirectionTwo == oppositeDirection || blockedDirectionTwo == blockedDirection);
-            return blockedDirectionTwo;
+            LinkPortals();
         }
-
-        private void SetDirections(RoomBlueprint[,] localLevelGrid, Point currentCell, Direction newDirection, Direction oppositeDirection)
-        {
-            localLevelGrid[currentCell.Y, currentCell.X].nextRoomDirection = newDirection;
-            localLevelGrid[currentCell.Y, currentCell.X].lastRoomDirection = oppositeDirection;
-        }
-
         private void LinkPortals()
         {
-            foreach (var room in BuiltFloor)
-            {
-                try
+            foreach(var room in BuiltFloor)
                 {
-                    room.PortalBack?.SetExitPosition(BuiltFloor[room.OrderNumber - 1].PortalNext.Position);
-                    Debug.WriteLine($"Portal back to room {room.OrderNumber - 1}");
-                    room.PortalBack?.SetExitRoom(BuiltFloor[room.OrderNumber - 1]);
-                }
-                catch (Exception) { }
-                try
+                foreach (var portal in room.Portals)
                 {
-                    room.PortalNext?.SetExitPosition(BuiltFloor[room.OrderNumber + 1].PortalBack.Position);
-                    Debug.WriteLine($"Portal forward to room {room.OrderNumber + 1}");
-                    room.PortalNext?.SetExitRoom(BuiltFloor[room.OrderNumber + 1]);
+                    if (portal.Direction == Direction.Left)
+                    {
+                        portal.SetExitRoom(LevelGrid[room.GridCords.Y, room.GridCords.X - 1]);
+                        portal.SetExitPosition(LevelGrid[room.GridCords.Y, room.GridCords.X - 1].Portals.First(portal => portal.Direction == Direction.Right).Position);
+                    }
+                    if (portal.Direction == Direction.Right)
+                    {
+                        portal.SetExitRoom(LevelGrid[room.GridCords.Y, room.GridCords.X + 1]);
+                        portal.SetExitPosition(LevelGrid[room.GridCords.Y, room.GridCords.X + 1].Portals.First(portal => portal.Direction == Direction.Left).Position);
+                    }
+                    if (portal.Direction == Direction.Up)
+                    {
+                        portal.SetExitRoom(LevelGrid[room.GridCords.Y - 1, room.GridCords.X]);
+                        portal.SetExitPosition(LevelGrid[room.GridCords.Y - 1, room.GridCords.X].Portals.First(portal => portal.Direction == Direction.Down).Position);
+                    }
+                    if (portal.Direction == Direction.Down)
+                    {
+                        portal.SetExitRoom(LevelGrid[room.GridCords.Y + 1, room.GridCords.X]);
+                        portal.SetExitPosition(LevelGrid[room.GridCords.Y + 1, room.GridCords.X].Portals.First(portal => portal.Direction == Direction.Up).Position);
+                    }
                 }
-                catch (Exception) { }
-            }
+            }           
         }
     }
-
-    public class RoomBlueprint
+    public class EmptyRoom
     {
-        public Floor floorType;
-        public RoomType roomType;
-        public Direction lastRoomDirection;
-        public Direction nextRoomDirection;
-        public Point gridCords;
-        public RoomBlueprint(Floor floorType, RoomType roomType)
+        public Floor FloorType;
+        public RoomType RoomType = RoomType.Empty;
+        public int Neighbours = 0;
+        public int X;
+        public int Y;
+        public bool Left = false;
+        public bool Right = false;
+        public bool Up = false;
+        public bool Down = false;
+        public bool IsUsed = false;
+        public EmptyRoom(Floor floorType, int x, int y)
         {
-            this.floorType = floorType;
-            this.roomType = roomType;
+            FloorType = floorType;
+            X = x; Y = y;
         }
     }
 }

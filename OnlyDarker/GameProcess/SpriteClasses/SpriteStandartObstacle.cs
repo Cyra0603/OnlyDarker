@@ -1,4 +1,5 @@
 ﻿using OnlyDarker.CommonUsing;
+using System.Linq;
 
 
 namespace OnlyDarker.GameProcess.SpriteClasses
@@ -44,9 +45,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         private bool IntersectsEssentialObjects()
         {
-            return Bounds.Intersects(GameBody.MainCharacter.MovementCollider) 
-                || GameBody.SceneManager.CurrentRoom.PortalNext is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalNext.MovementCollider) 
-                || GameBody.SceneManager.CurrentRoom.PortalBack is not null && Bounds.Intersects(GameBody.SceneManager.CurrentRoom.PortalBack.MovementCollider);
+            return Bounds.Intersects(GameBody.MainCharacter.MovementCollider) || GameBody.SceneManager.CurrentRoom.Portals.Any(portal => portal.MovementCollider.Intersects(Bounds));
         }
 
         public void DrawShadow()

@@ -25,7 +25,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private Room _parentRoomRef;
         public string InteractionMessage => "to open ";
 
-        public Rectangle MovementCollider { get; }
+        public Rectangle MovementCollider => new((int)Position.X - _spriteSheet.Width / _maxAnimationSteps / 2, (int)Position.Y - _spriteSheet.Height / 2, _spriteSheet.Width / _maxAnimationSteps, _spriteSheet.Height);
 
         public ChestSprite(Vector2 position, Room parentRoomRef, ChestType type = ChestType.Wooden)
         {
@@ -38,8 +38,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Type = type;
             _spriteSheet = GlobalUse.Content.Load<Texture2D>($"Chests/{type}Chest");
             _animator = new(_spriteSheet, width, height, animationSteps, animFrequency);
-            MovementCollider = new((int)position.X - width / 2, (int)position.Y - height / 2, width, height);
             _parentRoomRef = parentRoomRef;
+            _parentRoomRef.RoomColliders.Add(MovementCollider);
             _parentRoomRef.Interactives.Add(this);
             _parentRoomRef.Updateables.Add(this);
             _parentRoomRef.ObjectsYSorted.Add(this);
@@ -86,12 +86,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             var loottablevalue = 5;//TEMP
             var loot = new List<HeartPickupSprite>(loottablevalue);
-            //for (int i = 1; i < 5/* loot table value*/; i++)
-            //{
-            //    var offset = RandomNumberGenerator.GetInt32(-50, 51);
-            //    loot[i] = new HeartPickupSprite(TextureMapper.HeartPickupSpriteTexture, Position, new Vector2(Position.X + offset, Position.Y + offset));
-            //}
-            for(int i = 0; i < 5; i++)
+            for(int i = 0; i < loottablevalue; i++)
             {
                 var offsetx = RandomNumberGenerator.GetInt32(-50, 51);
                 var offsety = RandomNumberGenerator.GetInt32(-50, 51);

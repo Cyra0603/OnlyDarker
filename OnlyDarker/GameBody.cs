@@ -212,10 +212,10 @@ namespace OnlyDarker
                 DrawRectangleOutline(MainCharacter.MovementCollider, Color.Black);
                 DrawRectangleOutline(MainCharacter.MovementCollisionAura, Color.Black);
                 DrawRectangleOutline(MainCharacter.InteractionAura, Color.Yellow);
-                if (SceneManager.CurrentRoom.PortalBack is not null)
-                    GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalBack.MovementCollider, Color.Blue);
-                if (SceneManager.CurrentRoom.PortalNext is not null)
-                    GlobalUse.SpriteBatch.Draw(_hitboxTexture, SceneManager.CurrentRoom.PortalNext.MovementCollider, Color.Blue);
+                foreach (var portal in SceneManager.CurrentRoom.Portals)
+                {
+                    DrawRectangleOutline(portal.MovementCollider, Color.Yellow);
+                }
                 DrawRectangleOutline(MainCharacter.BodyHitbox, Color.Red, 2);
             }
             foreach (var mngr in EffectAnimationManagers)
@@ -256,9 +256,9 @@ namespace OnlyDarker
         private void CalculateCameraView()
         {
             var lx = GlobalUse.WindowSize.X / 2 / _cameraZoom - MainCharacter.Position.X;
-            //lx = MathHelper.Clamp(lx, -CurrentRoom.RoomSize.X + GlobalUse.WindowSize.X / _cameraZoom + (CurrentRoom.TileSize.X / 2), CurrentRoom.TileSize.X / 2);
+            //lx = MathHelper.Clamp(lx, -_сurrentRoom.RoomSize.X + GlobalUse.WindowSize.X / _cameraZoom + (_сurrentRoom.TileSize.X / 2), _сurrentRoom.TileSize.X / 2);
             var ly = GlobalUse.WindowSize.Y / 2 / _cameraZoom - MainCharacter.Position.Y;
-            //ly = MathHelper.Clamp(ly, -CurrentRoom.RoomSize.Y + GlobalUse.WindowSize.Y / _cameraZoom + (CurrentRoom.TileSize.Y / 2), CurrentRoom.TileSize.Y / 2);
+            //ly = MathHelper.Clamp(ly, -_сurrentRoom.RoomSize.Y + GlobalUse.WindowSize.Y / _cameraZoom + (_сurrentRoom.TileSize.Y / 2), _сurrentRoom.TileSize.Y / 2);
             _cameraView = Matrix.CreateTranslation(lx, ly, 0F) * Matrix.CreateScale(_cameraZoom, _cameraZoom, 0);
         }
         private void ShowFPS()

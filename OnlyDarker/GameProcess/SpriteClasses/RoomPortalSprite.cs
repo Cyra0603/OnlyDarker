@@ -16,20 +16,21 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 Origin { get; protected set; }
         public Vector2 CenterCords { get; protected set; }
         public Vector2 ExitPosition { get; protected set; }
+        public Direction Direction { get; protected set; }
         public Room ExitRoom { get; protected set; }
         public Rectangle MovementCollider;
         public readonly Room ParentRoomReference;
         private bool _isActive;
-        public RoomPortalSprite(Texture2D texture, Vector2 position, Room parentRoomReference)
+        public RoomPortalSprite(Texture2D texture, Vector2 position, Direction portalDirection, Room parentRoomReference)
         {
             _texture = texture;
             Position = position;
             Origin = new(_texture.Width / 2, texture.Height / 2);
+            Direction = portalDirection;
             CenterCords = Position + Origin;
             MovementCollider = new((int)Position.X - (int)Origin.X, (int)Position.Y - (int)Origin.Y, _texture.Width, _texture.Height);
             ParentRoomReference = parentRoomReference;
             _isActive = true;
-            Debug.WriteLine(parentRoomReference.OrderNumber.ToString());
         }
         public void Update()
         {
@@ -49,14 +50,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public float GetTextureHeight()
         {
             return _texture.Height;
-        }
-        private Room GetPreviousRoom()
-        {
-            return ParentRoomReference.ParentLevelReference.BuiltFloor[ParentRoomReference.OrderNumber - 1];
-        }
-        private Room GetNextRoom()
-        {
-            return ParentRoomReference.ParentLevelReference.BuiltFloor[ParentRoomReference.OrderNumber + 1];
         }
         public void ActivatePortal()
         {
@@ -78,7 +71,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             ParentRoomReference.DeactivatePortals();
             ExitRoom.DeactivatePortals();
-            GameBody.SceneManager.GoToRoom(ExitRoom.OrderNumber);
+            GameBody.SceneManager.GoToRoom(ExitRoom.GridCords);
             GameBody.MainCharacter.SetPosition(ExitPosition);
             ParentRoomReference.ActivatePortals(2000);
             ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
