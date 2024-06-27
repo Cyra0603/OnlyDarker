@@ -15,8 +15,9 @@ namespace OnlyDarker.GameProcess
     //GridSize Y and X values must be odd!!
     public class FloorOneConfig : IFloorConfig
     {
-        Point IFloorConfig.GridSize => new(27, 27);
-        int IFloorConfig.MaxRooms => 13;
+        private readonly int _gridSizeValue = 27;
+        Point IFloorConfig.GridSize => new(_gridSizeValue, _gridSizeValue);
+        int IFloorConfig.MaxRooms => (_gridSizeValue - 1) / 2;
         public FloorOneConfig() { }
     }
 }

@@ -120,6 +120,10 @@ namespace OnlyDarker.GameProcess
                 }
             }
             furthestRoom.RoomType = RoomType.Boss;
+            var oneNeighbourRoom1 = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
+                oneNeighbourRoom1.RoomType = RoomType.Treasure;
+            var oneNeighbourRoom2 = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
+            oneNeighbourRoom2.RoomType = RoomType.Puzzle;
             foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
             {
                 int rng = RandomNumberGenerator.GetInt32(0, 2);
