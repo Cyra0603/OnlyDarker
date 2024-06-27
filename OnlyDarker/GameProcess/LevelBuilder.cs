@@ -37,7 +37,73 @@ namespace OnlyDarker.GameProcess
         {
             FloorType = floor;
             _floorConfigPairs.TryGetValue(floor, out _floorConfig);
-            FailedGenerationRetryMark:
+            EmptyRoom[,] grid = GenerateGrid(floor);
+            var startingRoom = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1);
+            startingRoom.RoomType = RoomType.Entry;
+            SetBossRoom(grid, startingRoom);
+            SetSpecialRooms(grid);
+            SetEncounterRooms(grid);
+            SetRoomDirections(grid);
+            LevelGrid = new Room[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
+            BuildRooms(grid);
+            LinkPortals();
+        }
+
+        private static void SetEncounterRooms(EmptyRoom[,] grid)
+        {
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.RoomType == RoomType.Empty))
+            {
+                room.RoomType = RoomType.Encounter;
+            }
+        }
+
+        private void BuildRooms(EmptyRoom[,] grid)
+        {
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room is not null))
+            {
+                LevelGrid[room.Y, room.X] = new Room(room, this);
+                BuiltFloor.Add(LevelGrid[room.Y, room.X]);
+            }
+        }
+
+        private static void SetRoomDirections(EmptyRoom[,] grid)
+        {
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room is not null))
+            {
+                if (grid[room.Y - 1, room.X] is not null)
+                    room.Up = true;
+                if (grid[room.Y + 1, room.X] is not null)
+                    room.Down = true;
+                if (grid[room.Y, room.X - 1] is not null)
+                    room.Left = true;
+                if (grid[room.Y, room.X + 1] is not null)
+                    room.Right = true;
+            }
+        }
+
+        private static void SetSpecialRooms(EmptyRoom[,] grid)
+        {
+            var oneNeighbourRoom1 = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
+            oneNeighbourRoom1.RoomType = RoomType.Treasure;
+            var oneNeighbourRoom2 = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
+            oneNeighbourRoom2.RoomType = RoomType.Puzzle;
+            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
+            {
+                int rng = RandomNumberGenerator.GetInt32(0, 2);
+                if (rng == 0)
+                {
+                    room.RoomType = RoomType.Treasure;
+                }
+                else
+                {
+                    room.RoomType = RoomType.Puzzle;
+                }
+            }
+        }
+
+        private EmptyRoom[,] GenerateGrid(Floor floor)
+        {
+        FailedGenerationRetryMark:
             var grid = new EmptyRoom[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
             grid[_floorConfig.GridSize.Y / 2, _floorConfig.GridSize.X / 2] = new EmptyRoom(floor, _floorConfig.GridSize.X / 2, _floorConfig.GridSize.Y / 2);
             int rooms = _floorConfig.MaxRooms;
@@ -47,8 +113,8 @@ namespace OnlyDarker.GameProcess
                 foreach (var emptyRoom in grid.OfType<EmptyRoom>().Where(room => room is not null && !room.IsUsed))
                 {
                     int random;
-                    random = RandomNumberGenerator.GetInt32(0, 3);
-                    if (random < 2)
+                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    if (random < 1)
                     {
                         if (grid[emptyRoom.Y, emptyRoom.X - 2] is null && grid[emptyRoom.Y - 1, emptyRoom.X - 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X - 1] is null && rooms > 0)
                         {
@@ -56,11 +122,11 @@ namespace OnlyDarker.GameProcess
                             grid[emptyRoom.Y, emptyRoom.X - 1].Neighbours++;
                             rooms--;
                             emptyRoom.Neighbours++;
-                        }  
+                        }
                     }
 
-                    random = RandomNumberGenerator.GetInt32(0, 3);
-                    if (random < 2)
+                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    if (random < 1)
                     {
                         if (grid[emptyRoom.Y, emptyRoom.X + 2] is null && grid[emptyRoom.Y - 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X + 1] is null && rooms > 0)
                         {
@@ -71,8 +137,8 @@ namespace OnlyDarker.GameProcess
                         }
                     }
 
-                    random = RandomNumberGenerator.GetInt32(0, 3);
-                    if (random < 2)
+                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    if (random < 1)
                     {
                         if (grid[emptyRoom.Y - 2, emptyRoom.X] is null && grid[emptyRoom.Y - 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y - 1, emptyRoom.X - 1] is null && rooms > 0)
                         {
@@ -83,8 +149,8 @@ namespace OnlyDarker.GameProcess
                         }
                     }
 
-                    random = RandomNumberGenerator.GetInt32(0, 3);
-                    if(random < 2)
+                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    if (random < 1)
                     {
                         if (grid[emptyRoom.Y + 2, emptyRoom.X] is null && grid[emptyRoom.Y + 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X - 1] is null && rooms > 0)
                         {
@@ -97,15 +163,19 @@ namespace OnlyDarker.GameProcess
                     emptyRoom.IsUsed = true;
                 }
                 testIterations++;
-                if (testIterations > 10000000)
+                if (testIterations > 10000)
                     goto FailedGenerationRetryMark;
             }
             if (!(grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1).Count() >= 4))
             {
                 goto FailedGenerationRetryMark;
             }
-            var startingRoom = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1);
-            startingRoom.RoomType = RoomType.Entry;
+
+            return grid;
+        }
+
+        private static void SetBossRoom(EmptyRoom[,] grid, EmptyRoom startingRoom)
+        {
             int maxManhattanDistance = 0;
             EmptyRoom furthestRoom = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
             foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
@@ -120,49 +190,12 @@ namespace OnlyDarker.GameProcess
                 }
             }
             furthestRoom.RoomType = RoomType.Boss;
-            var oneNeighbourRoom1 = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
-                oneNeighbourRoom1.RoomType = RoomType.Treasure;
-            var oneNeighbourRoom2 = grid.OfType<EmptyRoom>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
-            oneNeighbourRoom2.RoomType = RoomType.Puzzle;
-            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
-            {
-                int rng = RandomNumberGenerator.GetInt32(0, 2);
-                if(rng == 0)
-                {
-                    room.RoomType = RoomType.Treasure;
-                }
-                else
-                {
-                    room.RoomType = RoomType.Puzzle;
-                }
-            }
-            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room.RoomType == RoomType.Empty))
-            {
-                room.RoomType = RoomType.Encounter;
-            }
-            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room is not null))
-            {
-                if (grid[room.Y - 1, room.X] is not null)
-                    room.Up = true;
-                if (grid[room.Y + 1, room.X] is not null)
-                    room.Down = true;
-                if (grid[room.Y, room.X - 1] is not null)
-                    room.Left = true;
-                if (grid[room.Y, room.X + 1] is not null)
-                    room.Right = true;
-            }
-                LevelGrid = new Room[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
-            foreach (var room in grid.OfType<EmptyRoom>().Where(room => room is not null))
-            {
-                LevelGrid[room.Y, room.X] = new Room(room,this);
-                BuiltFloor.Add(LevelGrid[room.Y, room.X]);
-            }
-            LinkPortals();
         }
+
         private void LinkPortals()
         {
-            foreach(var room in BuiltFloor)
-                {
+            foreach (var room in BuiltFloor)
+            {
                 foreach (var portal in room.Portals)
                 {
                     if (portal.Direction == Direction.Left)
@@ -186,7 +219,7 @@ namespace OnlyDarker.GameProcess
                         portal.SetExitPosition(LevelGrid[room.GridCords.Y + 1, room.GridCords.X].Portals.First(portal => portal.Direction == Direction.Up).Position);
                     }
                 }
-            }           
+            }
         }
     }
     public class EmptyRoom
