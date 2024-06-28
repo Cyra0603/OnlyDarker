@@ -19,6 +19,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
         public List<Armor> ArmorSet { get; } = new();
         public bool IsInvincible { get; set; }
+        public bool IsExpired { get; private set; } = false;
         private float _healthPoints = 10000;
         public float HealthPoints
         {

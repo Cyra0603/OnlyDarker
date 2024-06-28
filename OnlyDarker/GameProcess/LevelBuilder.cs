@@ -71,13 +71,13 @@ namespace OnlyDarker.GameProcess
             foreach (var room in grid.OfType<EmptyRoom>().Where(room => room is not null))
             {
                 if (grid[room.Y - 1, room.X] is not null)
-                    room.Up = true;
+                    room.HasUpNeighbour = true;
                 if (grid[room.Y + 1, room.X] is not null)
-                    room.Down = true;
+                    room.HasDownNeighbour = true;
                 if (grid[room.Y, room.X - 1] is not null)
-                    room.Left = true;
+                    room.HasLeftNeighbour = true;
                 if (grid[room.Y, room.X + 1] is not null)
-                    room.Right = true;
+                    room.HasRightNeighbour = true;
             }
         }
 
@@ -229,10 +229,10 @@ namespace OnlyDarker.GameProcess
         public int Neighbours = 0;
         public int X;
         public int Y;
-        public bool Left = false;
-        public bool Right = false;
-        public bool Up = false;
-        public bool Down = false;
+        public bool HasLeftNeighbour = false;
+        public bool HasRightNeighbour = false;
+        public bool HasUpNeighbour = false;
+        public bool HasDownNeighbour = false;
         public bool IsUsed = false;
         public EmptyRoom(Floor floorType, int x, int y)
         {

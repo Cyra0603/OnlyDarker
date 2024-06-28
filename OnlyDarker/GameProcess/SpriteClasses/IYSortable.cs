@@ -9,6 +9,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     public interface IYSortable
     {
         Vector2 Position { get; set; }
+        bool IsExpired { get; }
         void Draw();
     }
 }

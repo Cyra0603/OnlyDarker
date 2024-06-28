@@ -67,6 +67,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             _lootDropDelay = new(_lootDropDelayValue);
                 DropLoot();
             _parentRoomRef.Interactives.Remove(this);
+            _parentRoomRef.RoomColliders.Remove(MovementCollider);
         }
 
         public void Update(float elapsedMilliseconds)

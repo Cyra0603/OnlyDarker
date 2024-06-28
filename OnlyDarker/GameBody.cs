@@ -212,9 +212,14 @@ namespace OnlyDarker
                 DrawRectangleOutline(MainCharacter.MovementCollider, Color.Black);
                 DrawRectangleOutline(MainCharacter.MovementCollisionAura, Color.Black);
                 DrawRectangleOutline(MainCharacter.InteractionAura, Color.Yellow);
+                DrawRectangleOutline(new(MainCharacter.Position.ToPoint(), new(2,2)), Color.Red);
                 foreach (var portal in SceneManager.CurrentRoom.Portals)
                 {
                     DrawRectangleOutline(portal.MovementCollider, Color.Yellow);
+                }
+                foreach (var entity in SceneManager.CurrentRoom.Damageables)
+                {
+                    DrawRectangleOutline(entity.BodyHitbox, Color.Yellow);
                 }
                 DrawRectangleOutline(MainCharacter.BodyHitbox, Color.Red, 2);
             }

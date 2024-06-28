@@ -140,13 +140,13 @@ namespace OnlyDarker.GameProcess
                             case "Portal":
                                 BuildTile(tileTextures, x, y);
                                 var portalDirection = CheckPortalDirection(_roomPresetImage, x, y);
-                                if (portalDirection == Direction.Left && emptyRoom.Left == true)
+                                if (portalDirection == Direction.Left && emptyRoom.HasLeftNeighbour == true)
                                     BuildPortal(portalTextures, x, y, Direction.Left);
-                                else if (portalDirection == Direction.Right && emptyRoom.Right == true)
+                                else if (portalDirection == Direction.Right && emptyRoom.HasRightNeighbour == true)
                                     BuildPortal(portalTextures, x, y, Direction.Right);
-                                else if (portalDirection == Direction.Up && emptyRoom.Up == true)
+                                else if (portalDirection == Direction.Up && emptyRoom.HasUpNeighbour == true)
                                     BuildPortal(portalTextures, x, y, Direction.Up);
-                                else if (portalDirection == Direction.Down && emptyRoom.Down == true)
+                                else if (portalDirection == Direction.Down && emptyRoom.HasDownNeighbour == true)
                                     BuildPortal(portalTextures, x, y, Direction.Down);
                                 break;
                             case "TargetDummy":
@@ -156,6 +156,12 @@ namespace OnlyDarker.GameProcess
                                 Damageables.Add(targetDummy);
                                 RoomColliders.Add(targetDummy.MovementCollider);
                                 ObstaclesBounds.Add(targetDummy.BodyHitbox);
+                                {
+                                    var testWasp = new WaspSprite(targetDummy.Position, this);
+                                    ObjectsYSorted.Add(testWasp);
+                                    Damageables.Add(testWasp);
+                                    Updateables.Add(testWasp);
+                                }
                                 break;
                             case "TargetDummyShooter":
                                 BuildTile(tileTextures, x, y);
@@ -240,7 +246,7 @@ namespace OnlyDarker.GameProcess
             {
                 item.Update(elapsedMilliseconds);
             }
-            Updateables.RemoveAll(item => item.IsExpired);
+            Updateables.RemoveAll(item => item.IsExpired);  
         }
         private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
         {

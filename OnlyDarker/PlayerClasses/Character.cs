@@ -56,14 +56,14 @@ namespace OnlyDarker
         public const float MAX_CHARACTER_SPEED = 2F;
         public const float MIN_CHARACTER_SPEED = 0.5F;
         public const float I_FRAME_TIME = 500F;
-        public float CritChance = 5F;
-        public float CritDamage = 200F;
+        public float CritChance { get; set; } = 5F;
+        public float CritDamage { get; set; } = 200F;
         private float _staminaRegenValue = 0.02F;
         private float _dashLength { get; set; } = 100F;
         private float _dashEffectLength => _dashLength * 1.5F;
         public float HandRotation { get; set; } = 0F;
         private float _maxStamina = 100F;
-        public float StaminaCost = 50F;
+        public float StaminaCost { get; set; } = 50F;
         public float MaxStamina
         {
             get
@@ -110,6 +110,7 @@ namespace OnlyDarker
                 }
             }
         }
+        public bool IsExpired { get; private set; }
         public bool IsInvincible
         {
             get => InvincibilityTimer.TimeLeft > 0;

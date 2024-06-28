@@ -20,6 +20,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Room ExitRoom { get; protected set; }
         public Rectangle MovementCollider;
         public readonly Room ParentRoomReference;
+        public bool IsExpired { get; private set; } = false;
         private bool _isActive;
         public RoomPortalSprite(Texture2D texture, Vector2 position, Direction portalDirection, Room parentRoomReference)
         {
@@ -75,6 +76,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GameBody.MainCharacter.SetPosition(ExitPosition);
             ParentRoomReference.ActivatePortals(2000);
             ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
+            ParentRoomReference.ObjectsYSorted.RemoveAll(item => item.IsExpired);
             ExitRoom.ActivatePortals(2000);
             GameBody.ProjectileSprites.Clear();
             GC.Collect();

@@ -17,6 +17,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         public string Name { get; set; }
         public string PickupSound { get; } //temp
+        public bool IsExpired { get; private set; } = false;
 
         public string InteractionMessage
         {

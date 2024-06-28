@@ -15,6 +15,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private float _transparencyFadeTime = 250F;
         private Timer _transparencyTimer = new(0);
         private Color _shadowColor = new(Color.Black, 0.20F);
+        public bool IsExpired { get; private set; } = false;
         public SpriteStandartObstacle(Texture2D texture, SpriteStandartTile parentTile)
         {
             _texture = texture;

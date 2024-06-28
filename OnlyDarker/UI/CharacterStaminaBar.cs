@@ -20,17 +20,13 @@ namespace OnlyDarker.UI
         {
             get
             {
-                if (NotificationLifeSpan.TimeLeft <= 0)
-                    return false;
-                else
-                    return true;
+                return NotificationLifeSpan.TimeLeft > 0;
             }
         }
         private Character CurrentCharacter => GameBody.MainCharacter;
         private float _stamina;
         private float _maxStamina;
         private int _barHeight = 20;
-        private int _notifiedBarHeight;
         public CharacterStaminaBar(GraphicsDevice graphicsDevice)
         {
             _texture = new(graphicsDevice, 1, 1);
