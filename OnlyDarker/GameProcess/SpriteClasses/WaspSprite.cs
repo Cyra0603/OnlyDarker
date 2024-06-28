@@ -15,7 +15,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         const float SWAY_FREQUENCY = 5F;
         public bool IsExpired { get; set; }
         public bool IsInvincible { get; }
-        private readonly float _initialHealthPoints;
+        public float MaxHealthPoints {get;}
         private float _healthPoints;
         public float HealthPoints
         {
@@ -34,8 +34,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private Armor _baseArmor;
 
         public List<Armor> ArmorSet { get; protected set; }
+
+
+
         public WaspSprite(Vector2 position, Room parentRoomRef)
         {
+            Position = position;
             _parentRoomRef = parentRoomRef;
             _baseArmor = new(ArmorType.Base, pokeX: 0.95F, bluntX: 1.1F);
             ArmorSet = new List<Armor>
@@ -43,6 +47,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 _baseArmor
             };
             _healthPoints = 10;
+            MaxHealthPoints = _healthPoints;
         }
 
         public void Draw()
@@ -76,7 +81,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Respawn()
         {
-            _healthPoints = _initialHealthPoints;
+            HealthPoints = MaxHealthPoints;
             Position = _initialPosition;
         }
 

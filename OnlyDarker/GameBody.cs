@@ -28,8 +28,8 @@ namespace OnlyDarker
         private static CurrentFloorBar _currentFloorBar;
         private static InteractionMessageBar _interactionMessageBar;
         private static Minimap _minimap;
+        public static Texture2D EmptyTexture;
         private static Texture2D _hitboxTexture;
-        private static Texture2D _emptyTexture;
         public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         public static List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
         public static List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
@@ -83,6 +83,9 @@ namespace OnlyDarker
 
             _graphics.ApplyChanges();
 
+            EmptyTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
+            EmptyTexture.SetData(new[] { Color.White });
+
             TextureMapper.LoadTextures();
 
             BindManager = BindManager.GetBindManagerInstance();
@@ -101,9 +104,6 @@ namespace OnlyDarker
 
             _hitboxTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
             _hitboxTexture.SetData(new Color[] { Color.Red });
-
-            _emptyTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
-            _emptyTexture.SetData(new[] { Color.White });
 
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
@@ -237,6 +237,10 @@ namespace OnlyDarker
             {
                 proj.Draw();
             }
+            foreach (var entity in SceneManager.CurrentRoom.Damageables)
+            {
+                entity.DrawHPBar();
+            }
             GlobalUse.SpriteBatch.End();
             _mainCanvas.Deactivate();
 
@@ -285,10 +289,10 @@ namespace OnlyDarker
         }
         public static void DrawRectangleOutline(Rectangle rect, Color color, int borderWidth = 1)
         {
-            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Left, rect.Top, borderWidth, rect.Height), color);
-            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Right, rect.Top, borderWidth, rect.Height), color);
-            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Left, rect.Top, rect.Width, borderWidth), color);
-            GlobalUse.SpriteBatch.Draw(_emptyTexture, new Rectangle(rect.Left, rect.Bottom, rect.Width, borderWidth), color);
+            GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Top, borderWidth, rect.Height), color);
+            GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Right, rect.Top, borderWidth, rect.Height), color);
+            GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Top, rect.Width, borderWidth), color);
+            GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Bottom, rect.Width, borderWidth), color);
         }
     }
 }

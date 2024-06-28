@@ -44,7 +44,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 }
             }
         }
-
+        public float MaxHealthPoints { get; set; }
         public TargetDummyShooterSprite(SpriteStandartTile parentTile, Room parentRoom)
         {
             _parentRoomReference = parentRoom;
@@ -54,7 +54,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
             MovementCollider = BodyHitbox;
             _attackCooldown = new(AttackCooldownTime);
-            ArmorSet.Add(BaseArmor);
+            MaxHealthPoints = 10000;
+        ArmorSet.Add(BaseArmor);
             //foreach(var armor in ArmorSet)
             //{
             //    armor.AddFlatArmor(5F);

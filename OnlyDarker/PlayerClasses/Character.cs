@@ -110,6 +110,7 @@ namespace OnlyDarker
                 }
             }
         }
+        public float MaxHealthPoints { get; set; } = 24;
         public bool IsExpired { get; private set; }
         public bool IsInvincible
         {
@@ -124,7 +125,6 @@ namespace OnlyDarker
             _handOrigin = new(handTexture.Width / 2, handTexture.Height / 2);
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
-            //_dashDelegate += DashAction(this, EventArgs.Empty);
         }
         public delegate void ObserveFloatStat(float statValue);
         public delegate void NoParamsVoid();
@@ -149,7 +149,10 @@ namespace OnlyDarker
             if (DamagedEffectTimer.TimeLeft > 0)
                 GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
         }
+        public void DrawHpBar()
+        {
 
+        }
         public void SetRoomBounds(Point roomSize, Point tileSize)
         {
             _minPosition = new Vector2((-tileSize.X / 2) + Origin.X, (-tileSize.Y / 2) + Origin.Y - _bodyTexture.Height + GlobalUse.PIXEL_OFFSET);

@@ -46,7 +46,7 @@ namespace OnlyDarker.GameProcess
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
         public Point GridCords { get; private set; }
-        public Room(EmptyRoom emptyRoom, Level parentLevelReference)
+        public Room(RoomBlueprint emptyRoom, Level parentLevelReference)
         {
             _roomPresetImage = ImportPreset(emptyRoom.FloorType, emptyRoom.RoomType);
             InstanceRoomType = emptyRoom.RoomType;
@@ -102,14 +102,14 @@ namespace OnlyDarker.GameProcess
         {
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
         }
-        private Texture2D ImportPreset(Floor floor, RoomType roomType)
+        private static Texture2D ImportPreset(Floor floor, RoomType roomType)
         {
             var rng = new Random();
             string contentDir = $"Floor/{floor}/RoomType/{roomType}/Presets";
             int contentDirCount = Directory.EnumerateFiles("Content/" + contentDir, "*.xnb").Count();
             return GlobalUse.Content.Load<Texture2D>(contentDir + $"/Preset{floor}{roomType}{rng.Next(1, contentDirCount)}");
         }
-        private Color[,] TextureTo2DArray(Texture2D texture)
+        private static Color[,] TextureTo2DArray(Texture2D texture)
         {
             Color[] colors1D = new Color[texture.Width * texture.Height];
             texture.GetData(colors1D);
@@ -121,7 +121,7 @@ namespace OnlyDarker.GameProcess
 
             return colors2D;
         }
-        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, List<Texture2D> portalTextures, Color[,] presetData, EmptyRoom emptyRoom)
+        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, List<Texture2D> portalTextures, Color[,] presetData, RoomBlueprint emptyRoom)
         {
             for (int x = 0; x < _tiles.GetLength(0); x++)
             {

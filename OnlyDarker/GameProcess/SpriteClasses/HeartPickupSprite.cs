@@ -26,6 +26,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Collect()
         {
+            if (GameBody.MainCharacter.HealthPoints >= GameBody.MainCharacter.MaxHealthPoints)
+            {
+                return;
+            }
             GameBody.MainCharacter.HealthPoints++;
             GameBody.SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
             IsExpired = true;

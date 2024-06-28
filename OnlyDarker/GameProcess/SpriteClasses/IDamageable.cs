@@ -15,6 +15,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         Rectangle BodyHitbox { get; }
         bool IsInvincible { get; }
         float HealthPoints { get; set; }
+        float MaxHealthPoints { get; }
         List<Armor> ArmorSet { get; }
         void TakeDamage(DamageInstance damage)
         {
@@ -32,6 +33,14 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
             }
             else return;
+        }
+        void DrawHPBar()
+        {
+            var bounds = new Rectangle(BodyHitbox.Left, BodyHitbox.Top, BodyHitbox.Size.X, BodyHitbox.Size.Y / 10);
+            var currentHpBounds = new Rectangle(bounds.Location.X, bounds.Location.Y, (int)(bounds.Width * HealthPoints / MaxHealthPoints), bounds.Height);
+            GameBody.DrawRectangleOutline(bounds, Color.Black);
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Green);
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Red * (1 - (HealthPoints / MaxHealthPoints )));
         }
     }
 }

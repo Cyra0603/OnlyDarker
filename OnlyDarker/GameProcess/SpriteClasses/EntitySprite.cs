@@ -27,6 +27,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public float Speed { get; private set; } = 0.5F;
         public bool IsInvincible { get; set; } = false;
         private float _healthPoints = 10;
+
         public float HealthPoints
         {
             get => _healthPoints;
@@ -48,7 +49,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 }
             }
         }
-
+        public float MaxHealthPoints { get; }
         public EntitySprite(Texture2D bodyTexture, SpriteStandartTile parentTile)
         {
             _bodyTexture = bodyTexture;
@@ -60,11 +61,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public event ObserveHP OnChangingHealth;
         public event ObserveHP OnTakingDamage;
         public event ObserveHP OnHealing;
-
-        private void Patrol()
-        {
-            //Patrol code
-        }
         public void Draw()
         {
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);

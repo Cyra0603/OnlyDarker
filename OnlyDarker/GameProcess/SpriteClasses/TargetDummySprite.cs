@@ -42,12 +42,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 }
             }
         }
-
+        public float MaxHealthPoints { get; set; }
         public TargetDummySprite(SpriteStandartTile parentTile)
         {
             _bodyTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummy/TargetDummy");
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
+            MaxHealthPoints = 10000;
             MovementCollider = BodyHitbox;
             ArmorSet.Add(BaseArmor);
             ArmorSet.Add(new(ArmorType.Helmet, bluntX: 0.8F));

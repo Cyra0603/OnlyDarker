@@ -30,17 +30,15 @@ namespace OnlyDarker.CommonUsing
         }
         public EventHandler TimeElapsed;
         public EventHandler TimeUpdated;
-        public ActionTimer(float time/*, EventHandler elapsedTimeAction, EventHandler updateAction*/)
+        public ActionTimer(float time)
         {
             TimeLeft = time;
-            //TimeUpdated += updateAction;
-            //TimeElapsed += elapsedTimeAction;
             IsRunning = true;
         }
-        ~ActionTimer()
-        {
-            Debug.WriteLine($"Timer disposed");
-        }
+        //~ActionTimer()
+        //{
+        //    Debug.WriteLine($"Timer disposed");
+        //}
         public void Update(float milliseconds)
         {
             if (!IsRunning) return;
