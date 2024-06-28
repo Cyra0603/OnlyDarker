@@ -19,27 +19,27 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         List<Armor> ArmorSet { get; }
         void TakeDamage(DamageInstance damage)
         {
-            if (!IsInvincible)
+            if (IsInvincible)
             {
-                var locald = damage;
-                foreach (var armor in ArmorSet)
-                {
-                    locald *= armor.Resistances.First(res => res.Type == locald.Type);
-                }
-                var dmgTaken = locald.ExtractValue();
-                if (dmgTaken < 0) 
-                    dmgTaken = 0;
-                HealthPoints -= dmgTaken;
-                var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
+                return;
             }
-            else return;
+            var locald = damage;
+            foreach (var armor in ArmorSet)
+            {
+                locald *= armor.Resistances.First(res => res.Type == locald.Type);
+            }
+            var dmgTaken = locald.ExtractValue();
+            if (dmgTaken < 0)
+                dmgTaken = 0;
+            HealthPoints -= dmgTaken;
+            var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
         }
         void DrawHPBar()
         {
             var bounds = new Rectangle(BodyHitbox.Left, BodyHitbox.Top, BodyHitbox.Size.X, BodyHitbox.Size.X / 10);
             var currentHpBounds = new Rectangle(bounds.Location.X, bounds.Location.Y, (int)(bounds.Width * HealthPoints / MaxHealthPoints), bounds.Height);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Green);
-            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Red * (1 - (HealthPoints / MaxHealthPoints )));
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Red * (1 - (HealthPoints / MaxHealthPoints)));
             GameBody.DrawRectangleOutline(bounds, Color.Black);
         }
     }
