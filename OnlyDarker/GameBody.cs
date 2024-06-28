@@ -239,7 +239,8 @@ namespace OnlyDarker
             }
             foreach (var entity in SceneManager.CurrentRoom.Damageables)
             {
-                entity.DrawHPBar();
+                if(entity.HealthPoints > 0)
+                    entity.DrawHPBar();
             }
             GlobalUse.SpriteBatch.End();
             _mainCanvas.Deactivate();

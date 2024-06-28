@@ -36,11 +36,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         void DrawHPBar()
         {
-            var bounds = new Rectangle(BodyHitbox.Left, BodyHitbox.Top, BodyHitbox.Size.X, BodyHitbox.Size.Y / 10);
+            var bounds = new Rectangle(BodyHitbox.Left, BodyHitbox.Top, BodyHitbox.Size.X, BodyHitbox.Size.X / 10);
             var currentHpBounds = new Rectangle(bounds.Location.X, bounds.Location.Y, (int)(bounds.Width * HealthPoints / MaxHealthPoints), bounds.Height);
-            GameBody.DrawRectangleOutline(bounds, Color.Black);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Green);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Red * (1 - (HealthPoints / MaxHealthPoints )));
+            GameBody.DrawRectangleOutline(bounds, Color.Black);
         }
     }
 }
