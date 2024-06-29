@@ -145,32 +145,29 @@ namespace OnlyDarker
         {
             SceneManager.CurrentRoom.SortObjectsByY();
             _collectiblesTimeAccumulator += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            foreach (var mngr in EffectAnimationManagers)
-            {
-                if(mngr.IsActive)
-                    mngr.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
-            }
-            foreach (var mngr in DamageNumberAnimationManagers)
-            {
-                if (mngr.IsActive)
-                    mngr.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
-            }
-            foreach(var proj in ProjectileSprites)
-            {
-                proj.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
-            }
-            EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
-            DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
-            ProjectileSprites.RemoveAll(proj => proj.Lifetime.TimeLeft <= 0);
-
             _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
-
             _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
-
             base.Update(gameTime);
         }
         private void FixedTimeStepUpdate(float milliseconds)
         {
+            foreach (var mngr in EffectAnimationManagers)
+            {
+                if(mngr.IsActive)
+                    mngr.Update(milliseconds);
+            }
+            foreach (var mngr in DamageNumberAnimationManagers)
+            {
+                if (mngr.IsActive)
+                    mngr.Update(milliseconds);
+            }
+            foreach(var proj in ProjectileSprites)
+            {
+                proj.Update(milliseconds);
+            }
+            EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
+            DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
+            ProjectileSprites.RemoveAll(proj => proj.Lifetime.TimeLeft <= 0);
             _interactionMessageBar.Update();
             MainCharacter.Update(milliseconds);
             CalculateCameraView();
@@ -266,9 +263,7 @@ namespace OnlyDarker
         private void CalculateCameraView()
         {
             var lx = GlobalUse.WindowSize.X / 2 / _cameraZoom - MainCharacter.Position.X;
-            //lx = MathHelper.Clamp(lx, -_сurrentRoom.RoomSize.X + GlobalUse.WindowSize.X / _cameraZoom + (_сurrentRoom.TileSize.X / 2), _сurrentRoom.TileSize.X / 2);
             var ly = GlobalUse.WindowSize.Y / 2 / _cameraZoom - MainCharacter.Position.Y;
-            //ly = MathHelper.Clamp(ly, -_сurrentRoom.RoomSize.Y + GlobalUse.WindowSize.Y / _cameraZoom + (_сurrentRoom.TileSize.Y / 2), _сurrentRoom.TileSize.Y / 2);
             _cameraView = Matrix.CreateTranslation(lx, ly, 0F) * Matrix.CreateScale(_cameraZoom, _cameraZoom, 0);
         }
         private void ShowFPS()

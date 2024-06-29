@@ -76,10 +76,16 @@ namespace OnlyDarker.CommonUsing
         public static SpriteFont MainFont { get; set; }
         public static ContentManager Content { get; set; }
         public static SpriteBatch SpriteBatch { get; set; }
+        public static readonly int CurrentSeed;
         public static Point WindowSize { get; set; }
-        public readonly static Random RNG = new();
+        public readonly static Random SeededStandartRNG;
         public readonly static RandomNumberGenerator rnjesus = RandomNumberGenerator.Create();
         public static bool IsDebugMode { get; private set; } = false;
+        static GlobalUse()
+        {
+            CurrentSeed = RandomNumberGenerator.GetInt32(1000000, 10000000);
+            SeededStandartRNG = new(CurrentSeed);
+        }
         public static void ToggleDebugMode()
         {
             IsDebugMode = !IsDebugMode;
@@ -91,7 +97,7 @@ namespace OnlyDarker.CommonUsing
         }
         public static bool TryBasicRNG(float chance)
         {
-            var value = RNG.Next(0,101);
+            var value = SeededStandartRNG.Next(0,101);
             return value < chance;
         }
     }

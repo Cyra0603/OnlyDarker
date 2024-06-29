@@ -30,7 +30,8 @@ namespace OnlyDarker.GameProcess
             FloorType = floor;
             _floorConfigPairs.TryGetValue(floor, out _floorConfig);
             RoomBlueprint[,] grid = GenerateGrid(floor);
-            var startingRoom = grid.OfType<RoomBlueprint>().First(room => room.Neighbours == 1);
+            var allOneWays = grid.OfType<RoomBlueprint>().Where(room => room.Neighbours == 1).ToArray();
+            var startingRoom = allOneWays[GlobalUse.SeededStandartRNG.Next(0, allOneWays.Length + 1)];
             startingRoom.RoomType = RoomType.Entry;
             SetBossRoom(grid, startingRoom);
             SetSpecialRooms(grid);
@@ -105,7 +106,8 @@ namespace OnlyDarker.GameProcess
                 foreach (var emptyRoom in grid.OfType<RoomBlueprint>().Where(room => room is not null && !room.IsUsed))
                 {
                     int random;
-                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    //random = RandomNumberGenerator.GetInt32(0, 2);
+                    random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {
                         if (grid[emptyRoom.Y, emptyRoom.X - 2] is null && grid[emptyRoom.Y - 1, emptyRoom.X - 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X - 1] is null && rooms > 0)
@@ -117,7 +119,8 @@ namespace OnlyDarker.GameProcess
                         }
                     }
 
-                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    //random = RandomNumberGenerator.GetInt32(0, 2);
+                    random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {
                         if (grid[emptyRoom.Y, emptyRoom.X + 2] is null && grid[emptyRoom.Y - 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X + 1] is null && rooms > 0)
@@ -129,7 +132,8 @@ namespace OnlyDarker.GameProcess
                         }
                     }
 
-                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    //random = RandomNumberGenerator.GetInt32(0, 2);
+                    random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {
                         if (grid[emptyRoom.Y - 2, emptyRoom.X] is null && grid[emptyRoom.Y - 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y - 1, emptyRoom.X - 1] is null && rooms > 0)
@@ -141,7 +145,8 @@ namespace OnlyDarker.GameProcess
                         }
                     }
 
-                    random = RandomNumberGenerator.GetInt32(0, 2);
+                    //random = RandomNumberGenerator.GetInt32(0, 2);
+                    random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {
                         if (grid[emptyRoom.Y + 2, emptyRoom.X] is null && grid[emptyRoom.Y + 1, emptyRoom.X + 1] is null && grid[emptyRoom.Y + 1, emptyRoom.X - 1] is null && rooms > 0)
@@ -155,7 +160,7 @@ namespace OnlyDarker.GameProcess
                     emptyRoom.IsUsed = true;
                 }
                 testIterations++;
-                if (testIterations > 10000)
+                if (testIterations > 100000)
                     {
                     Debug.WriteLine("Generation took too many iterations");
                     goto FailedGenerationRetryLabel; 

@@ -76,8 +76,8 @@ namespace OnlyDarker.UI
             NotificationLifeSpan.Update(elapsedMilliseconds);
             if (_notifiedNotEnoughStamina)
             {
-                int lx = GlobalUse.RNG.Next(_location.X - 3, _location.X + 4);
-                int ly = GlobalUse.RNG.Next(_location.Y - 3, _location.Y + 6);
+                int lx = GlobalUse.SeededStandartRNG.Next(_location.X - 3, _location.X + 4);
+                int ly = GlobalUse.SeededStandartRNG.Next(_location.Y - 3, _location.Y + 6);
                 _notifiedLocation = new Point(lx, ly);
             }
 

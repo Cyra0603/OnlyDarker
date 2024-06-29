@@ -127,83 +127,78 @@ namespace OnlyDarker.GameProcess
             {
                 for (int y = 0; y < _tiles.GetLength(1); y++)
                 {
-                    if (_presetColorTranslator.TryGetValue(ColorToVector4(presetData[x, y]), out string presetCellAlias)) //i need to remove this garbage
-                        switch (presetCellAlias)
-                        {
-                            case "Tile":
-                                BuildTile(tileTextures, x, y);
-                                break;
-                            case "Obstacle":
-                                BuildTile(tileTextures, x, y);
-                                BuildObstacle(standartObstacleTextures, x, y);
-                                break;
-                            case "Portal":
-                                BuildTile(tileTextures, x, y);
-                                var portalDirection = CheckPortalDirection(_roomPresetImage, x, y);
-                                if (portalDirection == Direction.Left && emptyRoom.HasLeftNeighbour == true)
-                                    BuildPortal(portalTextures, x, y, Direction.Left);
-                                else if (portalDirection == Direction.Right && emptyRoom.HasRightNeighbour == true)
-                                    BuildPortal(portalTextures, x, y, Direction.Right);
-                                else if (portalDirection == Direction.Up && emptyRoom.HasUpNeighbour == true)
-                                    BuildPortal(portalTextures, x, y, Direction.Up);
-                                else if (portalDirection == Direction.Down && emptyRoom.HasDownNeighbour == true)
-                                    BuildPortal(portalTextures, x, y, Direction.Down);
-                                break;
-                            case "TargetDummy":
-                                BuildTile(tileTextures, x, y);
-                                var targetDummy = new TargetDummySprite(_tiles[x, y]);
-                                ObjectsYSorted.Add(targetDummy);
-                                Damageables.Add(targetDummy);
-                                RoomColliders.Add(targetDummy.MovementCollider);
-                                ObstaclesBounds.Add(targetDummy.BodyHitbox);
-                                {
-                                    var testWasp = new WaspSprite(targetDummy.Position, this);
-                                    ObjectsYSorted.Add(testWasp);
-                                    Damageables.Add(testWasp);
-                                    Updateables.Add(testWasp);
-                                }
-                                break;
-                            case "TargetDummyShooter":
-                                BuildTile(tileTextures, x, y);
-                                var targetDummyShooter = new TargetDummyShooterSprite(_tiles[x, y], this);
-                                ObjectsYSorted.Add(targetDummyShooter);
-                                Damageables.Add(targetDummyShooter);
-                                RoomColliders.Add(targetDummyShooter.MovementCollider);
-                                ObstaclesBounds.Add(targetDummyShooter.BodyHitbox);
-                                Updateables.Add(targetDummyShooter);
-                                break;
-                            case "WeaponStick":
-                                BuildTile(tileTextures, x, y);
-                                var stickTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Stick");
-                                stickTest.WeaponInstance = new WeaponStick(stickTest);
-                                ObjectsYSorted.Add(stickTest);
-                                Interactives.Add(stickTest);
-                                break;
-                            case "WeaponSword":
-                                BuildTile(tileTextures, x, y);
-                                var swordTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Sword");
-                                swordTest.WeaponInstance = new WeaponSword(swordTest);
-                                ObjectsYSorted.Add(swordTest);
-                                Interactives.Add(swordTest);
-                                break;
-                            case "WeaponLance":
-                                BuildTile(tileTextures, x, y);
-                                var lanceTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Lance");
-                                lanceTest.WeaponInstance = new WeaponLance(lanceTest);
-                                ObjectsYSorted.Add(lanceTest);
-                                Interactives.Add(lanceTest);
-                                break;
-                            case "WoodenChest":
-                                BuildTile(tileTextures, x, y);
-                                var chestTest = new ChestSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), this);
-                                break;
-                            default:
-                                BuildTile(tileTextures, x, y);
-                                break;
-                        }
-                    else
+                    switch (_presetColorTranslator[ColorToVector4(presetData[x, y])])
                     {
-                        BuildTile(tileTextures, x, y);
+                        case "Tile":
+                            BuildTile(tileTextures, x, y);
+                            break;
+                        case "Obstacle":
+                            BuildTile(tileTextures, x, y);
+                            BuildObstacle(standartObstacleTextures, x, y);
+                            break;
+                        case "Portal":
+                            BuildTile(tileTextures, x, y);
+                            var portalDirection = CheckPortalDirection(_roomPresetImage, x, y);
+                            if (portalDirection == Direction.Left && emptyRoom.HasLeftNeighbour == true)
+                                BuildPortal(portalTextures, x, y, Direction.Left);
+                            else if (portalDirection == Direction.Right && emptyRoom.HasRightNeighbour == true)
+                                BuildPortal(portalTextures, x, y, Direction.Right);
+                            else if (portalDirection == Direction.Up && emptyRoom.HasUpNeighbour == true)
+                                BuildPortal(portalTextures, x, y, Direction.Up);
+                            else if (portalDirection == Direction.Down && emptyRoom.HasDownNeighbour == true)
+                                BuildPortal(portalTextures, x, y, Direction.Down);
+                            break;
+                        case "TargetDummy":
+                            BuildTile(tileTextures, x, y);
+                            var targetDummy = new TargetDummySprite(_tiles[x, y]);
+                            ObjectsYSorted.Add(targetDummy);
+                            Damageables.Add(targetDummy);
+                            RoomColliders.Add(targetDummy.MovementCollider);
+                            ObstaclesBounds.Add(targetDummy.BodyHitbox);
+                            {
+                                var testWasp = new WaspSprite(targetDummy.Position, this);
+                                ObjectsYSorted.Add(testWasp);
+                                Damageables.Add(testWasp);
+                                Updateables.Add(testWasp);
+                            }
+                            break;
+                        case "TargetDummyShooter":
+                            BuildTile(tileTextures, x, y);
+                            var targetDummyShooter = new TargetDummyShooterSprite(_tiles[x, y], this);
+                            ObjectsYSorted.Add(targetDummyShooter);
+                            Damageables.Add(targetDummyShooter);
+                            RoomColliders.Add(targetDummyShooter.MovementCollider);
+                            ObstaclesBounds.Add(targetDummyShooter.BodyHitbox);
+                            Updateables.Add(targetDummyShooter);
+                            break;
+                        case "WeaponStick":
+                            BuildTile(tileTextures, x, y);
+                            var stickTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Stick");
+                            stickTest.WeaponInstance = new WeaponStick(stickTest);
+                            ObjectsYSorted.Add(stickTest);
+                            Interactives.Add(stickTest);
+                            break;
+                        case "WeaponSword":
+                            BuildTile(tileTextures, x, y);
+                            var swordTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Sword");
+                            swordTest.WeaponInstance = new WeaponSword(swordTest);
+                            ObjectsYSorted.Add(swordTest);
+                            Interactives.Add(swordTest);
+                            break;
+                        case "WeaponLance":
+                            BuildTile(tileTextures, x, y);
+                            var lanceTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Lance");
+                            lanceTest.WeaponInstance = new WeaponLance(lanceTest);
+                            ObjectsYSorted.Add(lanceTest);
+                            Interactives.Add(lanceTest);
+                            break;
+                        case "WoodenChest":
+                            BuildTile(tileTextures, x, y);
+                            var chestTest = new ChestSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), this);
+                            break;
+                        default:
+                            BuildTile(tileTextures, x, y);
+                            break;
                     }
                 }
             }
@@ -246,23 +241,23 @@ namespace OnlyDarker.GameProcess
             {
                 item.Update(elapsedMilliseconds);
             }
-            Updateables.RemoveAll(item => item.IsExpired);  
+            Updateables.RemoveAll(item => item.IsExpired);
         }
         private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
         {
-            int i = GlobalUse.RNG.Next(0, standartObstacleTextures.Count);
+            int i = GlobalUse.SeededStandartRNG.Next(0, standartObstacleTextures.Count);
             _standartObstacles[x, y] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[x, y]);
         }
 
         private void BuildTile(List<Texture2D> tileTextures, int x, int y)
         {
-            int i = GlobalUse.RNG.Next(0, tileTextures.Count);
+            int i = GlobalUse.SeededStandartRNG.Next(0, tileTextures.Count);
             _tiles[x, y] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
         }
 
         private void BuildPortal(List<Texture2D> portalTextures, int x, int y, Direction portalDirection)
         {
-            int i = GlobalUse.RNG.Next(0, portalTextures.Count);
+            int i = GlobalUse.SeededStandartRNG.Next(0, portalTextures.Count);
             Portals.Add(new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), portalDirection, this));
         }
         private static Vector4 ColorToVector4(Color color)

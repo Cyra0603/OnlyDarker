@@ -40,6 +40,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public WaspSprite(Vector2 position, Room parentRoomRef)
         {
             Position = position;
+            _initialPosition = position;
             _parentRoomRef = parentRoomRef;
             _baseArmor = new(ArmorType.Base, pokeX: 0.95F, bluntX: 1.1F);
             ArmorSet = new List<Armor>

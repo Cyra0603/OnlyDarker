@@ -335,17 +335,21 @@ namespace OnlyDarker
             var critModifier = CritDamage / 100F;
             foreach (var target in GameBody.SceneManager.CurrentRoom.Damageables.Where(target => target.BodyHitbox.Intersects(attackRect) || target.BodyHitbox.Intersects(attackRect2)))
             {
+                if (target.HealthPoints <= 0)
+                {
+                    continue;
+                }
                 bool proc = GlobalUse.TryChance(CritChance);
                 if (!proc)
-                    target.TakeDamage(new(CurrentWeapon.AttackDamage, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                    target.TakeDamage(new(CurrentWeapon.AttackDamage, 1.2F, CurrentWeapon.WeaponDamageType, proc));
                 else
                 {
-                    target.TakeDamage(new(CurrentWeapon.AttackDamage * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc/*temp*/));
+                    target.TakeDamage(new(CurrentWeapon.AttackDamage * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc));
                 }
             }
             foreach (var target in GameBody.ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
             {
-                var newForce = Vector2.Lerp(difference / difference.Length(), target.Force, 0.5F);
+                var newForce = Vector2.Lerp(difference / difference.Length(), target.Force, 0.03F);
                 target.ChangeForce(newForce);
                 target.Lifetime.TimeLeft /= 2;
             }
@@ -396,13 +400,13 @@ namespace OnlyDarker
         }
         private async void SaveCharState()
         {
-                var options = new JsonSerializerOptions
-                {
-                    IncludeFields = true,
-                    WriteIndented = true,
-                };
-                string fileName = $"character.state.{DateTime.UtcNow:yyyy-MM-dd}.json";
-                await using FileStream f = File.Create(fileName);
+            var options = new JsonSerializerOptions
+            {
+                IncludeFields = true,
+                WriteIndented = true,
+            };
+            string fileName = $"character.state.{DateTime.UtcNow:yyyy-MM-dd}.json";
+            await using FileStream f = File.Create(fileName);
             await JsonSerializer.SerializeAsync(f, this, options);
         }
     }
