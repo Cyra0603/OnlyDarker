@@ -10,6 +10,7 @@ namespace OnlyDarker.UI
     {
         public Vector2 Position { get; protected set; }
         public Rectangle Bounds { get; protected set; }
+        private Rectangle _backGroundRect;
         private List<Texture2D> _minimapIcons;
         private Texture2D _background;
         private Texture2D _minimapFrame;
@@ -19,42 +20,39 @@ namespace OnlyDarker.UI
         private static List<Room> CurrentLevel => GameBody.SceneManager.CurrentLevel.BuiltFloor;
         private static Room _сurrentRoom => GameBody.SceneManager.CurrentRoom;
         private float _minimapScale = 1F;
-        private Matrix _minimapView => CalculateMinimapView();
+        private Matrix _minimapView;
+        private Vector2 _iconPos;
+        private Vector2 _framePos;
 
         public Minimap(GraphicsDevice graphicsDevice)
         {
             _graphicsDevice = graphicsDevice;
             _minimapFrame = GlobalUse.Content.Load<Texture2D>($"UI/MinimapFrame");
             _minimapIcons = LoadMinimapIcons();
-            Bounds = new(new(GlobalUse.WindowSize.X - (int)((_minimapFrame.Width) * _minimapScale), 0), new((int)((_minimapFrame.Width) * _minimapScale), (int)((_minimapFrame.Height) * _minimapScale)));
+            Bounds = new(new(GlobalUse.WindowSize.X - (int)(_minimapFrame.Width * _minimapScale), 0), new((int)(_minimapFrame.Width * _minimapScale), (int)(_minimapFrame.Height * _minimapScale)));
             Position = Bounds.Center.ToVector2();
             _minimapTarget = new(_graphicsDevice, Bounds.Width, Bounds.Height);
+            _iconPos = new Vector2(_minimapIcons[^1].Width, _minimapIcons[^1].Height);
+            _framePos = new Vector2(_сurrentRoom.GridCords.X * _minimapIcons[^1].Width - _minimapFrame.Width / 2, _сurrentRoom.GridCords.Y * _minimapIcons[^1].Height - _minimapFrame.Height / 2);
+            _backGroundRect = new Rectangle(_framePos.ToPoint(), Bounds.Size);
         }
         public void RenderMinimap()
         {
             ActivateRenderTarget();
-            DrawIcons();
-            DrawFrame();
+            DrawMinimap();
             DeactivateRenderTarget();
         }
-
-        private void DrawFrame()
+        private void DrawMinimap()
         {
-            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend, samplerState: SamplerState.LinearWrap);
-            GameBody.DrawRectangleOutline(Bounds, Color.Black, 15);
-            GlobalUse.SpriteBatch.Draw(_minimapFrame, Position, Color.White);
-            GlobalUse.SpriteBatch.End();
-        }
-
-        private void DrawIcons()
-        {
-            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend,/* samplerState: SamplerState.PointClamp, */transformMatrix: _minimapView);
+            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend, transformMatrix: _minimapView);
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, _backGroundRect, Color.Black * 0.8F);
             foreach (var room in CurrentLevel)
             {
                 int i = (int)room.InstanceRoomType - 1;
-                GlobalUse.SpriteBatch.Draw(_minimapIcons[i], new Vector2(room.GridCords.X * _minimapIcons[i].Width, room.GridCords.Y * _minimapIcons[i].Height), Color.White);
+                GlobalUse.SpriteBatch.Draw(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.White);
             }
-            GlobalUse.SpriteBatch.Draw(_minimapIcons[^1], new Vector2(_сurrentRoom.GridCords.X * _minimapIcons[^1].Width, _сurrentRoom.GridCords.Y * _minimapIcons[^1].Height), Color.White);
+            GlobalUse.SpriteBatch.Draw(_minimapIcons[^1], _iconPos * _сurrentRoom.GridCords.ToVector2(), Color.White);
+            GlobalUse.SpriteBatch.Draw(_minimapFrame, _framePos, Color.White);
             GlobalUse.SpriteBatch.End();
         }
 
@@ -63,7 +61,7 @@ namespace OnlyDarker.UI
             var textures = new List<Texture2D>();
             foreach (var roomType in Enum.GetNames<RoomType>())
             {
-                if(roomType == "Empty") continue;    
+                if (roomType == "Empty") continue;
                 textures.Add(GlobalUse.Content.Load<Texture2D>($"MinimapIcons/{roomType}Icon"));
             }
             textures.Add(GlobalUse.Content.Load<Texture2D>($"MinimapIcons/CurrentRoomIcon"));
@@ -80,6 +78,12 @@ namespace OnlyDarker.UI
         public void RenderTargetRescale()
         {
             _minimapTarget = new(_graphicsDevice, Bounds.Width, Bounds.Height);
+        }
+        public void Update()
+        {
+            _minimapView = CalculateMinimapView();
+            _framePos = new Vector2(_сurrentRoom.GridCords.X * _minimapIcons[^1].Width - _minimapFrame.Width / 2, _сurrentRoom.GridCords.Y * _minimapIcons[^1].Height - _minimapFrame.Height / 2);
+            _backGroundRect = new Rectangle(_framePos.ToPoint(), Bounds.Size);
         }
         private Matrix CalculateMinimapView()
         {

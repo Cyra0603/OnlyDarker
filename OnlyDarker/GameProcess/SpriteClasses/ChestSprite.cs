@@ -47,14 +47,14 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         public void Draw()
         {
-            if(IsClosed && _lootDropDelay.TimeLeft == 0) 
+            if (IsClosed && _lootDropDelay.TimeLeft == 0)
                 _animator.Draw(Position);
             else if (!IsClosed && _lootDropDelay.TimeLeft <= 0)
             {
                 _animator.Step = _maxAnimationSteps - 1;
                 _animator.Draw();
             }
-            else if(!IsClosed && _lootDropDelay.TimeLeft > 0)
+            else if (!IsClosed && _lootDropDelay.TimeLeft > 0)
             {
                 _animator.Draw();
             }

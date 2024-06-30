@@ -25,10 +25,11 @@ namespace OnlyDarker.GameProcess
             CurrentRoom = CurrentLevel.BuiltFloor.First(room => room.InstanceRoomType == RoomType.Entry);
         }
 
-        public void GoToRoom (Point gridCords)
+        public void GoToRoom (Room room)
         {
-            CurrentRoom = CurrentLevel.LevelGrid[gridCords.Y, gridCords.X];
+            CurrentRoom = room;
             GameBody.MainCharacter.SetRoomBounds(CurrentRoom.RoomSize, CurrentRoom.TileSize);
+            GameBody.UpdateMinimap();
         }
     }
 }

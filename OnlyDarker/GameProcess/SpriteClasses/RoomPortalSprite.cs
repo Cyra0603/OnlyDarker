@@ -72,7 +72,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             ParentRoomReference.DeactivatePortals();
             ExitRoom.DeactivatePortals();
-            GameBody.SceneManager.GoToRoom(ExitRoom.GridCords);
+            GameBody.SceneManager.GoToRoom(ExitRoom);
             GameBody.MainCharacter.SetPosition(ExitPosition);
             ParentRoomReference.ActivatePortals(2000);
             ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);

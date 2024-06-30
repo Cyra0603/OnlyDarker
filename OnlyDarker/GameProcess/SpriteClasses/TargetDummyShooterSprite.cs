@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class TargetDummyShooterSprite : IDamageable, IYSortable,IMyUpdateable
+    public class TargetDummyShooterSprite : IDamageable, IYSortable, IMyUpdateable
     {
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _projectileTexture;
@@ -55,11 +55,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             MovementCollider = BodyHitbox;
             _attackCooldown = new(AttackCooldownTime);
             MaxHealthPoints = 10000;
-        ArmorSet.Add(BaseArmor);
-            //foreach(var armor in ArmorSet)
-            //{
-            //    armor.AddFlatArmor(5F);
-            //}
+            ArmorSet.Add(BaseArmor);
         }
         public delegate void ObserveHP(float healthPoints);
         public event ObserveHP OnChangingHealth;
@@ -87,7 +83,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public void Update(float elapsedMilliseconds)
         {
             _attackCooldown.Update(elapsedMilliseconds);
-            if(_parentRoomReference == GameBody.SceneManager.CurrentRoom && _attackCooldown.TimeLeft <= 0)
+            if (_parentRoomReference == GameBody.SceneManager.CurrentRoom && _attackCooldown.TimeLeft <= 0)
             {
                 Shoot();
             }

@@ -12,6 +12,11 @@ using Microsoft.Xna.Framework.Content;
 
 namespace OnlyDarker.CommonUsing
 {
+    public enum GameState
+    {
+        Paused,
+        IsRunning,
+    }
     public enum ChestType
     {
         Wooden,

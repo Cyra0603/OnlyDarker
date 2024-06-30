@@ -31,7 +31,7 @@ namespace OnlyDarker.GameProcess
             _floorConfigPairs.TryGetValue(floor, out _floorConfig);
             RoomBlueprint[,] grid = GenerateGrid(floor);
             var allOneWays = grid.OfType<RoomBlueprint>().Where(room => room.Neighbours == 1).ToArray();
-            var startingRoom = allOneWays[GlobalUse.SeededStandartRNG.Next(0, allOneWays.Length + 1)];
+            var startingRoom = allOneWays[GlobalUse.SeededStandartRNG.Next(0, allOneWays.Length)];
             startingRoom.RoomType = RoomType.Entry;
             SetBossRoom(grid, startingRoom);
             SetSpecialRooms(grid);
@@ -160,7 +160,7 @@ namespace OnlyDarker.GameProcess
                     emptyRoom.IsUsed = true;
                 }
                 testIterations++;
-                if (testIterations > 100000)
+                if (testIterations > 10000)
                     {
                     Debug.WriteLine("Generation took too many iterations");
                     goto FailedGenerationRetryLabel; 

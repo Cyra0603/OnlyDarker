@@ -43,26 +43,36 @@ namespace OnlyDarker
             BindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
             BindManager.Attack.KeyPressed += GameBody.MainCharacter.Attack;
         }
-
-        public static void UpdatePlayerControls(float elapsedMilliseconds)
+        public static void UpdateInputs()
         {
-            //NegateCloseToZeroValues();
-            if (!InputsBlocked)
+            var keyboardState = Keyboard.GetState();
+            foreach (var bind in BindManager.AppHotKeys)
             {
-                var keyboardState = Keyboard.GetState();
-                foreach (var bind in BindManager.BindList)
+                bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
+                if (bind.Key == Keys.None)
                 {
-                    bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
-                    if (bind.Key == Keys.None)
-                    {
-                        bind.IsKeyDown = ButtonStateToBool(Mouse.GetState().LeftButton);
-                    }
+                    bind.IsKeyDown = ButtonStateToBool(Mouse.GetState().LeftButton);
                 }
             }
+        }
+        public static void UpdatePlayerControls()
+        {
+            var keyboardState = Keyboard.GetState();
+            foreach (var bind in BindManager.BindList)
+            {
+                bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
+                if (bind.Key == Keys.None)
+                {
+                    bind.IsKeyDown = ButtonStateToBool(Mouse.GetState().LeftButton);
+                }
+            }
+        }
+        public static void UpdatePlayerMovement(float elapsedMilliseconds)
+        {
+
             ClampDirectionVector();
             _direction += ForceSum;
             AddFriction();
-            //NormalizeDirectionVector();
             ForceSum = Vector2.Zero;
         }
 
@@ -87,7 +97,7 @@ namespace OnlyDarker
                 _direction = Vector2.Normalize(_direction);
 
         }
-        private static void PlayerMoveUp() => _direction.Y-=0.33F;
+        private static void PlayerMoveUp() => _direction.Y -= 0.33F;
         private static void PlayerMoveDown() => _direction.Y += 0.33F;
         private static void PlayerMoveLeft() => _direction.X -= 0.33F;
         private static void PlayerMoveRight() => _direction.X += 0.33F;
@@ -108,9 +118,13 @@ namespace OnlyDarker
         {
             InputsBlocked = !InputsBlocked;
         }
-        public static void CharacterInputsDisabled(bool isBlocked)
+        public static void CharacterInputsDisabled(bool isDisabled)
         {
-            InputsBlocked = isBlocked;
+            InputsBlocked = isDisabled;
+        }
+        public static void CharacterInputsEnabled(bool isEnabled)
+        {
+            InputsBlocked = isEnabled;
         }
         public static Vector2 GetDirection()
         {

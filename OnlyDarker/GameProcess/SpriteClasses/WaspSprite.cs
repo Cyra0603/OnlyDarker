@@ -30,7 +30,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             }
         }
         private float _baseDamage = 1F;
-        private float _baseSpeed = 0.04F;
         private Armor _baseArmor;
 
         public List<Armor> ArmorSet { get; protected set; }
@@ -73,8 +72,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 Respawn();
                 return;
             }
+            var posDif = GameBody.MainCharacter.Position - Position;
+            Position += posDif / posDif.Length();
             Position += SwayOffset;
-            Position = Vector2.SmoothStep(Position, GameBody.MainCharacter.Position, _baseSpeed);
             if (BodyHitbox.Intersects(GameBody.MainCharacter.BodyHitbox))
             {
                 GameBody.MainCharacter.TakeDamage(new(_baseDamage, 1, DamageType.Poke, false));

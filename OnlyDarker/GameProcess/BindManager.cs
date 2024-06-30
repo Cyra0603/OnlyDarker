@@ -11,7 +11,9 @@ namespace OnlyDarker.GameProcess
         private static BindManager _managerInstance = null;
         public readonly MouseState _defaultState = new();
         public readonly static List<Bind> BindList = new();
+        public readonly static List<Bind> AppHotKeys = new();
         public readonly Bind ToggleDebug;
+        public readonly Bind TogglePause;
         public readonly Bind ExitApplication;
         public readonly Bind MoveLeft;
         public readonly Bind MoveRight;
@@ -27,24 +29,31 @@ namespace OnlyDarker.GameProcess
         protected BindManager()
         {
             bool canBeHold = true;
-            ToggleDebug = new(Keys.F1, !canBeHold);
-            ExitApplication = new(Keys.Back, !canBeHold);
-            MoveLeft = new(Keys.A, canBeHold);
-            MoveRight = new(Keys.D, canBeHold);
-            MoveUp = new(Keys.W, canBeHold);
-            MoveDown = new(Keys.S, canBeHold);
-            Dash = new(Keys.LeftShift, !canBeHold);
-            Interact = new(Keys.E, !canBeHold);
-            DamageCharacter = new(Keys.F11, !canBeHold);
-            HealCharacter = new(Keys.F12, !canBeHold);
-            Attack = new(_defaultState.LeftButton, !canBeHold);
+            //Common hotkeys
+            {
+                AppHotKeys.Add(ToggleDebug = new(Keys.F1, !canBeHold));
+                AppHotKeys.Add(TogglePause = new(Keys.Escape, !canBeHold));
+                AppHotKeys.Add(ExitApplication = new(Keys.Back, !canBeHold));
+            }
+            //Ingame controls
+            {
+                BindList.Add(MoveLeft = new(Keys.A, canBeHold));
+                BindList.Add(MoveRight = new(Keys.D, canBeHold));
+                BindList.Add(MoveUp = new(Keys.W, canBeHold));
+                BindList.Add(MoveDown = new(Keys.S, canBeHold));
+                BindList.Add(Dash = new(Keys.LeftShift, !canBeHold));
+                BindList.Add(Interact = new(Keys.E, !canBeHold));
+                BindList.Add(DamageCharacter = new(Keys.F11, !canBeHold));
+                BindList.Add(HealCharacter = new(Keys.F12, !canBeHold));
+                BindList.Add(Attack = new(_defaultState.LeftButton, !canBeHold));
+            }
             _managerInstance = this;
         }
         public static BindManager GetBindManagerInstance()
         {
             if (_managerInstance == null)
                 return _managerInstance = new BindManager();
-            else 
+            else
                 return _managerInstance;
         }
         public void SetControlKey(Bind bind)
@@ -72,14 +81,12 @@ namespace OnlyDarker.GameProcess
                 Key = key;
                 ButtonState = ButtonState.Released;
                 CanBeHold = canBeHold;
-                BindList.Add(this);
             }
             public Bind(ButtonState buttonstate, bool canBeHold)
             {
                 Key = Keys.None;
                 ButtonState = buttonstate;
                 CanBeHold = canBeHold;
-                BindList.Add(this);
             }
         }
     }

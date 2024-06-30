@@ -33,8 +33,9 @@ namespace OnlyDarker
         public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         public static List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
         public static List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
+        private static GameState _gameState;
         private float _fixedElapsedTimeMilliseconds;
-        private float _fixedElapsedTime 
+        private float _fixedElapsedTime
         {
             get => _fixedElapsedTimeMilliseconds;
             set
@@ -81,6 +82,11 @@ namespace OnlyDarker
 
             IsFixedTimeStep = false;
 
+            RasterizerState rasterizerState = new RasterizerState();
+            rasterizerState.CullMode = CullMode.None;
+
+            GraphicsDevice.RasterizerState = rasterizerState;
+
             _graphics.ApplyChanges();
 
             EmptyTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
@@ -92,9 +98,11 @@ namespace OnlyDarker
 
             BindManager.ExitApplication.KeyPressed += Exit;
 
-            _timeElapsed += FixedTimeStepUpdate;
+            BindManager.TogglePause.KeyPressed += TogglePause;
 
             BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
+
+            _timeElapsed += FixedTimeStepUpdate;
 
             SceneManager = new(new Level(Floor.One));
 
@@ -131,7 +139,11 @@ namespace OnlyDarker
 
             UpdateFPS();
 
+            UpdateMinimap();
+
             ControlsManager.CharacterInputsDisabled(false);
+
+            _gameState = GameState.IsRunning;
 
             base.Initialize();
         }
@@ -143,17 +155,31 @@ namespace OnlyDarker
 
         protected override void Update(GameTime gameTime)
         {
-            SceneManager.CurrentRoom.SortObjectsByY();
-            _collectiblesTimeAccumulator += (float)gameTime.ElapsedGameTime.TotalSeconds;
-            _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
-            _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            CheckWindowFocus();
+            ControlsManager.UpdateInputs();
+            if (_gameState == GameState.IsRunning)
+            {
+                SceneManager.CurrentRoom.SortObjectsByY();
+                _collectiblesTimeAccumulator += (float)gameTime.ElapsedGameTime.TotalSeconds;
+                _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
+                _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            }
             base.Update(gameTime);
         }
+
+        private void CheckWindowFocus()
+        {
+            if (!this.IsActive)
+            {
+                _gameState = GameState.Paused;
+            }
+        }
+
         private void FixedTimeStepUpdate(float milliseconds)
         {
             foreach (var mngr in EffectAnimationManagers)
             {
-                if(mngr.IsActive)
+                if (mngr.IsActive)
                     mngr.Update(milliseconds);
             }
             foreach (var mngr in DamageNumberAnimationManagers)
@@ -161,7 +187,7 @@ namespace OnlyDarker
                 if (mngr.IsActive)
                     mngr.Update(milliseconds);
             }
-            foreach(var proj in ProjectileSprites)
+            foreach (var proj in ProjectileSprites)
             {
                 proj.Update(milliseconds);
             }
@@ -169,6 +195,7 @@ namespace OnlyDarker
             DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
             ProjectileSprites.RemoveAll(proj => proj.Lifetime.TimeLeft <= 0);
             _interactionMessageBar.Update();
+            ControlsManager.UpdatePlayerControls();
             MainCharacter.Update(milliseconds);
             CalculateCameraView();
             SceneManager.CurrentRoom.Update(milliseconds);
@@ -188,6 +215,57 @@ namespace OnlyDarker
             //MainScene
             GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
+            DebugModeDraw();
+            foreach (var mngr in EffectAnimationManagers)
+            {
+                if (mngr.IsActive)
+                    mngr.Draw();
+            }
+            foreach (var mngr in DamageNumberAnimationManagers)
+            {
+                if (mngr.IsActive)
+                    mngr.Draw();
+            }
+            foreach (var proj in ProjectileSprites)
+            {
+                proj.Draw();
+            }
+            foreach (var entity in SceneManager.CurrentRoom.Damageables)
+            {
+                if (entity.HealthPoints > 0)
+                    entity.DrawHPBar();
+            }
+            GlobalUse.SpriteBatch.End();
+            _mainCanvas.Deactivate();
+
+            _minimap.RenderMinimap();
+
+            //Drawing
+            _mainCanvas.Draw(GlobalUse.SpriteBatch);
+
+            _characterHealthbar.StandaloneDraw();
+            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
+            _minimap.Draw();
+            _statsBar.Draw();
+            _currentFloorBar.Draw();
+            _staminaBar.Draw();
+            _interactionMessageBar.Draw();
+            GlobalUse.SpriteBatch.End();
+            if (_gameState == GameState.Paused)
+            {
+                GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
+                GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(0, 0, GlobalUse.WindowSize.X, GlobalUse.WindowSize.Y), Color.Black * 0.5F);
+                Menu.Menu.Draw();
+                GlobalUse.SpriteBatch.End();
+            }
+            base.Draw(gameTime);
+
+            ShowFPS();
+            FPS++;
+        }
+
+        private static void DebugModeDraw()
+        {
             if (GlobalUse.IsDebugMode)
             {
                 foreach (var hitbox in SceneManager.CurrentRoom.RoomColliders)
@@ -209,7 +287,7 @@ namespace OnlyDarker
                 DrawRectangleOutline(MainCharacter.MovementCollider, Color.Black);
                 DrawRectangleOutline(MainCharacter.MovementCollisionAura, Color.Black);
                 DrawRectangleOutline(MainCharacter.InteractionAura, Color.Yellow);
-                DrawRectangleOutline(new(MainCharacter.Position.ToPoint(), new(2,2)), Color.Red);
+                DrawRectangleOutline(new(MainCharacter.Position.ToPoint(), new(2, 2)), Color.Red);
                 foreach (var portal in SceneManager.CurrentRoom.Portals)
                 {
                     DrawRectangleOutline(portal.MovementCollider, Color.Yellow);
@@ -220,46 +298,8 @@ namespace OnlyDarker
                 }
                 DrawRectangleOutline(MainCharacter.BodyHitbox, Color.Red, 2);
             }
-            foreach (var mngr in EffectAnimationManagers)
-            {
-                if (mngr.IsActive)
-                    mngr.Draw();
-            }
-            foreach (var mngr in DamageNumberAnimationManagers)
-            {
-                if (mngr.IsActive)
-                    mngr.Draw();
-            }
-            foreach (var proj in ProjectileSprites)
-            {
-                proj.Draw();
-            }
-            foreach (var entity in SceneManager.CurrentRoom.Damageables)
-            {
-                if(entity.HealthPoints > 0)
-                    entity.DrawHPBar();
-            }
-            GlobalUse.SpriteBatch.End();
-            _mainCanvas.Deactivate();
-
-            _minimap.RenderMinimap();
-
-            //Drawing
-            _mainCanvas.Draw(GlobalUse.SpriteBatch);
-
-            _characterHealthbar.StandaloneDraw();
-            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
-            _minimap.Draw();
-            ShowFPS();
-            _statsBar.Draw();
-            _currentFloorBar.Draw();
-            _staminaBar.Draw();
-            _interactionMessageBar.Draw();
-            GlobalUse.SpriteBatch.End();
-
-            base.Draw(gameTime);
-            FPS++;
         }
+
         private void CalculateCameraView()
         {
             var lx = GlobalUse.WindowSize.X / 2 / _cameraZoom - MainCharacter.Position.X;
@@ -268,7 +308,9 @@ namespace OnlyDarker
         }
         private void ShowFPS()
         {
+            GlobalUse.SpriteBatch.Begin();
             GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, _netgraph, _netgraphPosition, Color.White, 0F, Vector2.Zero, 0.3F, SpriteEffects.None, 0F);
+            GlobalUse.SpriteBatch.End();
         }
         private async void UpdateFPS()
         {
@@ -279,6 +321,19 @@ namespace OnlyDarker
                 await Task.Delay(1000);
             }
         }
+        public static void UpdateMinimap()
+        {
+            _minimap.Update();
+        }
+        private static void TogglePause()
+        {
+            if (_gameState == GameState.IsRunning)
+            {
+                _gameState = GameState.Paused;
+            }
+            else
+                _gameState = GameState.IsRunning;
+        }
         public static float GetSwayFunctionValue()
         {
             return _collectiblesTimeAccumulator;
@@ -288,7 +343,7 @@ namespace OnlyDarker
             GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Top, borderWidth, rect.Height), color);
             GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Right, rect.Top, borderWidth, rect.Height), color);
             GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Top, rect.Width, borderWidth), color);
-            GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Bottom, rect.Width, borderWidth), color);
+            GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Bottom, rect.Width + borderWidth, borderWidth), color);
         }
     }
 }

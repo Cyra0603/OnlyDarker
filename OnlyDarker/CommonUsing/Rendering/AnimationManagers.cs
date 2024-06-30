@@ -191,7 +191,7 @@ namespace OnlyDarker.CommonUsing.Rendering
                 GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.White * ColorDencity, 0F, Vector2.Zero, 0.2F, SpriteEffects.None, 0F);
         }
     }
-    public class DrawCallArgs
+    public class DrawCallArgs 
     {
         public Vector2 Position;
         public float Rotation;

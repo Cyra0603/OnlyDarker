@@ -165,7 +165,7 @@ namespace OnlyDarker
         }
         public void Update(float elapsedMilliseconds)
         {
-            ControlsManager.UpdatePlayerControls(elapsedMilliseconds);
+            ControlsManager.UpdatePlayerMovement(elapsedMilliseconds);
             _thingsToInteract.Clear();
             DashTimer?.Update(elapsedMilliseconds);
             DashEffectTimer?.Update(elapsedMilliseconds);
@@ -299,8 +299,6 @@ namespace OnlyDarker
         public void TestTakingDamage()
         {
             (this as IDamageable).TakeDamage(new(1, 1, DamageType.Blunt, false));
-            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Slice, false));
-            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Poke, false));
         }
         public void TestHealing()
         {
@@ -379,7 +377,6 @@ namespace OnlyDarker
         {
             if (!IsInvincible)
             {
-                var test = Stopwatch.StartNew();
                 var locald = damage;
                 foreach (var armor in ArmorSet)
                 {
@@ -390,7 +387,6 @@ namespace OnlyDarker
                 HealthPoints -= dmgTaken;
                 RunIFrames(I_FRAME_TIME);
                 DamagedEffectTimer.TimeLeft += I_FRAME_TIME;
-                Debug.WriteLineIf(GlobalUse.IsDebugMode, $"Counting damage took {test.ElapsedTicks} ticks");
             }
             //if (GlobalUse.IsDebugMode)
             //{
