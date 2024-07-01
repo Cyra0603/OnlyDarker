@@ -5,6 +5,7 @@ using OnlyDarker.CommonUsing;
 using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
+using OnlyDarker.IngameMenu;
 using OnlyDarker.UI;
 using System;
 using System.Collections.Generic;
@@ -164,14 +165,19 @@ namespace OnlyDarker
                 _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
                 _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
             }
+            if (_gameState == GameState.Paused)
+            {
+                Menu.Update();
+            }
             base.Update(gameTime);
         }
 
         private void CheckWindowFocus()
         {
-            if (!this.IsActive)
+            if (!this.IsActive && _gameState != GameState.Paused)
             {
                 _gameState = GameState.Paused;
+                Menu.Show();
             }
         }
 
@@ -255,7 +261,7 @@ namespace OnlyDarker
             {
                 GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
                 GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(0, 0, GlobalUse.WindowSize.X, GlobalUse.WindowSize.Y), Color.Black * 0.5F);
-                Menu.Menu.Draw();
+                Menu.Draw();
                 GlobalUse.SpriteBatch.End();
             }
             base.Draw(gameTime);
@@ -325,14 +331,19 @@ namespace OnlyDarker
         {
             _minimap.Update();
         }
-        private static void TogglePause()
+        public static void TogglePause()
         {
             if (_gameState == GameState.IsRunning)
             {
                 _gameState = GameState.Paused;
+                Menu.Show();
+                return;
             }
-            else
+            if (_gameState == GameState.Paused && Menu.WindowsStack.Peek() is MainWindow )
+            { 
                 _gameState = GameState.IsRunning;
+                return;
+            }
         }
         public static float GetSwayFunctionValue()
         {

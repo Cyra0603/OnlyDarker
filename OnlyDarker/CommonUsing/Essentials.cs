@@ -88,7 +88,7 @@ namespace OnlyDarker.CommonUsing
         public static bool IsDebugMode { get; private set; } = false;
         static GlobalUse()
         {
-            CurrentSeed = RandomNumberGenerator.GetInt32(1000000, 10000000);
+            CurrentSeed = RandomNumberGenerator.GetInt32(10000000, 100000000);
             SeededStandartRNG = new(CurrentSeed);
         }
         public static void ToggleDebugMode()
