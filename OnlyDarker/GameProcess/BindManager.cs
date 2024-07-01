@@ -1,7 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess
@@ -31,22 +33,23 @@ namespace OnlyDarker.GameProcess
             bool canBeHold = true;
             //Common hotkeys
             {
-                AppHotKeys.Add(ToggleDebug = new(Keys.F1, !canBeHold));
-                AppHotKeys.Add(TogglePause = new(Keys.Escape, !canBeHold));
-                AppHotKeys.Add(ExitApplication = new(Keys.Back, !canBeHold));
+                AppHotKeys.Add(ToggleDebug = new(Keys.F1, !canBeHold,"toggle ingame debug"));
+                AppHotKeys.Add(TogglePause = new(Keys.Escape, !canBeHold,"pause and call menu"));
+                AppHotKeys.Add(ExitApplication = new(Keys.Back, !canBeHold, "exit application"));
             }
             //Ingame controls
             {
-                BindList.Add(MoveLeft = new(Keys.A, canBeHold));
-                BindList.Add(MoveRight = new(Keys.D, canBeHold));
-                BindList.Add(MoveUp = new(Keys.W, canBeHold));
-                BindList.Add(MoveDown = new(Keys.S, canBeHold));
-                BindList.Add(Dash = new(Keys.LeftShift, !canBeHold));
-                BindList.Add(Interact = new(Keys.E, !canBeHold));
-                BindList.Add(DamageCharacter = new(Keys.F11, !canBeHold));
-                BindList.Add(HealCharacter = new(Keys.F12, !canBeHold));
-                BindList.Add(Attack = new(_defaultState.LeftButton, !canBeHold));
+                BindList.Add(MoveLeft = new(Keys.A, canBeHold, "move left"));
+                BindList.Add(MoveRight = new(Keys.D, canBeHold, "move right"));
+                BindList.Add(MoveUp = new(Keys.W, canBeHold, "move up"));
+                BindList.Add(MoveDown = new(Keys.S, canBeHold, "move down"));
+                BindList.Add(Dash = new(Keys.LeftShift, !canBeHold, "dash"));
+                BindList.Add(Interact = new(Keys.E, !canBeHold, "interact"));
+                BindList.Add(DamageCharacter = new(Keys.F11, !canBeHold, "self harm"));
+                BindList.Add(HealCharacter = new(Keys.F12, !canBeHold, "heal"));
+                BindList.Add(Attack = new(_defaultState.LeftButton, !canBeHold, "attack!"));
             }
+            Debug.WriteLine("Bindmanager initialized");
             _managerInstance = this;
         }
         public static BindManager GetBindManagerInstance()
@@ -56,14 +59,11 @@ namespace OnlyDarker.GameProcess
             else
                 return _managerInstance;
         }
-        public void SetControlKey(Bind bind)
-        {
-
-        }
         public class Bind
         {
             public Keys Key { get; set; }
             public ButtonState ButtonState { get; set; }
+            public string Description { get; }
             public bool CanBeHold { get; }
             private bool _lastIskeyDown;
             public bool IsKeyDown
@@ -76,17 +76,41 @@ namespace OnlyDarker.GameProcess
                 }
             }
             public event KeyPress KeyPressed;
-            public Bind(Keys key, bool canBeHold)
+            public Bind(Keys key, bool canBeHold, string description)
             {
                 Key = key;
                 ButtonState = ButtonState.Released;
                 CanBeHold = canBeHold;
+                Description = description;
             }
-            public Bind(ButtonState buttonstate, bool canBeHold)
+            public Bind(ButtonState buttonstate, bool canBeHold, string description)
             {
                 Key = Keys.None;
                 ButtonState = buttonstate;
                 CanBeHold = canBeHold;
+                Description = description;  
+            }
+            public async void SetControlKey()
+            {
+                while (true)
+                {
+                    var kbstate = Keyboard.GetState();
+                    var pressedKeys = kbstate.GetPressedKeys();
+                    if (pressedKeys.Length > 0 && KeyIsValid(pressedKeys[0]))
+                    {
+                        this.Key = pressedKeys[0];
+                        return;
+                    }
+
+                }
+            }
+            private bool KeyIsValid(Keys key)
+            {
+                foreach (var bind in BindManager.BindList)
+                {
+                    if( bind.Key == key) return false;
+                }
+                return true;
             }
         }
     }

@@ -1,4 +1,5 @@
 ﻿using OnlyDarker.CommonUsing;
+using OnlyDarker.GameProcess;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -11,26 +12,15 @@ namespace OnlyDarker.IngameMenu
     public static class Menu
     {
         public static Rectangle WindowBounds => new(GlobalUse.WindowSize.X / 4, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
-        private static Stack<IMenuWindow> _windowsStack;
-        public static Stack<IMenuWindow> WindowsStack
-        {
-            get => _windowsStack;
-            private set => _windowsStack = value;
-        }
+        public static Stack<IMenuWindow> WindowsStack { get; private set; } = new();
         private readonly static MainWindow _mainWindow = new();
         public readonly static SettingsWindow SettingsWindow = new();
+        public readonly static ControlsWindow ControlsWindow = new();
         public delegate void ButtonPress();
         public const int BUTTON_OFFSET = 10;
         public static ButtonState LastMouseState { get; private set; }
-        static Menu()
-        {
-            _windowsStack = new Stack<IMenuWindow>();
-        }
-
         public static void Show()
         {
-            //if (WindowsStack.Count > 0)
-            //    WindowsStack.Clear();
             WindowsStack.Push(_mainWindow);
         }
         public static void Update()
@@ -47,8 +37,6 @@ namespace OnlyDarker.IngameMenu
         }
         public static void Draw()
         {
-            //GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, WindowBounds, Color.DarkGray);
-            //GameBody.DrawRectangleOutline(WindowBounds, Color.Black * 0.3F, 3);
             if (WindowsStack.Count == 0)
             {
                 return;
@@ -62,6 +50,10 @@ namespace OnlyDarker.IngameMenu
         public static void OpenSettingsWindow()
         {
             WindowsStack.Push(SettingsWindow);
+        }
+        public static void OpenControlsWindow()
+        {
+            WindowsStack.Push(ControlsWindow);
         }
     }
     public interface IMenuButton
@@ -89,8 +81,6 @@ namespace OnlyDarker.IngameMenu
         }
         void Draw()
         {
-            //GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, Bounds, Color.Black * 0.2F);
-            //GameBody.DrawRectangleOutline(Bounds, Color.Black * 0.5F, 3);
             GlobalUse.SpriteBatch.DrawString(
                 GlobalUse.MainFont,
                 Title,
@@ -151,7 +141,7 @@ namespace OnlyDarker.IngameMenu
             Buttons[0] = new MenuButton(this, 1, "new game", String.Empty);
 
             Buttons[1] = new MenuButton(this, 2, "controls", String.Empty);
-
+            Buttons[1].ButtonPressed += Menu.OpenControlsWindow;
             Buttons[2] = new MenuButton(this, 3, "settings", String.Empty);
             Buttons[2].ButtonPressed += Menu.OpenSettingsWindow;
             Buttons[3] = new MenuButton(this, 4, "resume", String.Empty);
@@ -177,6 +167,26 @@ namespace OnlyDarker.IngameMenu
 
             Buttons[3] = new MenuButton(this, 4, "back", String.Empty);
             Buttons[3].ButtonPressed += Menu.BackButtonAction;
+        }
+    }
+    public class ControlsWindow : IMenuWindow
+    {
+        public Rectangle Bounds => Menu.WindowBounds;
+
+        public string Title { get; }
+
+        public IMenuButton[] Buttons { get; }
+        public ControlsWindow()
+        {
+            Title = "controls";
+            Buttons = new IMenuButton[BindManager.BindList.Count + 1];
+            for(int i = 0; i < BindManager.BindList.Count; i++)
+            {
+                Buttons[i] = new MenuButton(this, i, BindManager.BindList[i].Key.ToString(), BindManager.BindList[i].Description + ":");
+                Buttons[i].ButtonPressed += BindManager.BindList[i].SetControlKey;
+            }
+            Buttons[^1] = new MenuButton(this, Buttons.Length - 1, "back", String.Empty);
+            Buttons[^1].ButtonPressed += Menu.BackButtonAction;
         }
     }
     public class MenuButton : IMenuButton
