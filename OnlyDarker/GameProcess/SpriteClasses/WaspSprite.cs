@@ -5,10 +5,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 {
     public class WaspSprite : IYSortable, IMyUpdateable, IDamageable
     {
-        private readonly Texture2D _texture = TextureMapper.WaspSpriteTexture;
+        private readonly Texture2D _texture = GameBody.GetGameInstance().TextureMapper.WaspSpriteTexture;
         private readonly Vector2 _initialPosition;
         public Vector2 Position { get; set; }
-        static Vector2 SwayOffset => new(0, (float)Math.Sin(GameBody.GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
+        static Vector2 SwayOffset => new(0, (float)Math.Sin(GameBody.GetGameInstance().GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
         public Rectangle BodyHitbox => new((int)Position.X, (int)Position.Y, _texture.Width, _texture.Height);
         private readonly Room _parentRoomRef;
         const float SWAY_AMPLITUDE = 1F;
@@ -58,7 +58,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 return;
             }
             SpriteEffects fliphz = SpriteEffects.None;
-            if ((Position.X - GameBody.MainCharacter.Position.X) < 0)
+            if ((Position.X - GameBody.GetGameInstance().MainCharacter.Position.X) < 0)
             {
                 fliphz = SpriteEffects.FlipHorizontally;
             }
@@ -67,17 +67,17 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         public void Update(float elapsedMilliseconds)
         {
-            if (!IsExpired && GameBody.SceneManager.CurrentRoom != _parentRoomRef)
+            if (!IsExpired && GameBody.GetGameInstance().SceneManager.CurrentRoom != _parentRoomRef)
             {
                 Respawn();
                 return;
             }
-            var posDif = GameBody.MainCharacter.Position - Position;
+            var posDif = GameBody.GetGameInstance().MainCharacter.Position - Position;
             Position += posDif / posDif.Length();
             Position += SwayOffset;
-            if (BodyHitbox.Intersects(GameBody.MainCharacter.BodyHitbox))
+            if (BodyHitbox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
             {
-                GameBody.MainCharacter.TakeDamage(new(_baseDamage, 1, DamageType.Poke, false));
+                GameBody.GetGameInstance().MainCharacter.TakeDamage(new(_baseDamage, 1, DamageType.Poke, false));
             }
         }
         public void Respawn()

@@ -31,9 +31,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Position += Force;
             Lifetime.Update(elapsedMilliseconds);
-            if (Lifetime.TimeLeft > 0 && this.HurtBox.Intersects(GameBody.MainCharacter.BodyHitbox))
+            if (Lifetime.TimeLeft > 0 && this.HurtBox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
             {
-                GameBody.MainCharacter.TakeDamage(_damageInstance);
+                GameBody.GetGameInstance().MainCharacter.TakeDamage(_damageInstance);
                 Lifetime.TimeLeft = 0;
             }
         }

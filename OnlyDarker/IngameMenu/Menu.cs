@@ -9,21 +9,36 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.IngameMenu
 {
-    public static class Menu
+    public class Menu
     {
-        public static Rectangle WindowBounds => new(GlobalUse.WindowSize.X / 4, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
-        public static Stack<IMenuWindow> WindowsStack { get; private set; } = new();
-        private readonly static MainWindow _mainWindow = new();
-        public readonly static SettingsWindow SettingsWindow = new();
-        public readonly static ControlsWindow ControlsWindow = new();
+        private static Menu _menuInstance;
+        public Rectangle WindowBounds => new(GlobalUse.WindowSize.X / 4, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
+        public Stack<IMenuWindow> WindowsStack { get; private set; }
+        private readonly MainWindow _mainWindow;
+        public readonly SettingsWindow SettingsWindow;
+        public readonly ControlsWindow ControlsWindow;
         public delegate void ButtonPress();
         public const int BUTTON_OFFSET = 10;
-        public static ButtonState LastMouseState { get; private set; }
-        public static void Show()
+        public ButtonState LastMouseState { get; private set; }
+        protected Menu()
+        {
+            _menuInstance = this;
+            WindowsStack = new();
+            _mainWindow = new();
+            SettingsWindow = new();
+            ControlsWindow = new(BindManager.GetInstance());
+        }
+        public static Menu GetInstance()
+        {
+            if (_menuInstance != null)
+                return _menuInstance;
+            else return new Menu();
+        }
+        public void Show()
         {
             WindowsStack.Push(_mainWindow);
         }
-        public static void Update()
+        public void Update()
         {
             if (WindowsStack.Count == 0)
             {
@@ -35,7 +50,7 @@ namespace OnlyDarker.IngameMenu
             WindowsStack.Peek().Update(in mstate, in kstate);
             LastMouseState = mstate.LeftButton;
         }
-        public static void Draw()
+        public void Draw()
         {
             if (WindowsStack.Count == 0)
             {
@@ -43,15 +58,15 @@ namespace OnlyDarker.IngameMenu
             }
             WindowsStack.Peek().Draw();
         }
-        public static void BackButtonAction()
+        public void BackButtonAction()
         {
             WindowsStack.Pop();
         }
-        public static void OpenSettingsWindow()
+        public void OpenSettingsWindow()
         {
             WindowsStack.Push(SettingsWindow);
         }
-        public static void OpenControlsWindow()
+        public void OpenControlsWindow()
         {
             WindowsStack.Push(ControlsWindow);
         }
@@ -73,7 +88,7 @@ namespace OnlyDarker.IngameMenu
             if (Bounds.Intersects(cursorRect))
             {
                 IsHighlighted = true;
-                if (mstate.LeftButton == ButtonState.Released && Menu.LastMouseState == ButtonState.Pressed)
+                if (mstate.LeftButton == ButtonState.Released && Menu.GetInstance().LastMouseState == ButtonState.Pressed)
                 {
                     ButtonPressed?.Invoke();
                 }
@@ -81,22 +96,35 @@ namespace OnlyDarker.IngameMenu
         }
         void Draw()
         {
+            float fx = Bounds.Size.Y / GlobalUse.MainFont.MeasureString(Title).Y / 2;
+            if (fx > 0.5F)
+                fx = 0.5F;
             GlobalUse.SpriteBatch.DrawString(
                 GlobalUse.MainFont,
                 Title,
-                new(ButtonCenter.X - GlobalUse.MainFont.MeasureString(Title).X / 2, ButtonCenter.Y - GlobalUse.MainFont.MeasureString(Title).Y),
-                Color.White);
+                Bounds.Center.ToVector2()/*new(ButtonCenter.X - GlobalUse.MainFont.MeasureString(Title).X / 2, ButtonCenter.Y - GlobalUse.MainFont.MeasureString(Title).Y)*/,
+                Color.White,
+                0F,
+                GlobalUse.MainFont.MeasureString(Title) / 2,
+                fx,
+                SpriteEffects.None,
+                0F);
             if (IsHighlighted)
             {
                 GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, Bounds, Color.White * 0.2F);
                 GameBody.DrawRectangleOutline(Bounds, Color.White, 3);
                 GlobalUse.SpriteBatch.DrawString(
-                    GlobalUse.MainFont,
-                    Title,
-                    new(ButtonCenter.X - GlobalUse.MainFont.MeasureString(Title).X / 2, ButtonCenter.Y - GlobalUse.MainFont.MeasureString(Title).Y),
-                    Color.Yellow * 0.2F);
+                GlobalUse.MainFont,
+                Title,
+                Bounds.Center.ToVector2()/*new(ButtonCenter.X - GlobalUse.MainFont.MeasureString(Title).X / 2, ButtonCenter.Y - GlobalUse.MainFont.MeasureString(Title).Y)*/,
+                Color.Yellow * 0.2F,
+                0F,
+                GlobalUse.MainFont.MeasureString(Title) / 2,
+                fx,
+                SpriteEffects.None,
+                0F);
             }
-            if (IsHighlighted && Menu.LastMouseState == ButtonState.Pressed)
+            if (IsHighlighted && Menu.GetInstance().LastMouseState == ButtonState.Pressed)
             {
                 GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, Bounds, Color.White * 0.1F);
             }
@@ -119,8 +147,9 @@ namespace OnlyDarker.IngameMenu
             GlobalUse.SpriteBatch.DrawString
                 (GlobalUse.MainFont,
                 Title,
-                new Vector2(Bounds.Center.X - GlobalUse.MainFont.MeasureString(Title).X / 2, Bounds.Center.Y - Bounds.Top),
-                Color.White);
+                new Vector2(Bounds.Center.X - GlobalUse.MainFont.MeasureString(Title).X / 2, Bounds.Center.Y - Bounds.Top * 1.5F),
+                Color.White
+                );
             foreach (var button in Buttons)
             {
                 button.Draw();
@@ -129,7 +158,7 @@ namespace OnlyDarker.IngameMenu
     }
     public class MainWindow : IMenuWindow
     {
-        public Rectangle Bounds => Menu.WindowBounds;
+        public Rectangle Bounds => Menu.GetInstance().WindowBounds;
 
         public string Title { get; }
 
@@ -139,18 +168,18 @@ namespace OnlyDarker.IngameMenu
             Title = "menu";
             Buttons = new IMenuButton[4];
             Buttons[0] = new MenuButton(this, 1, "new game", String.Empty);
-
+            Buttons[0].ButtonPressed += GameBody.GetGameInstance().Exit;
             Buttons[1] = new MenuButton(this, 2, "controls", String.Empty);
-            Buttons[1].ButtonPressed += Menu.OpenControlsWindow;
+            Buttons[1].ButtonPressed += Menu.GetInstance().OpenControlsWindow;
             Buttons[2] = new MenuButton(this, 3, "settings", String.Empty);
-            Buttons[2].ButtonPressed += Menu.OpenSettingsWindow;
+            Buttons[2].ButtonPressed += Menu.GetInstance().OpenSettingsWindow;
             Buttons[3] = new MenuButton(this, 4, "resume", String.Empty);
-            Buttons[3].ButtonPressed += GameBody.TogglePause;
+            Buttons[3].ButtonPressed += GameBody.GetGameInstance().TogglePause;
         }
     }
     public class SettingsWindow : IMenuWindow
     {
-        public Rectangle Bounds => Menu.WindowBounds;
+        public Rectangle Bounds => Menu.GetInstance().WindowBounds;
 
         public string Title { get; }
 
@@ -161,32 +190,33 @@ namespace OnlyDarker.IngameMenu
             Buttons = new IMenuButton[4];
             Buttons[0] = new MenuButton(this, 1, $"{GlobalUse.WindowSize.X}x{GlobalUse.WindowSize.Y}", "resolution");
 
-            Buttons[1] = new MenuButton(this, 2, "controls", String.Empty);
-
+            Buttons[1] = new MenuButton(this, 2, "toggle fullscreen", String.Empty);
+            Buttons[1].ButtonPressed += GameBody.GetGameInstance().AppToggleFullscreen;
             Buttons[2] = new MenuButton(this, 3, "settings", String.Empty);
 
             Buttons[3] = new MenuButton(this, 4, "back", String.Empty);
-            Buttons[3].ButtonPressed += Menu.BackButtonAction;
+            Buttons[3].ButtonPressed += Menu.GetInstance().BackButtonAction;
         }
     }
     public class ControlsWindow : IMenuWindow
     {
-        public Rectangle Bounds => Menu.WindowBounds;
-
+        public Rectangle Bounds => Menu.GetInstance().WindowBounds;
+        private BindManager _bindManager;
         public string Title { get; }
 
         public IMenuButton[] Buttons { get; }
-        public ControlsWindow()
+        public ControlsWindow(BindManager bindManager)
         {
+            _bindManager = bindManager;
             Title = "controls";
-            Buttons = new IMenuButton[BindManager.BindList.Count + 1];
-            for(int i = 0; i < BindManager.BindList.Count; i++)
+            Buttons = new IMenuButton[_bindManager.BindList.Count + 1];
+            for (int i = 0; i < _bindManager.BindList.Count; i++)
             {
-                Buttons[i] = new MenuButton(this, i, BindManager.BindList[i].Key.ToString(), BindManager.BindList[i].Description + ":");
-                Buttons[i].ButtonPressed += BindManager.BindList[i].SetControlKey;
+                Buttons[i] = new MenuButton(this, i, _bindManager.BindList[i].Key.ToString(), _bindManager.BindList[i].Description + ":");
+                Buttons[i].ButtonPressed += _bindManager.BindList[i].SetControlKey;
             }
             Buttons[^1] = new MenuButton(this, Buttons.Length - 1, "back", String.Empty);
-            Buttons[^1].ButtonPressed += Menu.BackButtonAction;
+            Buttons[^1].ButtonPressed += Menu.GetInstance().BackButtonAction;
         }
     }
     public class MenuButton : IMenuButton
@@ -194,8 +224,8 @@ namespace OnlyDarker.IngameMenu
         public IMenuWindow ParentWindow { get; }
         public Rectangle Bounds => new(
             ParentWindow.Bounds.Location.X + ParentWindow.Bounds.Width / 4,
-            ParentWindow.Bounds.Location.Y + OrderNumber * ParentWindow.Bounds.Height / (int)(ParentWindow.Buttons.Length * 1.5F),
-            ParentWindow.Bounds.Width / 2,
+            ParentWindow.Bounds.Location.Y + (int)GlobalUse.MainFont.MeasureString(ParentWindow.Title).Y + OrderNumber * ParentWindow.Bounds.Height / (int)(ParentWindow.Buttons.Length * 1.5F),
+            ParentWindow.Bounds.Width / 2/* / ParentWindow.Buttons.Length*/,
             ParentWindow.Bounds.Height / (int)(ParentWindow.Buttons.Length * 1.5F) - Menu.BUTTON_OFFSET);
         public Vector2 ButtonCenter => Bounds.Center.ToVector2();
         public string Title { get; }

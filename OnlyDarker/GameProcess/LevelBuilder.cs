@@ -106,7 +106,6 @@ namespace OnlyDarker.GameProcess
                 foreach (var emptyRoom in grid.OfType<RoomBlueprint>().Where(room => room is not null && !room.IsUsed))
                 {
                     int random;
-                    //random = RandomNumberGenerator.GetInt32(0, 2);
                     random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {
@@ -118,8 +117,6 @@ namespace OnlyDarker.GameProcess
                             emptyRoom.Neighbours++;
                         }
                     }
-
-                    //random = RandomNumberGenerator.GetInt32(0, 2);
                     random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {
@@ -131,8 +128,6 @@ namespace OnlyDarker.GameProcess
                             emptyRoom.Neighbours++;
                         }
                     }
-
-                    //random = RandomNumberGenerator.GetInt32(0, 2);
                     random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {
@@ -144,8 +139,6 @@ namespace OnlyDarker.GameProcess
                             emptyRoom.Neighbours++;
                         }
                     }
-
-                    //random = RandomNumberGenerator.GetInt32(0, 2);
                     random = GlobalUse.SeededStandartRNG.Next(0, 2);
                     if (random < 1)
                     {

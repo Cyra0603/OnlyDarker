@@ -46,7 +46,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         private bool IntersectsEssentialObjects()
         {
-            return Bounds.Intersects(GameBody.MainCharacter.MovementCollider) || GameBody.SceneManager.CurrentRoom.Portals.Any(portal => portal.MovementCollider.Intersects(Bounds));
+            return Bounds.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider) || GameBody.GetGameInstance().SceneManager.CurrentRoom.Portals.Any(portal => portal.MovementCollider.Intersects(Bounds));
         }
 
         public void DrawShadow()

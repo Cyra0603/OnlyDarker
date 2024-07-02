@@ -21,17 +21,17 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Position = spawnPosition;
             _finalPosition = finalPosition;
             _spawnTimer = new(500F);
-            GameBody.SceneManager.CurrentRoom.Updateables.Add(this);
-            GameBody.SceneManager.CurrentRoom.ObjectsYSorted.Add(this);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(this);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(this);
         }
         public void Collect()
         {
-            if (GameBody.MainCharacter.HealthPoints >= GameBody.MainCharacter.MaxHealthPoints)
+            if (GameBody.GetGameInstance().MainCharacter.HealthPoints >= GameBody.GetGameInstance().MainCharacter.MaxHealthPoints)
             {
                 return;
             }
-            GameBody.MainCharacter.HealthPoints++;
-            GameBody.SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
+            GameBody.GetGameInstance().MainCharacter.HealthPoints++;
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
             IsExpired = true;
         }
 
@@ -42,7 +42,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             {
                 Position = Vector2.SmoothStep(Position, _finalPosition, 0.1F);
             }
-            if (_spawnTimer.TimeLeft <= 0 && MovementCollider.Intersects(GameBody.MainCharacter.MovementCollisionAura))
+            if (_spawnTimer.TimeLeft <= 0 && MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollisionAura))
                 Collect();
             (this as ICollectible).ManageCollisions();
         }

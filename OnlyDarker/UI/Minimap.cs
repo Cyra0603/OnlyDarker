@@ -17,8 +17,8 @@ namespace OnlyDarker.UI
         private RenderTarget2D _minimapTarget;
         private readonly GraphicsDevice _graphicsDevice;
         private const int FRAME_OFFSET = 3;
-        private static List<Room> CurrentLevel => GameBody.SceneManager.CurrentLevel.BuiltFloor;
-        private static Room _сurrentRoom => GameBody.SceneManager.CurrentRoom;
+        private static List<Room> CurrentLevel => GameBody.GetGameInstance().SceneManager.CurrentLevel.BuiltFloor;
+        private static Room _сurrentRoom => GameBody.GetGameInstance().SceneManager.CurrentRoom;
         private float _minimapScale = 1F;
         private Matrix _minimapView;
         private Vector2 _iconPos;
@@ -87,8 +87,8 @@ namespace OnlyDarker.UI
         }
         private Matrix CalculateMinimapView()
         {
-            var lx = Bounds.Width / 2 - GameBody.SceneManager.CurrentRoom.GridCords.X * _minimapIcons[0].Width;
-            var ly = Bounds.Height / 2 - GameBody.SceneManager.CurrentRoom.GridCords.Y * _minimapIcons[0].Height;
+            var lx = Bounds.Width / 2 - GameBody.GetGameInstance().SceneManager.CurrentRoom.GridCords.X * _minimapIcons[0].Width;
+            var ly = Bounds.Height / 2 - GameBody.GetGameInstance().SceneManager.CurrentRoom.GridCords.Y * _minimapIcons[0].Height;
             return Matrix.CreateTranslation(lx, ly, 0F);
         }
         private void ActivateRenderTarget()

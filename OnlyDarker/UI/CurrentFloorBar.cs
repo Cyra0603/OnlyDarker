@@ -17,7 +17,7 @@ namespace OnlyDarker.UI
         }
         public void Draw()
         {
-            GameBody.SceneManager.FloorNameAssigner.TryGetValue(GameBody.SceneManager.CurrentLevel.FloorType, out string floorName);
+            var floorName = GameBody.GetGameInstance().SceneManager.GetCurrentFloorName();
             var stringLength = GlobalUse.MainFont.MeasureString(floorName);
             GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{floorName}", (_barPosition - stringLength / 2), Color.White, 0F, Vector2.Zero, 1.1F, SpriteEffects.None, 0F);
         }

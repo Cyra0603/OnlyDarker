@@ -12,29 +12,33 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 
 namespace OnlyDarker
 {
     public class GameBody : Game
     {
+        private static GameBody _gameInstance;
         private MainCanvas _mainCanvas;
-        private GraphicsDeviceManager _graphics;
-        public static SceneManager SceneManager { get; private set; }
-        public static BindManager BindManager { get; private set; }
-        public static Character? MainCharacter { get; private set; } = null;
-        private static CharacterHealthbar _characterHealthbar;
-        private static CharacterStaminaBar _staminaBar;
-        private static StatsBar _statsBar;
-        private static CurrentFloorBar _currentFloorBar;
-        private static InteractionMessageBar _interactionMessageBar;
-        private static Minimap _minimap;
-        public static Texture2D EmptyTexture;
-        private static Texture2D _hitboxTexture;
-        public static List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
-        public static List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
-        public static List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
-        private static GameState _gameState;
+        public readonly GraphicsDeviceManager GraphicsManager;
+        public SceneManager SceneManager { get; private set; }
+        public ControlsManager ControlsManager { get; private set; }
+        public BindManager BindManager { get; private set; }
+        public TextureMapper TextureMapper { get;private set; }
+        public Menu Menu { get; private set; }
+        public Character? MainCharacter { get; private set; } = null;
+        private CharacterHealthbar _characterHealthbar;
+        private CharacterStaminaBar _staminaBar;
+        private StatsBar _statsBar;
+        private CurrentFloorBar _currentFloorBar;
+        private InteractionMessageBar _interactionMessageBar;
+        private Minimap _minimap;
+        public static Texture2D EmptyTexture { get; private set; }
+        public List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
+        public List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
+        public List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
+        private GameState _gameState;
         private float _fixedElapsedTimeMilliseconds;
         private float _fixedElapsedTime
         {
@@ -52,67 +56,63 @@ namespace OnlyDarker
         private string _netgraph = "0";
         private int FPS = 0;
         private Vector2 _netgraphPosition;
-        public static Floor CurrentFloorType { get; private set; }
         private Matrix _cameraView;
-        private static float _cameraZoom = 2F;
-        private static float _collectiblesTimeAccumulator = 0F;
+        private float _cameraZoom = 2F;
+        private float _collectiblesTimeAccumulator = 0F;
 
         public GameBody()
         {
-            _graphics = new GraphicsDeviceManager(this);
+            GraphicsManager = new GraphicsDeviceManager(this);
             GlobalUse.Content = Content;
             Content.RootDirectory = "Content";
             IsMouseVisible = true;
+            _gameInstance = this;
         }
-
+        public static GameBody GetGameInstance()
+        {
+            if (_gameInstance is not null)
+                return _gameInstance;
+            else throw new Exception("_gameInstance returned null");
+        }
         protected override void Initialize()
         {
             GlobalUse.WindowSize = new(1920, 1080);
 
-            _graphics.PreferredBackBufferWidth = GlobalUse.WindowSize.X;
+            GraphicsManager.PreferredBackBufferWidth = GlobalUse.WindowSize.X;
 
-            _graphics.PreferredBackBufferHeight = GlobalUse.WindowSize.Y;
+            GraphicsManager.PreferredBackBufferHeight = GlobalUse.WindowSize.Y;
 
             GlobalUse.Arial = Content.Load<SpriteFont>("Fonts/Arial");
 
             GlobalUse.MainFont = Content.Load<SpriteFont>("Fonts/MainFont");
 
-            _netgraphPosition = new Vector2(_graphics.PreferredBackBufferWidth - GlobalUse.Arial.MeasureString(_netgraph).X, 0);
+            _netgraphPosition = new Vector2(GraphicsManager.PreferredBackBufferWidth - GlobalUse.Arial.MeasureString(_netgraph).X, 0);
 
-            _graphics.SynchronizeWithVerticalRetrace = false;
+            GraphicsManager.SynchronizeWithVerticalRetrace = false;
 
             IsFixedTimeStep = false;
 
-            RasterizerState rasterizerState = new RasterizerState();
-            rasterizerState.CullMode = CullMode.None;
+            RasterizerState rasterizerState = new()
+            {
+                CullMode = CullMode.None
+            };
 
             GraphicsDevice.RasterizerState = rasterizerState;
 
-            _graphics.ApplyChanges();
+            GraphicsManager.ApplyChanges();
 
-            EmptyTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
+            EmptyTexture = new Texture2D(GraphicsManager.GraphicsDevice, 1, 1);
             EmptyTexture.SetData(new[] { Color.White });
 
-            TextureMapper.LoadTextures();
-
-            BindManager = BindManager.GetBindManagerInstance();
-
-            BindManager.ExitApplication.KeyPressed += Exit;
-
-            BindManager.TogglePause.KeyPressed += TogglePause;
-
-            BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
+            TextureMapper = new();
 
             _timeElapsed += FixedTimeStepUpdate;
 
             SceneManager = new(new Level(Floor.One));
 
-            _mainCanvas = new(_graphics.GraphicsDevice, _graphics.PreferredBackBufferWidth, _graphics.PreferredBackBufferHeight);
+            _mainCanvas = new(GraphicsManager.GraphicsDevice, GraphicsManager.PreferredBackBufferWidth, GraphicsManager.PreferredBackBufferHeight);
 
             _mainCanvas.SetDestinationRectangle();
-
-            _hitboxTexture = new Texture2D(_graphics.GraphicsDevice, 1, 1);
-            _hitboxTexture.SetData(new Color[] { Color.Red });
 
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
@@ -120,6 +120,18 @@ namespace OnlyDarker
                 SceneManager.CurrentRoom._tiles[2, 2]);
 
             MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
+
+            BindManager = BindManager.GetInstance();
+
+            BindManager.ExitApplication.KeyPressed += Exit;
+
+            BindManager.TogglePause.KeyPressed += TogglePause;
+
+            BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
+
+            ControlsManager = new ControlsManager(BindManager);
+
+            Menu = Menu.GetInstance();
 
             foreach (var room in SceneManager.CurrentLevel.BuiltFloor)
             {
@@ -132,9 +144,9 @@ namespace OnlyDarker
 
             _currentFloorBar = new();
 
-            _minimap = new(_graphics.GraphicsDevice);
+            _minimap = new(GraphicsManager.GraphicsDevice);
 
-            _staminaBar = new(_graphics.GraphicsDevice);
+            _staminaBar = new(GraphicsManager.GraphicsDevice);
 
             _interactionMessageBar = InteractionMessageBar.GetInstance();
 
@@ -222,31 +234,55 @@ namespace OnlyDarker
             GlobalUse.SpriteBatch.Begin(sortMode: SpriteSortMode.Deferred, blendState: BlendState.AlphaBlend, samplerState: SamplerState.PointClamp, transformMatrix: _cameraView);
             SceneManager.CurrentRoom.Draw();
             DebugModeDraw();
-            foreach (var mngr in EffectAnimationManagers)
+            //foreach (var mngr in EffectAnimationManagers)
+            //{
+            //    if (mngr.IsActive)
+            //        mngr.Draw();
+            //}
+            Span<EffectAnimationManager> eamAsSpan = CollectionsMarshal.AsSpan(EffectAnimationManagers);
+            for (int i = 0; i < eamAsSpan.Length; i++)
             {
-                if (mngr.IsActive)
-                    mngr.Draw();
+                var mngr = eamAsSpan[i];
+                mngr.Draw();
             }
-            foreach (var mngr in DamageNumberAnimationManagers)
+            //foreach (var mngr in DamageNumberAnimationManagers)
+            //{
+            //    if (mngr.IsActive)
+            //        mngr.Draw();
+            //}
+            Span<DamageNumberAnimationManager> dmamAsSpan = CollectionsMarshal.AsSpan(DamageNumberAnimationManagers);
+            for (int i = 0; i < dmamAsSpan.Length; i++)
             {
-                if (mngr.IsActive)
-                    mngr.Draw();
+                var mngr = dmamAsSpan[i];
+                mngr.Draw();
             }
-            foreach (var proj in ProjectileSprites)
+            //foreach (var proj in ProjectileSprites)
+            //{
+            //    proj.Draw();
+            //}
+            Span<ProjectileSprite> projectilesAsSpan = CollectionsMarshal.AsSpan(ProjectileSprites);
+            for (int i = 0; i < projectilesAsSpan.Length; i++)
             {
+                var proj = projectilesAsSpan[i];
                 proj.Draw();
             }
-            foreach (var entity in SceneManager.CurrentRoom.Damageables)
+            //foreach (var entity in SceneManager.CurrentRoom.Damageables)
+            //{
+            //    if (entity.HealthPoints > 0)
+            //        entity.DrawHPBar();
+            //}
+            Span<IDamageable> damageablesAsSpan = CollectionsMarshal.AsSpan(SceneManager.CurrentRoom.Damageables);
+            for (int i = 0; i < damageablesAsSpan.Length; i++)
             {
-                if (entity.HealthPoints > 0)
-                    entity.DrawHPBar();
+                var damageable = damageablesAsSpan[i];
+                if (damageable.HealthPoints > 0)
+                    damageable.DrawHPBar();
             }
             GlobalUse.SpriteBatch.End();
-            _mainCanvas.Deactivate();
-
             _minimap.RenderMinimap();
 
-            //Drawing
+            _mainCanvas.Deactivate();
+
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
 
             _characterHealthbar.StandaloneDraw();
@@ -270,7 +306,7 @@ namespace OnlyDarker
             FPS++;
         }
 
-        private static void DebugModeDraw()
+        private void DebugModeDraw()
         {
             if (GlobalUse.IsDebugMode)
             {
@@ -320,18 +356,18 @@ namespace OnlyDarker
         }
         private async void UpdateFPS()
         {
-            while (MainCharacter is not null)
+            while (_gameInstance is not null)
             {
                 _netgraph = FPS.ToString();
                 FPS = 0;
                 await Task.Delay(1000);
             }
         }
-        public static void UpdateMinimap()
+        public void UpdateMinimap()
         {
             _minimap.Update();
         }
-        public static void TogglePause()
+        public void TogglePause()
         {
             if (_gameState == GameState.IsRunning)
             {
@@ -345,7 +381,7 @@ namespace OnlyDarker
                 return;
             }
         }
-        public static float GetSwayFunctionValue()
+        public float GetSwayFunctionValue()
         {
             return _collectiblesTimeAccumulator;
         }
@@ -355,6 +391,11 @@ namespace OnlyDarker
             GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Right, rect.Top, borderWidth, rect.Height), color);
             GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Top, rect.Width, borderWidth), color);
             GlobalUse.SpriteBatch.Draw(EmptyTexture, new Rectangle(rect.Left, rect.Bottom, rect.Width + borderWidth, borderWidth), color);
+        }
+        public void AppToggleFullscreen()
+        {
+            GraphicsManager.IsFullScreen = !GraphicsManager.IsFullScreen;
+            GraphicsManager.ApplyChanges();
         }
     }
 }

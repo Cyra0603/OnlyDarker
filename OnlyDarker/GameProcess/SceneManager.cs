@@ -28,8 +28,12 @@ namespace OnlyDarker.GameProcess
         public void GoToRoom (Room room)
         {
             CurrentRoom = room;
-            GameBody.MainCharacter.SetRoomBounds(CurrentRoom.RoomSize, CurrentRoom.TileSize);
-            GameBody.UpdateMinimap();
+            GameBody.GetGameInstance().MainCharacter.SetRoomBounds(CurrentRoom.RoomSize, CurrentRoom.TileSize);
+            GameBody.GetGameInstance().UpdateMinimap();
+        }
+        public string GetCurrentFloorName()
+        {
+            return FloorNameAssigner[CurrentLevel.FloorType];
         }
     }
 }

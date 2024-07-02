@@ -23,7 +23,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             get
             {
-                if (GameBody.MainCharacter.CurrentWeapon is WeaponFist)
+                if (GameBody.GetGameInstance().MainCharacter.CurrentWeapon is WeaponFist)
                     return "pick up ";
                 else
                     return "swap to ";
@@ -48,15 +48,15 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Collect()
         {
-            if (GameBody.MainCharacter.CurrentWeapon is not WeaponFist)
+            if (GameBody.GetGameInstance().MainCharacter.CurrentWeapon is not WeaponFist)
             {
-                GameBody.MainCharacter.CurrentWeapon.WeaponPickupSprite.Position = Position;
-                GameBody.SceneManager.CurrentRoom.Interactives.Add(GameBody.MainCharacter.CurrentWeapon.WeaponPickupSprite);
-                GameBody.SceneManager.CurrentRoom.ObjectsYSorted.Add(GameBody.MainCharacter.CurrentWeapon.WeaponPickupSprite);
+                GameBody.GetGameInstance().MainCharacter.CurrentWeapon.WeaponPickupSprite.Position = Position;
+                GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Add(GameBody.GetGameInstance().MainCharacter.CurrentWeapon.WeaponPickupSprite);
+                GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(GameBody.GetGameInstance().MainCharacter.CurrentWeapon.WeaponPickupSprite);
             }
-            GameBody.MainCharacter.CurrentWeapon = WeaponInstance;
-            GameBody.SceneManager.CurrentRoom.Interactives.Remove(this);
-            GameBody.SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
+            GameBody.GetGameInstance().MainCharacter.CurrentWeapon = WeaponInstance;
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Remove(this);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
 
         }
     }

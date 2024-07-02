@@ -73,17 +73,17 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Shoot()
         {
-            var difference = Vector2.Normalize(GameBody.MainCharacter.Position - Position);
+            var difference = Vector2.Normalize(GameBody.GetGameInstance().MainCharacter.Position - Position);
             var direction = difference / difference.Length();
             var projectile = new ProjectileSprite(_projectileTexture, Position, direction, new(1, 1, DamageType.Blunt, false), 15000F);
-            GameBody.ProjectileSprites.Add(projectile);
+            GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
             _attackCooldown.TimeLeft += AttackCooldownTime;
         }
 
         public void Update(float elapsedMilliseconds)
         {
             _attackCooldown.Update(elapsedMilliseconds);
-            if (_parentRoomReference == GameBody.SceneManager.CurrentRoom && _attackCooldown.TimeLeft <= 0)
+            if (_parentRoomReference == GameBody.GetGameInstance().SceneManager.CurrentRoom && _attackCooldown.TimeLeft <= 0)
             {
                 Shoot();
             }

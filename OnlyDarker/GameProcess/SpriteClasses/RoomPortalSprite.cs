@@ -35,7 +35,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Update()
         {
-            if (MovementCollider.Intersects(GameBody.MainCharacter.MovementCollider) && _isActive)
+            if (MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider) && _isActive)
             {
                 PlayerTeleport();
             }
@@ -72,13 +72,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             ParentRoomReference.DeactivatePortals();
             ExitRoom.DeactivatePortals();
-            GameBody.SceneManager.GoToRoom(ExitRoom);
-            GameBody.MainCharacter.SetPosition(ExitPosition);
+            GameBody.GetGameInstance().SceneManager.GoToRoom(ExitRoom);
+            GameBody.GetGameInstance().MainCharacter.SetPosition(ExitPosition);
             ParentRoomReference.ActivatePortals(2000);
             ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
             ParentRoomReference.ObjectsYSorted.RemoveAll(item => item.IsExpired);
             ExitRoom.ActivatePortals(2000);
-            GameBody.ProjectileSprites.Clear();
+            GameBody.GetGameInstance().ProjectileSprites.Clear();
             GC.Collect();
         }
     }

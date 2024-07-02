@@ -11,7 +11,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     public interface IInteractive
     {
         string Name { get;}
-        static string BaseMessage => $"[{ControlsManager.BindManager.Interact.Key}] to ";
+        static string BaseMessage => $"[{GameBody.GetGameInstance().ControlsManager.BindManager.Interact.Key}] to ";
         string InteractionMessage { get; }
         Rectangle MovementCollider { get; }
         void ShowInteractionMessage()

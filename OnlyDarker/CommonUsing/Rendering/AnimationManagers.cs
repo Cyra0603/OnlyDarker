@@ -145,7 +145,7 @@ namespace OnlyDarker.CommonUsing.Rendering
             Step = 0;
             IsActive = true;
             DrawCallArgs = drawCallArgs;
-            GameBody.EffectAnimationManagers.Add(this);
+            GameBody.GetGameInstance().EffectAnimationManagers.Add(this);
         }
     }
     public class DamageNumberAnimationManager
@@ -173,7 +173,7 @@ namespace OnlyDarker.CommonUsing.Rendering
             _positionDisplacement = RandomNumberGenerator.GetInt32(-POSITION_DISPLACEMENT, POSITION_DISPLACEMENT);
             Position.X += _positionDisplacement;
             Position.Y += _positionDisplacement;
-            GameBody.DamageNumberAnimationManagers.Add(this);
+            GameBody.GetGameInstance().DamageNumberAnimationManagers.Add(this);
         }
         public void Update(float elapsedMilliseconds)
         {

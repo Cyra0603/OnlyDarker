@@ -12,7 +12,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         Texture2D Texture { get; }
         Vector2 Position { get; set; }
         Rectangle MovementCollider { get; }
-        static Vector2 SwayOffset => new(0, (float)Math.Sin(GameBody.GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
+        static Vector2 SwayOffset => new(0, (float)Math.Sin(GameBody.GetGameInstance().GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
         const float PUSHAWAY_MAX_FORCE = 1F;
         const float SWAY_AMPLITUDE = 2F;
         const float SWAY_FREQUENCY = 5F;
@@ -23,7 +23,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         void ManageCollisions()
         {
-            foreach (var collider in GameBody.SceneManager.CurrentRoom.RoomColliders)
+            foreach (var collider in GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders)
             {
                 if (MovementCollider.Intersects(collider))
                 {

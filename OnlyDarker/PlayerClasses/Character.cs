@@ -25,6 +25,7 @@ namespace OnlyDarker
     {
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _handTexture;
+        private static ControlsManager ControlsManager => GameBody.GetGameInstance().ControlsManager;
         private List<Vector2> _dashFrames = new();
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
@@ -185,18 +186,18 @@ namespace OnlyDarker
 
         private void CheckForInteractions()
         {
-            if (GameBody.SceneManager.CurrentRoom.Interactives is not null && GameBody.SceneManager.CurrentRoom.Interactives.Any(collider => collider.MovementCollider.Intersects(InteractionAura)))
+            if (GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives is not null && GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Any(collider => collider.MovementCollider.Intersects(InteractionAura)))
             {
-                GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(InteractionAura)).ShowInteractionMessage();
-                _thingsToInteract.Push(GameBody.SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(InteractionAura)));
+                GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(InteractionAura)).ShowInteractionMessage();
+                _thingsToInteract.Push(GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(InteractionAura)));
             }
         }
 
         private void CheckForCollisions()
         {
-            if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
+            if (GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
-                var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
+                var obstacles = GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
                 for (int i = 0, j = 7; i < j; i++)
                 {
                     var currentDirection = ControlsManager.GetDirection();
@@ -331,7 +332,7 @@ namespace OnlyDarker
             CreateAttackAnimation(flipsf, range);
             //THIS DOES NOT WORK FINE
             var critModifier = CritDamage / 100F;
-            foreach (var target in GameBody.SceneManager.CurrentRoom.Damageables.Where(target => target.BodyHitbox.Intersects(attackRect) || target.BodyHitbox.Intersects(attackRect2)))
+            foreach (var target in GameBody.GetGameInstance().SceneManager.CurrentRoom.Damageables.Where(target => target.BodyHitbox.Intersects(attackRect) || target.BodyHitbox.Intersects(attackRect2)))
             {
                 if (target.HealthPoints <= 0)
                 {
@@ -345,7 +346,7 @@ namespace OnlyDarker
                     target.TakeDamage(new(CurrentWeapon.AttackDamage * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc));
                 }
             }
-            foreach (var target in GameBody.ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
+            foreach (var target in GameBody.GetGameInstance().ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
             {
                 var newForce = Vector2.Lerp(difference / difference.Length(), target.Force, 0.03F);
                 target.ChangeForce(newForce);
@@ -353,12 +354,12 @@ namespace OnlyDarker
             }
             if (GlobalUse.IsDebugMode)
             {
-                GameBody.SceneManager.CurrentRoom.AddTempDrawableRect(attackRect);
-                GameBody.SceneManager.CurrentRoom.AddTempDrawableRect(attackRect2);
+                GameBody.GetGameInstance().SceneManager.CurrentRoom.AddTempDrawableRect(attackRect);
+                GameBody.GetGameInstance().SceneManager.CurrentRoom.AddTempDrawableRect(attackRect2);
             }
             else
             {
-                GameBody.SceneManager.CurrentRoom.ClearTempDrawables();
+                GameBody.GetGameInstance().SceneManager.CurrentRoom.ClearTempDrawables();
             }
         }
 

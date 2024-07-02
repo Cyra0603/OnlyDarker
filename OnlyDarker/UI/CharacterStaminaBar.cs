@@ -23,7 +23,7 @@ namespace OnlyDarker.UI
                 return NotificationLifeSpan.TimeLeft > 0;
             }
         }
-        private Character CurrentCharacter => GameBody.MainCharacter;
+        private Character CurrentCharacter => GameBody.GetGameInstance().MainCharacter;
         private float _stamina;
         private float _maxStamina;
         private int _barHeight = 20;

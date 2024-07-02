@@ -12,8 +12,8 @@ namespace OnlyDarker.GameProcess
     {
         private static BindManager _managerInstance = null;
         public readonly MouseState _defaultState = new();
-        public readonly static List<Bind> BindList = new();
-        public readonly static List<Bind> AppHotKeys = new();
+        public readonly List<Bind> BindList;
+        public readonly List<Bind> AppHotKeys;
         public readonly Bind ToggleDebug;
         public readonly Bind TogglePause;
         public readonly Bind ExitApplication;
@@ -30,6 +30,9 @@ namespace OnlyDarker.GameProcess
         public delegate void KeyPress();
         protected BindManager()
         {
+            _managerInstance = this;
+            BindList = new();
+            AppHotKeys = new();
             bool canBeHold = true;
             //Common hotkeys
             {
@@ -50,9 +53,9 @@ namespace OnlyDarker.GameProcess
                 BindList.Add(Attack = new(_defaultState.LeftButton, !canBeHold, "attack!"));
             }
             Debug.WriteLine("Bindmanager initialized");
-            _managerInstance = this;
+
         }
-        public static BindManager GetBindManagerInstance()
+        public static BindManager GetInstance()
         {
             if (_managerInstance == null)
                 return _managerInstance = new BindManager();
@@ -92,21 +95,21 @@ namespace OnlyDarker.GameProcess
             }
             public async void SetControlKey()
             {
-                while (true)
-                {
-                    var kbstate = Keyboard.GetState();
-                    var pressedKeys = kbstate.GetPressedKeys();
-                    if (pressedKeys.Length > 0 && KeyIsValid(pressedKeys[0]))
-                    {
-                        this.Key = pressedKeys[0];
-                        return;
-                    }
+                //while (true)
+                //{
+                //    var kbstate = Keyboard.GetState();
+                //    var pressedKeys = kbstate.GetPressedKeys();
+                //    if (pressedKeys.Length > 0 && KeyIsValid(pressedKeys[0]))
+                //    {
+                //        this.Key = pressedKeys[0];
+                //        return;
+                //    }
 
-                }
+                //}
             }
             private bool KeyIsValid(Keys key)
             {
-                foreach (var bind in BindManager.BindList)
+                foreach (var bind in GetInstance().BindList)
                 {
                     if( bind.Key == key) return false;
                 }

@@ -74,9 +74,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         public void Update()
         {
-            if (GameBody.SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
+            if (GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
             {
-                var obstacles = GameBody.SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
+                var obstacles = GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
                 for (int i = 0, j = 7/*length of the movement vector*/; i < j; i++)
                 {
                     var currentDirection = Vector2.One/*current direction*/;

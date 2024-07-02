@@ -10,40 +10,40 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker
 {
-    public static class ControlsManager
+    public class ControlsManager
     {
-        public static BindManager BindManager { get; }
-        private static Vector2 _direction;
-        public static Vector2 ForceSum { get; set; }
-        public static Vector2 MousePosition
+        public BindManager BindManager { get; }
+        private Vector2 _direction;
+        public Vector2 ForceSum { get; set; }
+        public Vector2 MousePosition
         {
             get
             {
                 return
                     Mouse.GetState().Position.ToVector2()
-                    + GameBody.MainCharacter.Position -
+                    + GameBody.GetGameInstance().MainCharacter.Position -
                     new Vector2(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
             }
         }
         public const float DIRECTION_X_MAX_VALUE = 1.75F;
         public const float DIRECTION_Y_MAX_VALUE = 1.15F;
-        private static readonly float _friction = 0.88F;
-        public static bool InputsBlocked { get; private set; } = true;
-        public static bool Paralyzed { get; private set; } = false;
-        static ControlsManager()
+        private readonly float _friction = 0.88F;
+        public bool InputsBlocked { get; private set; } = true;
+        public bool Paralyzed { get; private set; } = false;
+        public ControlsManager(BindManager bindManager)
         {
-            BindManager = GameBody.BindManager;
+            BindManager = bindManager;
             BindManager.MoveUp.KeyPressed += PlayerMoveUp;
             BindManager.MoveDown.KeyPressed += PlayerMoveDown;
             BindManager.MoveLeft.KeyPressed += PlayerMoveLeft;
             BindManager.MoveRight.KeyPressed += PlayerMoveRight;
-            BindManager.Interact.KeyPressed += GameBody.MainCharacter.Interact;
-            BindManager.HealCharacter.KeyPressed += GameBody.MainCharacter.TestHealing;
-            BindManager.DamageCharacter.KeyPressed += GameBody.MainCharacter.TestTakingDamage;
-            BindManager.Dash.KeyPressed += GameBody.MainCharacter.Dash;
-            BindManager.Attack.KeyPressed += GameBody.MainCharacter.Attack;
+            BindManager.Interact.KeyPressed += GameBody.GetGameInstance().MainCharacter.Interact;
+            BindManager.HealCharacter.KeyPressed += GameBody.GetGameInstance().MainCharacter.TestHealing;
+            BindManager.DamageCharacter.KeyPressed += GameBody.GetGameInstance().MainCharacter.TestTakingDamage;
+            BindManager.Dash.KeyPressed += GameBody.GetGameInstance().MainCharacter.Dash;
+            BindManager.Attack.KeyPressed += GameBody.GetGameInstance().MainCharacter.Attack;
         }
-        public static void UpdateInputs()
+        public void UpdateInputs()
         {
             var keyboardState = Keyboard.GetState();
             foreach (var bind in BindManager.AppHotKeys)
@@ -55,7 +55,7 @@ namespace OnlyDarker
                 }
             }
         }
-        public static void UpdatePlayerControls()
+        public void UpdatePlayerControls()
         {
             var keyboardState = Keyboard.GetState();
             foreach (var bind in BindManager.BindList)
@@ -67,7 +67,7 @@ namespace OnlyDarker
                 }
             }
         }
-        public static void UpdatePlayerMovement(float elapsedMilliseconds)
+        public void UpdatePlayerMovement(float elapsedMilliseconds)
         {
 
             ClampDirectionVector();
@@ -76,69 +76,69 @@ namespace OnlyDarker
             ForceSum = Vector2.Zero;
         }
 
-        private static void NegateCloseToZeroValues()
+        private void NegateCloseToZeroValues()
         {
             if (Math.Abs(_direction.Y) < 0.01F)
                 _direction.Y = 0;
             if (Math.Abs(_direction.X) < 0.01F)
                 _direction.X = 0;
         }
-        private static bool ButtonStateToBool(ButtonState buttonState)
+        private bool ButtonStateToBool(ButtonState buttonState)
         {
             return buttonState == ButtonState.Pressed;
         }
-        private static void ClampDirectionVector()
+        private void ClampDirectionVector()
         {
             _direction = Vector2.Clamp(_direction, new(-DIRECTION_X_MAX_VALUE, -DIRECTION_Y_MAX_VALUE), new(DIRECTION_X_MAX_VALUE, DIRECTION_Y_MAX_VALUE));
         }
-        private static void NormalizeDirectionVector()
+        private void NormalizeDirectionVector()
         {
             if (_direction != Vector2.Zero)
                 _direction = Vector2.Normalize(_direction);
 
         }
-        private static void PlayerMoveUp() => _direction.Y -= 0.33F;
-        private static void PlayerMoveDown() => _direction.Y += 0.33F;
-        private static void PlayerMoveLeft() => _direction.X -= 0.33F;
-        private static void PlayerMoveRight() => _direction.X += 0.33F;
-        public static void AddFriction()
+        private void PlayerMoveUp() => _direction.Y -= 0.33F;
+        private void PlayerMoveDown() => _direction.Y += 0.33F;
+        private void PlayerMoveLeft() => _direction.X -= 0.33F;
+        private void PlayerMoveRight() => _direction.X += 0.33F;
+        public void AddFriction()
         {
             _direction.Y *= _friction;
             _direction.X *= _friction;
         }
 
-        public static void CharacterParalyze(int milliseconds) //rework to ingame time
+        public void CharacterParalyze(int milliseconds) //rework to ingame time
         {
             //InputsBlocked = Paralyzed = true;
             //_direction.X = _direction.Y = 0;
             //await Task.Delay(milliseconds);
             //InputsBlocked = Paralyzed = false;
         }
-        public static void ToggleDisableInputs()
+        public void ToggleDisableInputs()
         {
             InputsBlocked = !InputsBlocked;
         }
-        public static void CharacterInputsDisabled(bool isDisabled)
+        public void CharacterInputsDisabled(bool isDisabled)
         {
             InputsBlocked = isDisabled;
         }
-        public static void CharacterInputsEnabled(bool isEnabled)
+        public void CharacterInputsEnabled(bool isEnabled)
         {
             InputsBlocked = isEnabled;
         }
-        public static Vector2 GetDirection()
+        public Vector2 GetDirection()
         {
             return _direction;
         }
-        public static Vector2 GetMaxDirectionVector()
+        public Vector2 GetMaxDirectionVector()
         {
             return new Vector2(DIRECTION_X_MAX_VALUE, DIRECTION_Y_MAX_VALUE);
         }
-        public static void ZeroDirectionY()
+        public void ZeroDirectionY()
         {
             _direction.Y = 0;
         }
-        public static void ZeroDirectionX()
+        public void ZeroDirectionX()
         {
             _direction.X = 0;
         }

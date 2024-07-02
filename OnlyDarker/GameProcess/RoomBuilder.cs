@@ -8,6 +8,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -93,8 +94,14 @@ namespace OnlyDarker.GameProcess
             {
                 tile?.Draw();
             }
-            foreach (var obj in ObjectsYSorted)
+            //foreach (var obj in ObjectsYSorted)
+            //{
+            //    obj.Draw();
+            //}
+            Span<IYSortable> ySortedAsSpan = CollectionsMarshal.AsSpan(ObjectsYSorted);
+            for (int i = 0; i < ySortedAsSpan.Length; i++)
             {
+                var obj = ySortedAsSpan[i];
                 obj.Draw();
             }
         }
