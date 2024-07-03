@@ -25,7 +25,7 @@ namespace OnlyDarker
         public SceneManager SceneManager { get; private set; }
         public ControlsManager ControlsManager { get; private set; }
         public BindManager BindManager { get; private set; }
-        public TextureMapper TextureMapper { get;private set; }
+        public TextureMapper TextureMapper { get; private set; }
         public Menu Menu { get; private set; }
         public Character? MainCharacter { get; private set; } = null;
         private CharacterHealthbar _characterHealthbar;
@@ -121,11 +121,13 @@ namespace OnlyDarker
 
             MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
 
+            SceneManager.CurrentLevel.SetExplorationStates(SceneManager.CurrentRoom);
+
             BindManager = BindManager.GetInstance();
 
             BindManager.ExitApplication.KeyPressed += Exit;
 
-            BindManager.TogglePause.KeyPressed += TogglePause;
+            BindManager.TogglePause.KeyPressed += GamePause;
 
             BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
 
@@ -367,7 +369,7 @@ namespace OnlyDarker
         {
             _minimap.Update();
         }
-        public void TogglePause()
+        public void GamePause()
         {
             if (_gameState == GameState.IsRunning)
             {
@@ -375,8 +377,11 @@ namespace OnlyDarker
                 Menu.Show();
                 return;
             }
-            if (_gameState == GameState.Paused && Menu.WindowsStack.Peek() is MainWindow )
-            { 
+        }
+        public void GameUpause()
+        {
+            if (_gameState == GameState.Paused)
+            {
                 _gameState = GameState.IsRunning;
                 return;
             }

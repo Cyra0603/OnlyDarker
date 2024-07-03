@@ -27,6 +27,7 @@ namespace OnlyDarker.IngameMenu
             _mainWindow = new();
             SettingsWindow = new();
             ControlsWindow = new(BindManager.GetInstance());
+            BindManager.GetInstance().TogglePause.KeyPressed += BackButtonAction;
         }
         public static Menu GetInstance()
         {
@@ -37,12 +38,14 @@ namespace OnlyDarker.IngameMenu
         public void Show()
         {
             WindowsStack.Push(_mainWindow);
+            WindowsStack.Push(_mainWindow); // Works for BackButtonAction but can easily break
         }
         public void Update()
         {
             if (WindowsStack.Count == 0)
             {
                 Debug.WriteLine("WindowsStack is empty");
+                GameBody.GetGameInstance().GameUpause();
                 return;
             }
             var mstate = Mouse.GetState();
@@ -60,7 +63,8 @@ namespace OnlyDarker.IngameMenu
         }
         public void BackButtonAction()
         {
-            WindowsStack.Pop();
+            if(WindowsStack.Count > 0)
+                WindowsStack.Pop();
         }
         public void OpenSettingsWindow()
         {
@@ -75,7 +79,7 @@ namespace OnlyDarker.IngameMenu
     {
         Rectangle Bounds { get; }
         Vector2 ButtonCenter { get; }
-        string Title { get; }
+        string Title { get; set; }
         string Description { get; }
         int OrderNumber { get; }
         IMenuWindow ParentWindow { get; }
@@ -174,7 +178,7 @@ namespace OnlyDarker.IngameMenu
             Buttons[2] = new MenuButton(this, 3, "settings", String.Empty);
             Buttons[2].ButtonPressed += Menu.GetInstance().OpenSettingsWindow;
             Buttons[3] = new MenuButton(this, 4, "resume", String.Empty);
-            Buttons[3].ButtonPressed += GameBody.GetGameInstance().TogglePause;
+            Buttons[3].ButtonPressed += GameBody.GetGameInstance().GamePause;
         }
     }
     public class SettingsWindow : IMenuWindow
@@ -212,11 +216,18 @@ namespace OnlyDarker.IngameMenu
             Buttons = new IMenuButton[_bindManager.BindList.Count + 1];
             for (int i = 0; i < _bindManager.BindList.Count; i++)
             {
-                Buttons[i] = new MenuButton(this, i, _bindManager.BindList[i].Key.ToString(), _bindManager.BindList[i].Description + ":");
+                Buttons[i] = new MenuButton(this, i, _bindManager.BindList[i].Key.ToString(), _bindManager.BindList[i].Description);
                 Buttons[i].ButtonPressed += _bindManager.BindList[i].SetControlKey;
             }
             Buttons[^1] = new MenuButton(this, Buttons.Length - 1, "back", String.Empty);
             Buttons[^1].ButtonPressed += Menu.GetInstance().BackButtonAction;
+        }
+        public void UpdateTitles()
+        {
+            for(int i = 0; i < Buttons.Length - 1; i++)
+            {
+                Buttons[i].Title = _bindManager.BindList.First(bind => bind.Description == Buttons[i].Description).Key.ToString();
+            }
         }
     }
     public class MenuButton : IMenuButton
@@ -228,7 +239,7 @@ namespace OnlyDarker.IngameMenu
             ParentWindow.Bounds.Width / 2/* / ParentWindow.Buttons.Length*/,
             ParentWindow.Bounds.Height / (int)(ParentWindow.Buttons.Length * 1.5F) - Menu.BUTTON_OFFSET);
         public Vector2 ButtonCenter => Bounds.Center.ToVector2();
-        public string Title { get; }
+        public string Title { get; set; }
         public string Description { get; }
         public int OrderNumber { get; }
         public bool IsHighlighted { get; set; } = false;

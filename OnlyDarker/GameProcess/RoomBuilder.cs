@@ -17,6 +17,12 @@ namespace OnlyDarker.GameProcess
 {
     public class Room
     {
+        public enum RoomExplorationState
+        {
+            Unexplored,
+            CanBeExplored,
+            Explored,
+        }
         private readonly Point _roomTileSize;
         private readonly Texture2D _roomPresetImage;
         public readonly SpriteStandartTile[,] _tiles;
@@ -29,6 +35,7 @@ namespace OnlyDarker.GameProcess
         public readonly BackgroundSprite CurrentBackground;
         public readonly Level ParentLevelReference;
         public readonly RoomType InstanceRoomType;
+        public RoomExplorationState explorationState = RoomExplorationState.Unexplored;
         private readonly static Dictionary<Vector4, string> _presetColorTranslator = new()
         {
             {new Vector4(255,0,0,255) , "Obstacle"},

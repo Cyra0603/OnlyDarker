@@ -5,6 +5,7 @@ using OnlyDarker.GameProcess.SpriteClasses;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Drawing.Text;
 using System.IO;
 using System.Linq;
 using System.Net.Http.Headers;
@@ -37,11 +38,54 @@ namespace OnlyDarker.GameProcess
             SetSpecialRooms(grid);
             SetEncounterRooms(grid);
             SetRoomDirections(grid);
+            SetSecretRoom(grid, floor);
+
             LevelGrid = new Room[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
             BuildRooms(grid);
             LinkPortals();
         }
-
+        private void SetSecretRoom(RoomBlueprint[,] grid, Floor floor)
+        {
+            int maxNeighbours = 0, targetX = 0, targetY = 0;
+            for (int y = 1; y < grid.GetLength(0) - 1; y++)
+            {
+                for (int x = 1; x < grid.GetLength(1) - 1; x++)
+                {
+                    if (grid[y, x] is not null)
+                        continue;
+                    int neighbours = 0;
+                    if (grid[y - 1, x] is not null)
+                        neighbours++;
+                    if (grid[y + 1, x] is not null)
+                        neighbours++;
+                    if (grid[y, x - 1] is not null)
+                        neighbours++;
+                    if (grid[y, x + 1] is not null)
+                        neighbours++;
+                    if (neighbours > maxNeighbours && CellIsValid(grid, y, x))
+                    {
+                        maxNeighbours = neighbours;
+                        targetX = x;
+                        targetY = y;
+                    }
+                }
+            }
+            grid[targetY, targetX] = new(floor, targetX, targetY);
+            grid[targetY, targetX].RoomType = RoomType.Secret;
+            return;
+            bool CellIsValid(RoomBlueprint[,] grid, int y, int x)
+            {
+                if (grid[y - 1, x] is not null && grid[y - 1, x].RoomType is RoomType.Boss)
+                    return false;
+                if (grid[y + 1, x] is not null && grid[y + 1, x].RoomType is RoomType.Boss)
+                    return false;
+                if (grid[y, x - 1] is not null && grid[y, x - 1].RoomType is RoomType.Boss)
+                    return false;
+                if (grid[y, x + 1] is not null && grid[y, x + 1].RoomType is RoomType.Boss)
+                    return false;
+                return true;
+            }
+        }
         private static void SetEncounterRooms(RoomBlueprint[,] grid)
         {
             foreach (var room in grid.OfType<RoomBlueprint>().Where(room => room.RoomType == RoomType.Empty))
@@ -82,15 +126,13 @@ namespace OnlyDarker.GameProcess
             oneNeighbourRoom2.RoomType = RoomType.Puzzle;
             foreach (var room in grid.OfType<RoomBlueprint>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
             {
-                int rng = RandomNumberGenerator.GetInt32(0, 2);
-                if (rng == 0)
+                int rng = RandomNumberGenerator.GetInt32(0, 5);
+                room.RoomType = rng switch
                 {
-                    room.RoomType = RoomType.Treasure;
-                }
-                else
-                {
-                    room.RoomType = RoomType.Puzzle;
-                }
+                    0 => RoomType.Treasure,
+                    1 => RoomType.Puzzle,
+                    _ => RoomType.Encounter,
+                };
             }
         }
 
@@ -154,9 +196,9 @@ namespace OnlyDarker.GameProcess
                 }
                 testIterations++;
                 if (testIterations > 10000)
-                    {
+                {
                     Debug.WriteLine("Generation took too many iterations");
-                    goto FailedGenerationRetryLabel; 
+                    goto FailedGenerationRetryLabel;
                 }
             }
             if (!(grid.OfType<RoomBlueprint>().Where(room => room.Neighbours == 1).Count() >= 4))
@@ -164,7 +206,6 @@ namespace OnlyDarker.GameProcess
                 Debug.WriteLine("Generation fail: not enough space for special rooms");
                 goto FailedGenerationRetryLabel;
             }
-
             return grid;
         }
 
@@ -215,6 +256,30 @@ namespace OnlyDarker.GameProcess
                 }
             }
         }
+        public void SetExplorationStates(Room room)
+        {
+            room.explorationState = Room.RoomExplorationState.Explored;
+            var roomUp = LevelGrid[room.GridCords.Y - 1, room.GridCords.X];
+            if (roomUp is not null && roomUp.InstanceRoomType is not RoomType.Secret && roomUp.explorationState is not Room.RoomExplorationState.Explored)
+            {
+                roomUp.explorationState = Room.RoomExplorationState.CanBeExplored;
+            }
+            var roomDown = LevelGrid[room.GridCords.Y + 1, room.GridCords.X];
+            if (roomDown is not null && roomDown.InstanceRoomType is not RoomType.Secret && roomDown.explorationState is not Room.RoomExplorationState.Explored)
+            {
+                roomDown.explorationState = Room.RoomExplorationState.CanBeExplored;
+            }
+            var roomLeft = LevelGrid[room.GridCords.Y, room.GridCords.X - 1];
+            if (roomLeft is not null && roomLeft.InstanceRoomType is not RoomType.Secret && roomLeft.explorationState is not Room.RoomExplorationState.Explored)
+            {
+                roomLeft.explorationState = Room.RoomExplorationState.CanBeExplored;
+            }
+            var roomRight = LevelGrid[room.GridCords.Y, room.GridCords.X + 1];
+            if (roomRight is not null && roomRight.InstanceRoomType is not RoomType.Secret && roomRight.explorationState is not Room.RoomExplorationState.Explored)
+            {
+                roomRight.explorationState = Room.RoomExplorationState.CanBeExplored;
+            }
+        }
     }
     public class RoomBlueprint
     {
@@ -234,5 +299,6 @@ namespace OnlyDarker.GameProcess
             X = x; Y = y;
         }
     }
+
 }
 

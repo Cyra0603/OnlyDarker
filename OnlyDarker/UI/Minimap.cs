@@ -48,8 +48,24 @@ namespace OnlyDarker.UI
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, _backGroundRect, Color.Black * 0.8F);
             foreach (var room in CurrentLevel)
             {
-                int i = (int)room.InstanceRoomType - 1;
-                GlobalUse.SpriteBatch.Draw(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.White);
+                switch (room.explorationState)
+                {
+                    case Room.RoomExplorationState.Unexplored: break;
+                    case Room.RoomExplorationState.CanBeExplored:
+                        {
+                            int i = (int)room.InstanceRoomType - 1;
+                            GlobalUse.SpriteBatch.Draw(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.White * 0.3F);
+                            //GlobalUse.SpriteBatch.Draw(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.Black * 0.3F);
+                            break;
+                        }
+                    case Room.RoomExplorationState.Explored:
+                        {
+                            int i = (int)room.InstanceRoomType - 1;
+                            GlobalUse.SpriteBatch.Draw(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.White);
+                            break;
+                        }
+                }
+
             }
             GlobalUse.SpriteBatch.Draw(_minimapIcons[^1], _iconPos * _сurrentRoom.GridCords.ToVector2(), Color.White);
             GlobalUse.SpriteBatch.Draw(_minimapFrame, _framePos, Color.White);

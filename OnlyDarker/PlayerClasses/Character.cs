@@ -174,11 +174,14 @@ namespace OnlyDarker
             InvincibilityTimer.Update(elapsedMilliseconds);
             AttackCooldown.Update(elapsedMilliseconds);
             Stamina += elapsedMilliseconds * _staminaRegenValue;
+            if (GlobalUse.IsDebugMode)
+            {
+                Stamina = MaxStamina;
+            }
             if (ControlsManager.MousePosition.X < Position.X)
                 _flipEffect = SpriteEffects.FlipHorizontally;
             else
                 _flipEffect = SpriteEffects.None;
-
             CheckForCollisions();
             CheckForInteractions();
             Position = Vector2.Clamp(Position, _minPosition, _maxPosition);

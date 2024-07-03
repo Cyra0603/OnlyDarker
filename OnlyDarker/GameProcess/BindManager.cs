@@ -1,4 +1,5 @@
-﻿using System;
+﻿using OnlyDarker.IngameMenu;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -95,17 +96,22 @@ namespace OnlyDarker.GameProcess
             }
             public async void SetControlKey()
             {
-                //while (true)
-                //{
-                //    var kbstate = Keyboard.GetState();
-                //    var pressedKeys = kbstate.GetPressedKeys();
-                //    if (pressedKeys.Length > 0 && KeyIsValid(pressedKeys[0]))
-                //    {
-                //        this.Key = pressedKeys[0];
-                //        return;
-                //    }
-
-                //}
+                while (true && GameBody.GetGameInstance().IsActive)
+                {
+                    var kbstate = Keyboard.GetState();
+                    var pressedKeys = kbstate.GetPressedKeys();
+                    if (pressedKeys.Length > 0 && KeyIsValid(pressedKeys[0]))
+                    {
+                        this.Key = pressedKeys[0];
+                        Menu.GetInstance().ControlsWindow.UpdateTitles();
+                        return;
+                    }
+                    await Task.Delay(50);
+                    if(Menu.GetInstance().WindowsStack.Peek() is not ControlsWindow)
+                    {
+                        return;
+                    }
+                }
             }
             private bool KeyIsValid(Keys key)
             {
