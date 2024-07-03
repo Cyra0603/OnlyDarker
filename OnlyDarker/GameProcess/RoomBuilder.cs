@@ -1,6 +1,7 @@
 ﻿using OnlyDarker.CommonUsing;
 using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess.SpriteClasses;
+using OnlyDarker.GameProcess.SpriteClasses.Enemies;
 using OnlyDarker.PlayerClasses;
 using System;
 using System.Collections.Generic;
@@ -31,11 +32,12 @@ namespace OnlyDarker.GameProcess
         public List<IInteractive> Interactives;
         public List<IDamageable> Damageables;
         public List<IMyUpdateable> Updateables;
+        public List<WaspSprite> EntitiesToSpawn;
         public List<RoomPortalSprite> Portals { get; private set; } = new();
         public readonly BackgroundSprite CurrentBackground;
         public readonly Level ParentLevelReference;
         public readonly RoomType InstanceRoomType;
-        public RoomExplorationState explorationState = RoomExplorationState.Unexplored;
+        public RoomExplorationState ExplorationState = RoomExplorationState.Unexplored;
         private readonly static Dictionary<Vector4, string> _presetColorTranslator = new()
         {
             {new Vector4(255,0,0,255) , "Obstacle"},
@@ -43,6 +45,7 @@ namespace OnlyDarker.GameProcess
             {new Vector4(0,0,255,255) , "Portal"},
             {new Vector4(60,60,60,255) , "TargetDummy" },
             {new Vector4(60,70,60,255) , "TargetDummyShooter" },
+            {new Vector4(60,60,70,255) , "MobSummoner" },
             {new Vector4(150,100,100,255) , "WeaponStick" },
             {new Vector4(100,150,100,255) , "WeaponSword" },
             {new Vector4(100,100,150,255) , "WeaponLance" },
@@ -51,6 +54,7 @@ namespace OnlyDarker.GameProcess
         public List<Rectangle> RoomColliders { get; private set; }
         public List<Rectangle> ObstaclesBounds { get; private set; }
         public List<Rectangle> TempRectDrawList;
+        public const int MAX_ENTITIES = 25;
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
         public Point GridCords { get; private set; }
@@ -71,6 +75,7 @@ namespace OnlyDarker.GameProcess
             Interactives = new();
             Updateables = new();
             TempRectDrawList = new();
+            EntitiesToSpawn = new();
             GridCords = new(emptyRoom.X, emptyRoom.Y);
             List<Texture2D> tileTextures = ImportTileTextures(emptyRoom.FloorType, emptyRoom.RoomType);
             List<Texture2D> standartObstacleTextures = ImportStandartObstacleTextures(emptyRoom.FloorType, emptyRoom.RoomType);
@@ -94,7 +99,21 @@ namespace OnlyDarker.GameProcess
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;
         }
-
+        public void Update(float elapsedMilliseconds)
+        {
+            foreach (var entity in EntitiesToSpawn)
+            {
+                SpawnEntity(entity);
+            }
+            EntitiesToSpawn.Clear();
+            UpdatePortals();
+            foreach (var item in Updateables)
+            {
+                item.Update(elapsedMilliseconds);
+            }
+            Updateables.RemoveAll(item => item.IsExpired);
+            Damageables.RemoveAll(entity => entity.IsExpired);
+        }
         public void Draw()
         {
             foreach (var tile in _tiles)
@@ -169,12 +188,15 @@ namespace OnlyDarker.GameProcess
                             Damageables.Add(targetDummy);
                             RoomColliders.Add(targetDummy.MovementCollider);
                             ObstaclesBounds.Add(targetDummy.BodyHitbox);
-                            {
-                                var testWasp = new WaspSprite(targetDummy.Position, this);
-                                ObjectsYSorted.Add(testWasp);
-                                Damageables.Add(testWasp);
-                                Updateables.Add(testWasp);
-                            }
+                            break;
+                        case "MobSummoner":
+                            BuildTile(tileTextures, x, y);
+                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, _tiles[x, y].Position, this, 2F, new Armor(ArmorType.Base), 30F, 15000F);
+                            ObjectsYSorted.Add(summoner);
+                            Damageables.Add(summoner);
+                            Updateables.Add(summoner);
+                            RoomColliders.Add(summoner.BodyHitbox);
+                            ObstaclesBounds.Add(summoner.BodyHitbox);
                             break;
                         case "TargetDummyShooter":
                             BuildTile(tileTextures, x, y);
@@ -248,15 +270,6 @@ namespace OnlyDarker.GameProcess
                 portal.Update();
             }
         }
-        public void Update(float elapsedMilliseconds)
-        {
-            UpdatePortals();
-            foreach (var item in Updateables)
-            {
-                item.Update(elapsedMilliseconds);
-            }
-            Updateables.RemoveAll(item => item.IsExpired);
-        }
         private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
         {
             int i = GlobalUse.SeededStandartRNG.Next(0, standartObstacleTextures.Count);
@@ -273,6 +286,14 @@ namespace OnlyDarker.GameProcess
         {
             int i = GlobalUse.SeededStandartRNG.Next(0, portalTextures.Count);
             Portals.Add(new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), portalDirection, this));
+        }
+        public void SpawnEntity(WaspSprite wasp /*temp*/)
+        {
+            if(Damageables.Count >= MAX_ENTITIES)
+                return;
+            Damageables.Add(wasp);
+            Updateables.Add(wasp);
+            ObjectsYSorted.Add(wasp);
         }
         private static Vector4 ColorToVector4(Color color)
         {

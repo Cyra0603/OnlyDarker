@@ -45,6 +45,8 @@ namespace OnlyDarker
         }
         public void UpdateInputs()
         {
+            if (!GameBody.GetGameInstance().IsActive)
+                return;
             var keyboardState = Keyboard.GetState();
             foreach (var bind in BindManager.AppHotKeys)
             {
@@ -57,6 +59,8 @@ namespace OnlyDarker
         }
         public void UpdatePlayerControls()
         {
+            if (!GameBody.GetGameInstance().IsActive)
+                return;
             var keyboardState = Keyboard.GetState();
             foreach (var bind in BindManager.BindList)
             {

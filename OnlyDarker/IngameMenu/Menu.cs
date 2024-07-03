@@ -45,7 +45,7 @@ namespace OnlyDarker.IngameMenu
             if (WindowsStack.Count == 0)
             {
                 Debug.WriteLine("WindowsStack is empty");
-                GameBody.GetGameInstance().GameUpause();
+                GameBody.GetGameInstance().GameUnpause();
                 return;
             }
             var mstate = Mouse.GetState();
@@ -89,7 +89,7 @@ namespace OnlyDarker.IngameMenu
         {
             IsHighlighted = false;
             var cursorRect = new Rectangle(mstate.Position.X, mstate.Position.Y, 1, 1);
-            if (Bounds.Intersects(cursorRect))
+            if (GameBody.GetGameInstance().IsActive && Bounds.Intersects(cursorRect))
             {
                 IsHighlighted = true;
                 if (mstate.LeftButton == ButtonState.Released && Menu.GetInstance().LastMouseState == ButtonState.Pressed)

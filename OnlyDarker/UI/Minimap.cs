@@ -48,7 +48,7 @@ namespace OnlyDarker.UI
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, _backGroundRect, Color.Black * 0.8F);
             foreach (var room in CurrentLevel)
             {
-                switch (room.explorationState)
+                switch (room.ExplorationState)
                 {
                     case Room.RoomExplorationState.Unexplored: break;
                     case Room.RoomExplorationState.CanBeExplored:

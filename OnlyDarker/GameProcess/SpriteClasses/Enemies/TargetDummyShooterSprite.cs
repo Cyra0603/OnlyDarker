@@ -5,7 +5,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OnlyDarker.GameProcess.SpriteClasses
+namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
 {
     public class TargetDummyShooterSprite : IDamageable, IYSortable, IMyUpdateable
     {
@@ -22,6 +22,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public List<Armor> ArmorSet { get; } = new();
         public bool IsExpired { get; private set; } = false;
         public bool IsInvincible { get; set; }
+        public bool IsPushable { get; } = false;
         private float _healthPoints = 10000;
         public float HealthPoints
         {

@@ -118,6 +118,7 @@ namespace OnlyDarker
             get => InvincibilityTimer.TimeLeft > 0;
             set { }
         }
+        public bool IsPushable { get; set; } = false;
 
         public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteStandartTile parentTile)
         {
@@ -302,7 +303,8 @@ namespace OnlyDarker
         //}
         public void TestTakingDamage()
         {
-            (this as IDamageable).TakeDamage(new(1, 1, DamageType.Blunt, false));
+            DamageInstance testD = new(1, 1, DamageType.Blunt, false);
+            TakeDamage(in testD);
         }
         public void TestHealing()
         {
@@ -377,7 +379,7 @@ namespace OnlyDarker
             layerDepth: 1F));
         }
 
-        public void TakeDamage(DamageInstance damage)
+        public void TakeDamage(in DamageInstance damage)
         {
             if (!IsInvincible)
             {

@@ -1,5 +1,7 @@
 ﻿using OnlyDarker.CommonUsing;
 using System.Collections.Generic;
+using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
@@ -11,11 +13,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         static Vector2 SwayOffset => new(0, (float)Math.Sin(GameBody.GetGameInstance().GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
         public Rectangle BodyHitbox => new((int)Position.X, (int)Position.Y, _texture.Width, _texture.Height);
         private readonly Room _parentRoomRef;
-        const float SWAY_AMPLITUDE = 1F;
+        const float SWAY_AMPLITUDE = 0.5F;
         const float SWAY_FREQUENCY = 5F;
         public bool IsExpired { get; set; }
         public bool IsInvincible { get; }
-        public float MaxHealthPoints {get;}
+        public bool IsPushable { get; } = true;
+        public float MaxHealthPoints { get; }
         private float _healthPoints;
         public float HealthPoints
         {
@@ -30,6 +33,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             }
         }
         private float _baseDamage = 1F;
+        private float _baseSpeed = 0.7F;
         private Armor _baseArmor;
 
         public List<Armor> ArmorSet { get; protected set; }
@@ -52,7 +56,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         public void Draw()
         {
-            if(IsExpired)
+            if (IsExpired)
             {
                 GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Vector2.Zero, 1F, SpriteEffects.FlipVertically, 1F);
                 return;
@@ -62,7 +66,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             {
                 fliphz = SpriteEffects.FlipHorizontally;
             }
-            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White,0F, Vector2.Zero,1F,fliphz, 1F);
+            GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White, 0F, Vector2.Zero, 1F, fliphz, 1F);
         }
 
         public void Update(float elapsedMilliseconds)
@@ -72,13 +76,28 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 Respawn();
                 return;
             }
-            var posDif = GameBody.GetGameInstance().MainCharacter.Position - Position;
-            Position += posDif / posDif.Length();
-            Position += SwayOffset;
-            if (BodyHitbox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
+            if (_parentRoomRef.Damageables.Any(entity => entity.BodyHitbox.Intersects(BodyHitbox) && entity != this))
             {
-                GameBody.GetGameInstance().MainCharacter.TakeDamage(new(_baseDamage, 1, DamageType.Poke, false));
+                foreach (var entity in _parentRoomRef.Damageables.Where(entity => entity.BodyHitbox.Intersects(BodyHitbox) && entity != this))
+                {
+                    var posDif = entity.Position - Position;
+                    var force = posDif / posDif.Length();
+                    entity.Push(in force);
+                }
             }
+            if (!BodyHitbox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
+            {
+                var posDif = GameBody.GetGameInstance().MainCharacter.Position - Position;
+                Position += posDif / posDif.Length() * _baseSpeed;
+            }
+            else
+            {
+                var posDif = GameBody.GetGameInstance().MainCharacter.Position - Position;
+                Position += posDif / posDif.LengthSquared();
+                DamageInstance damage = new(_baseDamage, 1, DamageType.Poke, false);
+                GameBody.GetGameInstance().MainCharacter.TakeDamage(in damage);
+            }
+            Position += SwayOffset;
         }
         public void Respawn()
         {

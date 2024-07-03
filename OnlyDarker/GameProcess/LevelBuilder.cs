@@ -258,26 +258,26 @@ namespace OnlyDarker.GameProcess
         }
         public void SetExplorationStates(Room room)
         {
-            room.explorationState = Room.RoomExplorationState.Explored;
+            room.ExplorationState = Room.RoomExplorationState.Explored;
             var roomUp = LevelGrid[room.GridCords.Y - 1, room.GridCords.X];
-            if (roomUp is not null && roomUp.InstanceRoomType is not RoomType.Secret && roomUp.explorationState is not Room.RoomExplorationState.Explored)
+            if (roomUp is not null && roomUp.InstanceRoomType is not RoomType.Secret && roomUp.ExplorationState is not Room.RoomExplorationState.Explored)
             {
-                roomUp.explorationState = Room.RoomExplorationState.CanBeExplored;
+                roomUp.ExplorationState = Room.RoomExplorationState.CanBeExplored;
             }
             var roomDown = LevelGrid[room.GridCords.Y + 1, room.GridCords.X];
-            if (roomDown is not null && roomDown.InstanceRoomType is not RoomType.Secret && roomDown.explorationState is not Room.RoomExplorationState.Explored)
+            if (roomDown is not null && roomDown.InstanceRoomType is not RoomType.Secret && roomDown.ExplorationState is not Room.RoomExplorationState.Explored)
             {
-                roomDown.explorationState = Room.RoomExplorationState.CanBeExplored;
+                roomDown.ExplorationState = Room.RoomExplorationState.CanBeExplored;
             }
             var roomLeft = LevelGrid[room.GridCords.Y, room.GridCords.X - 1];
-            if (roomLeft is not null && roomLeft.InstanceRoomType is not RoomType.Secret && roomLeft.explorationState is not Room.RoomExplorationState.Explored)
+            if (roomLeft is not null && roomLeft.InstanceRoomType is not RoomType.Secret && roomLeft.ExplorationState is not Room.RoomExplorationState.Explored)
             {
-                roomLeft.explorationState = Room.RoomExplorationState.CanBeExplored;
+                roomLeft.ExplorationState = Room.RoomExplorationState.CanBeExplored;
             }
             var roomRight = LevelGrid[room.GridCords.Y, room.GridCords.X + 1];
-            if (roomRight is not null && roomRight.InstanceRoomType is not RoomType.Secret && roomRight.explorationState is not Room.RoomExplorationState.Explored)
+            if (roomRight is not null && roomRight.InstanceRoomType is not RoomType.Secret && roomRight.ExplorationState is not Room.RoomExplorationState.Explored)
             {
-                roomRight.explorationState = Room.RoomExplorationState.CanBeExplored;
+                roomRight.ExplorationState = Room.RoomExplorationState.CanBeExplored;
             }
         }
     }

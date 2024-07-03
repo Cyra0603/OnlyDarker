@@ -378,7 +378,7 @@ namespace OnlyDarker
                 return;
             }
         }
-        public void GameUpause()
+        public void GameUnpause()
         {
             if (_gameState == GameState.Paused)
             {

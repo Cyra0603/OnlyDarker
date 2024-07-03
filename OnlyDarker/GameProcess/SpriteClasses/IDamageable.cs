@@ -14,10 +14,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         Vector2 Position { get; set; }
         Rectangle BodyHitbox { get; }
         bool IsInvincible { get; }
+        bool IsExpired { get; }
+        bool IsPushable { get; }
         float HealthPoints { get; set; }
         float MaxHealthPoints { get; }
         List<Armor> ArmorSet { get; }
-        void TakeDamage(DamageInstance damage)
+        void TakeDamage(in DamageInstance damage)
         {
             if (IsInvincible)
             {
@@ -41,6 +43,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Green);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Red * (1 - (HealthPoints / MaxHealthPoints)));
             GameBody.DrawRectangleOutline(bounds, Color.Black);
+        }
+        void Push(in Vector2 force)
+        {
+            if(IsPushable)
+                Position += force;
         }
     }
 }
