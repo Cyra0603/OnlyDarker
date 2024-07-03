@@ -35,11 +35,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private float _baseDamage = 1F;
         private float _baseSpeed = 0.7F;
         private Armor _baseArmor;
-
         public List<Armor> ArmorSet { get; protected set; }
-
-
-
         public WaspSprite(Vector2 position, Room parentRoomRef)
         {
             Position = position;
@@ -99,6 +95,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             }
             Position += SwayOffset;
         }
+
         public void Respawn()
         {
             HealthPoints = MaxHealthPoints;
