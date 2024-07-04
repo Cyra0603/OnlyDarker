@@ -13,6 +13,7 @@ using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace OnlyDarker.GameProcess
 {
@@ -29,10 +30,11 @@ namespace OnlyDarker.GameProcess
         public readonly SpriteStandartTile[,] _tiles;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
         public List<IYSortable> ObjectsYSorted;
+        public List<INonSortable> ObjectsNotSorted;
         public List<IInteractive> Interactives;
         public List<IDamageable> Damageables;
         public List<IMyUpdateable> Updateables;
-        public List<WaspSprite> EntitiesToSpawn;
+        public Stack<object> EntitiesToSpawn;
         public List<RoomPortalSprite> Portals { get; private set; } = new();
         public readonly BackgroundSprite CurrentBackground;
         public readonly Level ParentLevelReference;
@@ -69,6 +71,7 @@ namespace OnlyDarker.GameProcess
             _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
             ObjectsYSorted = new();
+            ObjectsNotSorted = new();
             RoomColliders = new();
             ObstaclesBounds = new();
             Damageables = new();
@@ -101,16 +104,15 @@ namespace OnlyDarker.GameProcess
         }
         public void Update(float elapsedMilliseconds)
         {
-            foreach (var entity in EntitiesToSpawn)
+            for (int i = 0; i < EntitiesToSpawn.Count; i++)
             {
-                SpawnEntity(entity);
+                SpawnEntity(EntitiesToSpawn.Pop());
             }
-            EntitiesToSpawn.Clear();
-            UpdatePortals();
             foreach (var item in Updateables)
             {
                 item.Update(elapsedMilliseconds);
             }
+            UpdatePortals();
             Updateables.RemoveAll(item => item.IsExpired);
             Damageables.RemoveAll(entity => entity.IsExpired);
         }
@@ -128,6 +130,12 @@ namespace OnlyDarker.GameProcess
             for (int i = 0; i < ySortedAsSpan.Length; i++)
             {
                 var obj = ySortedAsSpan[i];
+                obj.Draw();
+            }
+            Span<INonSortable> nonSortedAsSpan = CollectionsMarshal.AsSpan(ObjectsNotSorted);
+            for (int i = 0; i < nonSortedAsSpan.Length; i++)
+            {
+                var obj = nonSortedAsSpan[i];
                 obj.Draw();
             }
         }
@@ -191,7 +199,7 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "MobSummoner":
                             BuildTile(tileTextures, x, y);
-                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, _tiles[x, y].Position, this, 2F, new Armor(ArmorType.Base), 30F, 15000F);
+                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[x, y].Position, this), _tiles[x, y].Position, this, 2F, new Armor(ArmorType.Base), 30F, 15000F, 5);
                             ObjectsYSorted.Add(summoner);
                             Damageables.Add(summoner);
                             Updateables.Add(summoner);
@@ -287,13 +295,38 @@ namespace OnlyDarker.GameProcess
             int i = GlobalUse.SeededStandartRNG.Next(0, portalTextures.Count);
             Portals.Add(new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), portalDirection, this));
         }
-        public void SpawnEntity(WaspSprite wasp /*temp*/)
+        public void SpawnEntity(object entity)
         {
             if(Damageables.Count >= MAX_ENTITIES)
                 return;
-            Damageables.Add(wasp);
-            Updateables.Add(wasp);
-            ObjectsYSorted.Add(wasp);
+            if(TryCast<IDamageable>(entity, out  var damageable))
+            {
+                Damageables.Add(damageable);
+            }
+            if (TryCast<IMyUpdateable>(entity, out var updateable))
+            {
+            Updateables.Add(updateable);
+            }
+            if (TryCast<INonSortable>(entity, out var nonSortable))
+            {
+                ObjectsNotSorted.Add(nonSortable);
+            }
+            if (TryCast<IYSortable>(entity, out var ySortable))
+            {
+                ObjectsYSorted.Add(ySortable);
+            }
+            bool TryCast<T>(object obj, out T cast)
+            {
+                if (obj is T value)
+                {
+                    cast = value;
+                    return true;
+                }
+                cast = default;
+                Type t = typeof(T);
+                Debug.WriteLine($"Spawn failed cast: object non {t}");
+                return false;
+            }
         }
         private static Vector4 ColorToVector4(Color color)
         {

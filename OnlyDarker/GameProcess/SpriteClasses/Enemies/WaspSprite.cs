@@ -5,14 +5,14 @@ using System.Runtime.CompilerServices;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class WaspSprite : IYSortable, IMyUpdateable, IDamageable
+    public class WaspSprite : INonSortable, IMyUpdateable, IDamageable, ISummonable
     {
         private readonly Texture2D _texture = GameBody.GetGameInstance().TextureMapper.WaspSpriteTexture;
         private readonly Vector2 _initialPosition;
         public Vector2 Position { get; set; }
         static Vector2 SwayOffset => new(0, (float)Math.Sin(GameBody.GetGameInstance().GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
         public Rectangle BodyHitbox => new((int)Position.X, (int)Position.Y, _texture.Width, _texture.Height);
-        private readonly Room _parentRoomRef;
+        public Room ParentRoomRef { get; }
         const float SWAY_AMPLITUDE = 0.5F;
         const float SWAY_FREQUENCY = 5F;
         public bool IsExpired { get; set; }
@@ -40,7 +40,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Position = position;
             _initialPosition = position;
-            _parentRoomRef = parentRoomRef;
+            ParentRoomRef = parentRoomRef;
             _baseArmor = new(ArmorType.Base, pokeX: 0.95F, bluntX: 1.1F);
             ArmorSet = new List<Armor>
             {
@@ -67,14 +67,14 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         public void Update(float elapsedMilliseconds)
         {
-            if (!IsExpired && GameBody.GetGameInstance().SceneManager.CurrentRoom != _parentRoomRef)
+            if (!IsExpired && GameBody.GetGameInstance().SceneManager.CurrentRoom != ParentRoomRef)
             {
                 Respawn();
                 return;
             }
-            if (_parentRoomRef.Damageables.Any(entity => entity.BodyHitbox.Intersects(BodyHitbox) && entity != this))
+            if (ParentRoomRef.Damageables.Any(entity => entity.BodyHitbox.Intersects(BodyHitbox) && entity != this))
             {
-                foreach (var entity in _parentRoomRef.Damageables.Where(entity => entity.BodyHitbox.Intersects(BodyHitbox) && entity != this))
+                foreach (var entity in ParentRoomRef.Damageables.Where(entity => entity.BodyHitbox.Intersects(BodyHitbox) && entity != this))
                 {
                     var posDif = entity.Position - Position;
                     var force = posDif / posDif.Length();
@@ -101,6 +101,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             HealthPoints = MaxHealthPoints;
             Position = _initialPosition;
         }
-
+        public void GetCopy(out ISummonable copy)
+        {
+            copy = new WaspSprite(Position, ParentRoomRef);
+        }
     }
 }

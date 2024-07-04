@@ -1,5 +1,6 @@
 ﻿using OnlyDarker.CommonUsing;
 using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Linq;
 using System.Security.Cryptography;
@@ -33,20 +34,24 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             }
         }
         private Timer _summonTimer;
+        private ISummonable _summonableEntity;
         private float _summonCooldownTime;
         private float _baseDamage;
+        private int _maxSummons;
         private Armor _baseArmor;
         public List<Armor> ArmorSet { get; protected set; }
-        public MobSummonerSprite(Texture2D texture, Vector2 position, Room parentRoomRef, float contactDamage, Armor baseArmor, float healthPoints, float summonCooldownMs)
+        public MobSummonerSprite(Texture2D texture, ISummonable summonableEntity, Vector2 position, Room parentRoomRef, float contactDamage, Armor baseArmor, float healthPoints, float summonCooldownMs, int maxSummons)
         {
             _texture = texture;
             Position = position;
+            _summonableEntity = summonableEntity;
             _initialPosition = position;
             _parentRoomRef = parentRoomRef;
             _baseDamage = contactDamage;
             _baseArmor = baseArmor;
             _summonCooldownTime = summonCooldownMs;
             _summonTimer.TimeLeft = RandomizeSpawnTime();
+            _maxSummons = maxSummons;
             ArmorSet = new List<Armor>
             {
                 _baseArmor
@@ -68,11 +73,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 Respawn();
                 return;
             }
-            if(_summonTimer.TimeLeft <= 0)
+            if(_maxSummons > 0 && _summonTimer.TimeLeft <= 0)
             {
-                var summon = new WaspSprite(Position, _parentRoomRef);
-                _parentRoomRef.EntitiesToSpawn.Add(summon);
+                _summonableEntity.GetCopy(out var summon);
+                _parentRoomRef.EntitiesToSpawn.Push(summon);
                 _summonTimer.TimeLeft = RandomizeSpawnTime();
+                _maxSummons--;
             }
             if (BodyHitbox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
             {

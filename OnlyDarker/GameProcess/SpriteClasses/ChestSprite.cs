@@ -85,9 +85,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         private void DropLoot()
         {
-            var loottablevalue = 5;//TEMP
-            var loot = new List<HeartPickupSprite>(loottablevalue);
-            for(int i = 0; i < loottablevalue; i++)
+            var lootTableValue = 5;//TEMP
+            var loot = new List<HeartPickupSprite>(lootTableValue);
+            for(int i = 0; i < lootTableValue; i++)
             {
                 var offsetx = RandomNumberGenerator.GetInt32(-50, 51);
                 var offsety = RandomNumberGenerator.GetInt32(-50, 51);
