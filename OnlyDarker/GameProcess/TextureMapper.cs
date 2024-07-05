@@ -10,14 +10,28 @@ namespace OnlyDarker.GameProcess
 {
     public class TextureMapper
     {
+        private static TextureMapper _instance;
+        public Texture2D DummyProjectileSprite { get;private set; }
+        public Texture2D DruidProjectileSprite { get; private set; }
         public Texture2D HeartPickupSpriteTexture { get; private set; }
         public Texture2D WaspSpriteTexture { get; private set; }
         public Texture2D TargetDummySpriteTexture { get; private set; }
-        public TextureMapper()
+        private TextureMapper()
         {
             WaspSpriteTexture = GlobalUse.Content.Load<Texture2D>("Entities/Floor/One/WaspSprite");
             HeartPickupSpriteTexture = GlobalUse.Content.Load<Texture2D>("PickupSprites/HeartPickupSprite");
             TargetDummySpriteTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummy/TargetDummy");
+            DummyProjectileSprite = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummyShooter/DummyShooterProjectile");
+            DruidProjectileSprite = GlobalUse.Content.Load<Texture2D>("Entities/DruidBoss/DruidSeed");
+            _instance = this;
+        }
+        public static TextureMapper GetInstance()
+        {
+            if(_instance is null)
+            {
+                return new TextureMapper();
+            }
+            return _instance;
         }
     }
 }

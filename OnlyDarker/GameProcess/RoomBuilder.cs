@@ -52,6 +52,7 @@ namespace OnlyDarker.GameProcess
             {new Vector4(100,150,100,255) , "WeaponSword" },
             {new Vector4(100,100,150,255) , "WeaponLance" },
             {new Vector4(200,200,0,255) , "WoodenChest" },
+            {new Vector4(70,60,60,255) , "Boss" },
         };
         public List<Rectangle> RoomColliders { get; private set; }
         public List<Rectangle> ObstaclesBounds { get; private set; }
@@ -240,6 +241,13 @@ namespace OnlyDarker.GameProcess
                             BuildTile(tileTextures, x, y);
                             var chestTest = new ChestSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), this);
                             break;
+                        case "Boss":
+                            BuildTile(tileTextures, x, y);
+                            var testBoss = new FloorOneBossSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, this, _tiles[x, y].Position, 50F, "the druid");
+                            ObjectsYSorted.Add(testBoss);
+                            Damageables.Add(testBoss);
+                            Updateables.Add(testBoss);
+                            break;
                         default:
                             BuildTile(tileTextures, x, y);
                             break;
@@ -297,15 +305,15 @@ namespace OnlyDarker.GameProcess
         }
         public void SpawnEntity(object entity)
         {
-            if(Damageables.Count >= MAX_ENTITIES)
+            if (Damageables.Count >= MAX_ENTITIES)
                 return;
-            if(TryCast<IDamageable>(entity, out  var damageable))
+            if (TryCast<IDamageable>(entity, out var damageable))
             {
                 Damageables.Add(damageable);
             }
             if (TryCast<IMyUpdateable>(entity, out var updateable))
             {
-            Updateables.Add(updateable);
+                Updateables.Add(updateable);
             }
             if (TryCast<INonSortable>(entity, out var nonSortable))
             {

@@ -33,7 +33,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Lifetime.Update(elapsedMilliseconds);
             if (Lifetime.TimeLeft > 0 && this.HurtBox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
             {
-                GameBody.GetGameInstance().MainCharacter.TakeDamage(_damageInstance);
+                GameBody.GetGameInstance().MainCharacter.TakeDamage(in _damageInstance);
                 Lifetime.TimeLeft = 0;
             }
         }
@@ -44,10 +44,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public void ChangeForce(Vector2 force)
         {
             Force = force;
-        }
-        ~ProjectileSprite()
-        {
-            Debug.WriteLineIf(GlobalUse.IsDebugMode, "projectile disposed");
         }
     }
 }

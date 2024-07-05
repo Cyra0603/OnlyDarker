@@ -33,6 +33,7 @@ namespace OnlyDarker
         private StatsBar _statsBar;
         private CurrentFloorBar _currentFloorBar;
         private InteractionMessageBar _interactionMessageBar;
+        private BossHPBar _bossHPBar;
         private Minimap _minimap;
         public static Texture2D EmptyTexture { get; private set; }
         public List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
@@ -104,7 +105,7 @@ namespace OnlyDarker
             EmptyTexture = new Texture2D(GraphicsManager.GraphicsDevice, 1, 1);
             EmptyTexture.SetData(new[] { Color.White });
 
-            TextureMapper = new();
+            TextureMapper = TextureMapper.GetInstance();
 
             _timeElapsed += FixedTimeStepUpdate;
 
@@ -151,6 +152,8 @@ namespace OnlyDarker
             _staminaBar = new(GraphicsManager.GraphicsDevice);
 
             _interactionMessageBar = InteractionMessageBar.GetInstance();
+
+            _bossHPBar = BossHPBar.GetInstance();
 
             UpdateFPS();
 
@@ -294,6 +297,7 @@ namespace OnlyDarker
             _currentFloorBar.Draw();
             _staminaBar.Draw();
             _interactionMessageBar.Draw();
+            _bossHPBar.Draw();
             GlobalUse.SpriteBatch.End();
             if (_gameState == GameState.Paused)
             {
