@@ -9,15 +9,21 @@ namespace OnlyDarker.GameProcess
 {
     public interface IFloorConfig
     {
-        public Point GridSize { get; }
-        public int MaxRooms { get; }
+        Point GridSize { get; }
+        int MaxRooms { get; }
     }
-    //GridSize Y and X values must be odd!!
     public class FloorOneConfig : IFloorConfig
     {
         private readonly int _gridSizeValue = 27;
-        Point IFloorConfig.GridSize => new(_gridSizeValue, _gridSizeValue);
-        int IFloorConfig.MaxRooms => (_gridSizeValue - 1) / 2;
+        public Point GridSize => new(_gridSizeValue, _gridSizeValue);
+        public int MaxRooms => (_gridSizeValue - 1) / 2;
         public FloorOneConfig() { }
+    }
+    public class FloorTwoConfig : IFloorConfig
+    {
+        private readonly int _gridSizeValue = 29;
+        public Point GridSize => new(_gridSizeValue, _gridSizeValue);
+        public int MaxRooms => (_gridSizeValue - 1) / 2;
+        public FloorTwoConfig() { }
     }
 }

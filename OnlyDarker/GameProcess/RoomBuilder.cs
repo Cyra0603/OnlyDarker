@@ -29,6 +29,7 @@ namespace OnlyDarker.GameProcess
         private readonly Texture2D _roomPresetImage;
         public readonly SpriteStandartTile[,] _tiles;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
+        public readonly SpriteStandartTile[] _tilesToDraw;
         public List<IYSortable> ObjectsYSorted;
         public List<INonSortable> ObjectsNotSorted;
         public List<IInteractive> Interactives;
@@ -70,6 +71,7 @@ namespace OnlyDarker.GameProcess
             _roomTileSize.X = presetData.GetLength(0);
             CurrentBackground = new(emptyRoom.FloorType);
             _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
+            _tilesToDraw = new SpriteStandartTile[_tiles.Length];
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
             ObjectsYSorted = new();
             ObjectsNotSorted = new();
@@ -87,6 +89,12 @@ namespace OnlyDarker.GameProcess
             TileSize = new(tileTextures[0].Width, tileTextures[0].Height);
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
             FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, emptyRoom);
+            int i = 0;
+            foreach (var tile in _tiles)
+            {
+                _tilesToDraw[i] = tile;
+                i++;
+            }
             foreach (var obstacle in _standartObstacles)
             {
                 if (obstacle is not null)
@@ -95,10 +103,6 @@ namespace OnlyDarker.GameProcess
                     ObstaclesBounds.Add(obstacle.Bounds);
                     ObjectsYSorted.Add(obstacle);
                 }
-            }
-            foreach (var portal in Portals)
-            {
-                ObjectsYSorted.Add(portal);
             }
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;
@@ -119,14 +123,18 @@ namespace OnlyDarker.GameProcess
         }
         public void Draw()
         {
-            foreach (var tile in _tiles)
+            Span<SpriteStandartTile> tilesAsSpan = _tilesToDraw;
+            for (int i = 0; i < tilesAsSpan.Length; i++)
             {
+                var tile = tilesAsSpan[i];
                 tile?.Draw();
             }
-            //foreach (var obj in ObjectsYSorted)
-            //{
-            //    obj.Draw();
-            //}
+            Span<RoomPortalSprite> portalsAsSpan = CollectionsMarshal.AsSpan(Portals);
+            for (int i = 0; i < portalsAsSpan.Length; i++)
+            {
+                var obj = portalsAsSpan[i];
+                obj.Draw();
+            }
             Span<IYSortable> ySortedAsSpan = CollectionsMarshal.AsSpan(ObjectsYSorted);
             for (int i = 0; i < ySortedAsSpan.Length; i++)
             {
@@ -144,12 +152,12 @@ namespace OnlyDarker.GameProcess
         {
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
         }
-        private static Texture2D ImportPreset(Floor floor, RoomType roomType)
+        private static Texture2D ImportPreset(Floor floorType, RoomType roomType)
         {
             var rng = new Random();
-            string contentDir = $"Floor/{floor}/RoomType/{roomType}/Presets";
+            string contentDir = $"Floor/{floorType.GetName()}/RoomType/{roomType.GetName()}/Presets";
             int contentDirCount = Directory.EnumerateFiles("Content/" + contentDir, "*.xnb").Count();
-            return GlobalUse.Content.Load<Texture2D>(contentDir + $"/Preset{floor}{roomType}{rng.Next(1, contentDirCount)}");
+            return GlobalUse.Content.Load<Texture2D>(contentDir + $"/Preset{floorType.GetName()}{roomType.GetName()}{rng.Next(1, contentDirCount)}");
         }
         private static Color[,] TextureTo2DArray(Texture2D texture)
         {
@@ -340,9 +348,9 @@ namespace OnlyDarker.GameProcess
         {
             return new Vector4(color.R, color.G, color.B, color.A);
         }
-        private static List<Texture2D> ImportTileTextures(Floor floor, RoomType roomType)
+        private static List<Texture2D> ImportTileTextures(Floor floorType, RoomType roomType)
         {
-            string dirContentPath = $"Content/Floor/{floor}/RoomType/{roomType}/Tile";
+            string dirContentPath = $"Content/Floor/{floorType.GetName()}/RoomType/{roomType.GetName()}/Tile";
             int dirTextureCount = Directory.EnumerateFiles(dirContentPath, "*.xnb").Count();
 
             List<Texture2D> tileTextures = new(dirTextureCount);
@@ -351,16 +359,16 @@ namespace OnlyDarker.GameProcess
             {
                 for (int i = 1; i <= dirTextureCount; i++)
                 {
-                    tileTextures.Add(GlobalUse.Content.Load<Texture2D>($"Floor/{floor}/RoomType/{roomType}/Tile/{roomType}{i}"));
+                    tileTextures.Add(GlobalUse.Content.Load<Texture2D>($"Floor/{floorType.GetName()}/RoomType/{roomType.GetName()}/Tile/{roomType.GetName()}{i}"));
                 }
             }
             catch (NullReferenceException) { throw; }
 
             return tileTextures;
         }
-        private static List<Texture2D> ImportStandartObstacleTextures(Floor floor, RoomType roomType)
+        private static List<Texture2D> ImportStandartObstacleTextures(Floor floorType, RoomType roomType)
         {
-            string dirContentPath = $"Content/Floor/{floor}/RoomType/{roomType}/StandartObstacle";
+            string dirContentPath = $"Content/Floor/{floorType.GetName()}/RoomType/{roomType.GetName()}/StandartObstacle";
             int dirTextureCount = Directory.EnumerateFiles(dirContentPath, "*.xnb").Count();
 
             List<Texture2D> standartObstacleTextures = new(dirTextureCount);
@@ -369,14 +377,14 @@ namespace OnlyDarker.GameProcess
             {
                 for (int i = 1; i <= dirTextureCount; i++)
                 {
-                    standartObstacleTextures.Add(GlobalUse.Content.Load<Texture2D>($"Floor/{floor}/RoomType/{roomType}/StandartObstacle/{roomType}{i}"));
+                    standartObstacleTextures.Add(GlobalUse.Content.Load<Texture2D>($"Floor/{floorType.GetName()}/RoomType/{roomType.GetName()}/StandartObstacle/{roomType.GetName()}{i}"));
                 }
             }
             catch (NullReferenceException) { throw; }
 
             return standartObstacleTextures;
         }
-        private static List<Texture2D> ImportPortalTextures(Floor floor, RoomType roomType) //Temp
+        private static List<Texture2D> ImportPortalTextures(Floor floorType, RoomType roomType) //Temp
         {
             string dirContentPath = $"Content/RoomGates";
             int dirTextureCount = Directory.EnumerateFiles(dirContentPath, "*.xnb").Count();

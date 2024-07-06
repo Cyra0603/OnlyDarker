@@ -39,7 +39,6 @@ namespace OnlyDarker.GameProcess
             SetEncounterRooms(grid);
             SetRoomDirections(grid);
             SetSecretRoom(grid, floor);
-
             LevelGrid = new Room[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
             BuildRooms(grid);
             LinkPortals();

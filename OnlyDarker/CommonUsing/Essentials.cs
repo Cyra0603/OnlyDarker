@@ -5,6 +5,7 @@ global using Microsoft.Xna.Framework.Input;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
@@ -95,15 +96,68 @@ namespace OnlyDarker.CommonUsing
         {
             IsDebugMode = !IsDebugMode;
         }
-        public static bool TryChance (float chance)
+        public static bool TryChance(float chance)
         {
             var value = RandomNumberGenerator.GetInt32(0, 101);
             return value < chance;
         }
         public static bool TryBasicRNG(float chance)
         {
-            var value = SeededStandartRNG.Next(0,101);
+            var value = SeededStandartRNG.Next(0, 101);
             return value < chance;
         }
+        public static string GetName(this Floor floorType) => floorType switch
+        {
+            Floor.One => nameof(Floor.One),
+            Floor.Two => nameof(Floor.Two),
+            Floor.Three => nameof(Floor.Three),
+            Floor.Four => nameof(Floor.Four),
+            Floor.Five => nameof(Floor.Five),
+            Floor.Six => nameof(Floor.Six),
+            Floor.Seven => nameof(Floor.Seven),
+            Floor.Eight => nameof(Floor.Eight),
+            Floor.Nine => nameof(Floor.Nine),
+            Floor.Ten => nameof(Floor.Ten),
+            Floor.Eleven => nameof(Floor.Eleven),
+            Floor.Twelve => nameof(Floor.Twelve),
+            Floor.Thirteen => nameof(Floor.Thirteen),
+            _ => throw new ArgumentOutOfRangeException(nameof(floorType), floorType, null)
+        };
+        public static string GetName(this RoomType roomType) => roomType switch
+        {
+            RoomType.Empty => nameof(RoomType.Empty),
+            RoomType.Entry => nameof(RoomType.Entry),
+            RoomType.Encounter => nameof(RoomType.Encounter),
+            RoomType.Puzzle => nameof(RoomType.Puzzle),
+            RoomType.Secret => nameof(RoomType.Secret),
+            RoomType.Treasure => nameof(RoomType.Treasure),
+            RoomType.Boss => nameof(RoomType.Boss),
+            _ => throw new ArgumentOutOfRangeException(nameof(roomType), roomType, null)
+        };
+        public static string GetName(this DamageType damageType) => damageType switch
+        {
+            DamageType.Poke => nameof(DamageType.Poke),
+            DamageType.Slice => nameof(DamageType.Slice),
+            DamageType.Blunt => nameof(DamageType.Blunt),
+            _ => throw new ArgumentOutOfRangeException(nameof(damageType), damageType, null)
+        };
+        public static string GetName(this ArmorType armorType) => armorType switch
+        {
+            ArmorType.Base => nameof(ArmorType.Base),
+            ArmorType.Helmet => nameof(ArmorType.Helmet),
+            ArmorType.Chest => nameof(ArmorType.Chest),
+            ArmorType.Pants => nameof(ArmorType.Pants),
+            ArmorType.Gloves => nameof(ArmorType.Gloves),
+            ArmorType.Boots => nameof(ArmorType.Boots),
+            _ => throw new ArgumentOutOfRangeException(nameof(armorType), armorType, null)
+        };
+        public static string GetName(this ChestType chestType) => chestType switch
+        {
+            ChestType.Wooden => nameof(ChestType.Wooden),
+            ChestType.Iron => nameof(ChestType.Iron),
+            ChestType.Golden => nameof(ChestType.Golden),
+            ChestType.Luxurious => nameof(ChestType.Luxurious),
+            _ => throw new ArgumentOutOfRangeException(nameof(chestType), chestType, null)
+        };
     }
 }
