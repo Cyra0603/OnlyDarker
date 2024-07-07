@@ -126,8 +126,6 @@ namespace OnlyDarker
 
             BindManager = BindManager.GetInstance();
 
-            BindManager.ExitApplication.KeyPressed += Exit;
-
             BindManager.TogglePause.KeyPressed += GamePause;
 
             BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
@@ -154,6 +152,8 @@ namespace OnlyDarker
             _interactionMessageBar = InteractionMessageBar.GetInstance();
 
             _bossHPBar = BossHPBar.GetInstance();
+
+            DamageType.Poke.ToString();
 
             UpdateFPS();
 

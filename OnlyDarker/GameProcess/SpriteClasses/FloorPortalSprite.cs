@@ -32,7 +32,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             if (_isActive && MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider))
             {
-                PlayerTeleport();
+                //PlayerTeleport();
             }
         }
         public void Draw()
@@ -59,19 +59,19 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             ExitPosition = exitPosition;
         }
-        private void PlayerTeleport()
-        {
-            ParentRoomReference.DeactivatePortals();
-            ExitRoom.DeactivatePortals();
-            GameBody.GetGameInstance().SceneManager.GoToRoom(ExitRoom);
-            GameBody.GetGameInstance().MainCharacter.SetPosition(ExitPosition);
-            GameBody.GetGameInstance().SceneManager.CurrentLevel.SetExplorationStates(ExitRoom);
-            ParentRoomReference.ActivatePortals(2000);
-            ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
-            ParentRoomReference.ObjectsYSorted.RemoveAll(item => item.IsExpired);
-            ExitRoom.ActivatePortals(2000);
-            GameBody.GetGameInstance().ProjectileSprites.Clear();
-            GC.Collect();
-        }
+        //private void PlayerTeleport()
+        //{
+        //    ParentRoomReference.DeactivatePortals();
+        //    ExitRoom.DeactivatePortals();
+        //    GameBody.GetGameInstance().SceneManager.GoToRoom(ExitRoom);
+        //    GameBody.GetGameInstance().MainCharacter.SetPosition(ExitPosition);
+        //    GameBody.GetGameInstance().SceneManager.CurrentLevel.SetExplorationStates(ExitRoom);
+        //    ParentRoomReference.ActivatePortals(2000);
+        //    ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
+        //    ParentRoomReference.ObjectsYSorted.RemoveAll(item => item.IsExpired);
+        //    ExitRoom.ActivatePortals(2000);
+        //    GameBody.GetGameInstance().ProjectileSprites.Clear();
+        //    GC.Collect();
+        //}
     }
 }

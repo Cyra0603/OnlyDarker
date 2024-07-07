@@ -17,7 +17,6 @@ namespace OnlyDarker.GameProcess
         public readonly List<Bind> AppHotKeys;
         public readonly Bind ToggleDebug;
         public readonly Bind TogglePause;
-        public readonly Bind ExitApplication;
         public readonly Bind MoveLeft;
         public readonly Bind MoveRight;
         public readonly Bind MoveUp;
@@ -39,7 +38,6 @@ namespace OnlyDarker.GameProcess
             {
                 AppHotKeys.Add(ToggleDebug = new(Keys.F1, !canBeHold,"toggle ingame debug"));
                 AppHotKeys.Add(TogglePause = new(Keys.Escape, !canBeHold,"pause and call menu"));
-                AppHotKeys.Add(ExitApplication = new(Keys.Back, !canBeHold, "exit application"));
             }
             //Ingame controls
             {
@@ -118,6 +116,10 @@ namespace OnlyDarker.GameProcess
                 foreach (var bind in GetInstance().BindList)
                 {
                     if( bind.Key == key) return false;
+                }
+                foreach (var hotkey in GetInstance().AppHotKeys)
+                {
+                    if (hotkey.Key == key) return false;
                 }
                 return true;
             }

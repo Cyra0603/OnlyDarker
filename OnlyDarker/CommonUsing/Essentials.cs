@@ -38,7 +38,7 @@ namespace OnlyDarker.CommonUsing
     {
         Slice,
         Poke,
-        Blunt
+        Blunt,
     }
     public enum Direction
     {
@@ -158,6 +158,49 @@ namespace OnlyDarker.CommonUsing
             ChestType.Golden => nameof(ChestType.Golden),
             ChestType.Luxurious => nameof(ChestType.Luxurious),
             _ => throw new ArgumentOutOfRangeException(nameof(chestType), chestType, null)
+        };
+        public static char ToChar(this Keys key) => key switch
+        {
+            Keys.Q => 'q',
+            Keys.W => 'w',
+            Keys.E => 'e',
+            Keys.R => 'r',
+            Keys.T => 't',
+            Keys.Y => 'y',
+            Keys.U => 'u',
+            Keys.I => 'i',
+            Keys.O => 'o',
+            Keys.P => 'p',
+            Keys.A => 'a',
+            Keys.S => 's',
+            Keys.D => 'd',
+            Keys.F => 'f',
+            Keys.G => 'g',
+            Keys.H => 'h',
+            Keys.J => 'j',
+            Keys.K => 'k',
+            Keys.L => 'l',
+            Keys.Z => 'z',
+            Keys.X => 'x',
+            Keys.C => 'c',
+            Keys.V => 'v',
+            Keys.B => 'b',
+            Keys.N => 'n',
+            Keys.M => 'm',
+            Keys.D1 => '1',
+            Keys.D2 => '2',
+            Keys.D3 => '3',
+            Keys.D4 => '4',
+            Keys.D5 => '5',
+            Keys.D6 => '6',
+            Keys.D7 => '7',
+            Keys.D8 => '8',
+            Keys.D9 => '9',
+            Keys.D0 => '0',
+            Keys.OemPeriod => '.',
+            Keys.OemMinus => '_',
+            Keys.Space => ' ',
+            _ => default,
         };
     }
 }

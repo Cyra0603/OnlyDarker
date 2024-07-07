@@ -19,6 +19,7 @@ namespace OnlyDarker.IngameMenu
         public readonly ControlsWindow ControlsWindow;
         public delegate void ButtonPress();
         public const int BUTTON_OFFSET = 10;
+        private KeyboardState _lastKeyboardState;
         public ButtonState LastMouseState { get; private set; }
         protected Menu()
         {
@@ -27,6 +28,7 @@ namespace OnlyDarker.IngameMenu
             _mainWindow = new();
             SettingsWindow = new();
             ControlsWindow = new(BindManager.GetInstance());
+            _lastKeyboardState = Keyboard.GetState();
             BindManager.GetInstance().TogglePause.KeyPressed += BackButtonAction;
         }
         public static Menu GetInstance()
@@ -52,6 +54,12 @@ namespace OnlyDarker.IngameMenu
             var kstate = Keyboard.GetState();
             WindowsStack.Peek().Update(in mstate, in kstate);
             LastMouseState = mstate.LeftButton;
+            if (GameConsole.GetInstance().IsActive)
+                GameConsole.GetInstance().Update(in kstate);
+            if(kstate.IsKeyDown(Keys.OemTilde) && _lastKeyboardState.IsKeyUp(Keys.OemTilde))
+            {
+                GameConsole.GetInstance().IsActive = true;
+            }
         }
         public void Draw()
         {
@@ -60,6 +68,8 @@ namespace OnlyDarker.IngameMenu
                 return;
             }
             WindowsStack.Peek().Draw();
+            if (GameConsole.GetInstance().IsActive)
+                GameConsole.GetInstance().Draw();
         }
         public void BackButtonAction()
         {

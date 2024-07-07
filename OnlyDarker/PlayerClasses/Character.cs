@@ -246,11 +246,15 @@ namespace OnlyDarker
             (int)position.X - _bodyTexture.Width / 2, (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 2),
             new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2));
         }
-        public void AddSpeed(float amount, float maxspeed = MAX_CHARACTER_SPEED, float minspeed = MIN_CHARACTER_SPEED)
+        public void SetSpeed(float value)
+        {
+            Speed = value;
+        }
+        public void AddSpeed(float amount)
         {
             Speed += amount;
-            if (Speed < minspeed) Speed = minspeed;
-            if (Speed > maxspeed) Speed = maxspeed;
+            if (Speed < MIN_CHARACTER_SPEED) Speed = MIN_CHARACTER_SPEED;
+            if (Speed > MAX_CHARACTER_SPEED) Speed = MAX_CHARACTER_SPEED;
         }
         public void SetPosition(Vector2 position)
         {
@@ -301,6 +305,11 @@ namespace OnlyDarker
         //    }
         //    else return;
         //}
+        public void TestTakingDamage(float value)
+        {
+            DamageInstance testD = new(value, 1, DamageType.Blunt, false);
+            TakeDamage(in testD);
+        }
         public void TestTakingDamage()
         {
             DamageInstance testD = new(1, 1, DamageType.Blunt, false);
