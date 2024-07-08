@@ -33,13 +33,13 @@ namespace OnlyDarker.UI
             _texture.SetData(new[] { Color.Green });
             _notifiedTexture = new(graphicsDevice, 1, 1);
             _notifiedTexture.SetData(new[] { Color.Red });
-            _stamina = CurrentCharacter.Stamina;
-            _maxStamina = CurrentCharacter.MaxStamina;
+            _stamina = CurrentCharacter.Stats.Stamina;
+            _maxStamina = CurrentCharacter.Stats.MaxStamina;
             AdjustBounds(_maxStamina);
-            CurrentCharacter.OnChangingStamina += ObserveStamina;
-            CurrentCharacter.OnChangingMaxStamina += ObserveMaxStamina;
-            CurrentCharacter.OnChangingMaxStamina += AdjustBounds;
-            CurrentCharacter.OnNotEnoughStamina += NotifyNotEnoughStamina;
+            CurrentCharacter.Stats.OnChangingStamina += ObserveStamina;
+            CurrentCharacter.Stats.OnChangingMaxStamina += ObserveMaxStamina;
+            CurrentCharacter.Stats.OnChangingMaxStamina += AdjustBounds;
+            CurrentCharacter.Stats.OnNotEnoughStamina += NotifyNotEnoughStamina;
         }
         public void ObserveStamina(float stamina)
         {
@@ -60,7 +60,7 @@ namespace OnlyDarker.UI
                 GlobalUse.SpriteBatch.Draw(_notifiedTexture, new Rectangle(_notifiedLocation, new Point((int)(_stamina * 2), _barBounds.Height)), Color.White);
                 GameBody.DrawRectangleOutline(_barBounds, Color.Black, 2);
             }
-            else if (_stamina < CurrentCharacter.StaminaCost)
+            else if (_stamina < CurrentCharacter.Stats.StaminaCost)
             {
                 GlobalUse.SpriteBatch.Draw(_notifiedTexture, new Rectangle(_barBounds.Location, new Point((int)(_stamina * 2), _barBounds.Height)), Color.White);
                 GameBody.DrawRectangleOutline(_barBounds, Color.Black, 2);

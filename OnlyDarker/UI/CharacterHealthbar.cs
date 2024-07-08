@@ -17,9 +17,9 @@ namespace OnlyDarker.UI
         public CharacterHealthbar(Texture2D texture)
         {
             _texture = texture;
-            _healthPoints = СurrentCharacter.HealthPoints;
+            _healthPoints = СurrentCharacter.Stats.HealthPoints;
             AdjustBounds();
-            СurrentCharacter.OnChangingHealth += ObserveHealthPoints;
+            СurrentCharacter.Stats.OnChangingHealth += ObserveHealthPoints;
         }
         public void ObserveHealthPoints(float healthPoints)
         {

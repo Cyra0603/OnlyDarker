@@ -3,6 +3,7 @@ using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess.SpriteClasses;
 using OnlyDarker.GameProcess.SpriteClasses.Enemies;
 using OnlyDarker.PlayerClasses;
+using SharpDX.Direct2D1.Effects;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -28,6 +29,7 @@ namespace OnlyDarker.GameProcess
         private readonly Point _roomTileSize;
         private readonly Texture2D _roomPresetImage;
         public readonly SpriteStandartTile[,] _tiles;
+        public readonly SpriteStandartTile[,] _tilesNotBlocked;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
         public readonly SpriteStandartTile[] _tilesToDraw;
         public List<IYSortable> ObjectsYSorted;
@@ -71,6 +73,7 @@ namespace OnlyDarker.GameProcess
             _roomTileSize.X = presetData.GetLength(0);
             CurrentBackground = new(emptyRoom.FloorType);
             _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
+            _tilesNotBlocked = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
             _tilesToDraw = new SpriteStandartTile[_tiles.Length];
             _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
             ObjectsYSorted = new();
@@ -104,8 +107,29 @@ namespace OnlyDarker.GameProcess
                     ObjectsYSorted.Add(obstacle);
                 }
             }
+            CreateUnblockedTileGrid();
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;
+            //local methods
+            static Rectangle GetDeflatedRect(SpriteStandartTile tile)
+            {
+                return new Rectangle((int)tile.Position.X - (int)tile.GetTextureWidth() / 2 + 1, (int)tile.Position.Y - (int)tile.GetTextureHeight() / 2 + 1, (int)tile.GetTextureWidth() - 1, (int)tile.GetTextureHeight() - 1);
+            }
+            void CreateUnblockedTileGrid()
+            {
+                for (int y = 0; y < _tiles.GetLength(0); y++)
+                {
+                    for (int x = 0; x < _tiles.GetLength(1); x++)
+                    {
+                        var testRect = GetDeflatedRect(_tiles[y, x]);
+                        if (!RoomColliders.Any(rect => rect.Intersects(testRect)))
+                        {
+                            _tilesNotBlocked[y, x] = _tiles[y, x];
+                            TempRectDrawList.Add(new((int)_tiles[y, x].Position.X, (int)_tiles[y, x].Position.Y, 1, 1));
+                        }
+                    }
+                }
+            }
         }
         public void Update(float elapsedMilliseconds)
         {
@@ -417,6 +441,12 @@ namespace OnlyDarker.GameProcess
         {
             if (TempRectDrawList.Any())
                 TempRectDrawList.Clear();
+        }
+        public Vector2 GetDestination(SpriteStandartTile start, SpriteStandartTile finish)
+        {
+            int lx = (int)start.Position.X / 2;
+            int ly = (int)start.Position.Y / 2;
+            _tilesNotBlocked[ly, lx]
         }
     }
 }

@@ -118,7 +118,8 @@ namespace OnlyDarker
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
-                SceneManager.CurrentRoom._tiles[2, 2]);
+                SceneManager.CurrentRoom._tiles[2, 2],
+                new(1F,24F));
 
             MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
 

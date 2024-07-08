@@ -26,11 +26,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         public void Collect()
         {
-            if (GameBody.GetGameInstance().MainCharacter.HealthPoints >= GameBody.GetGameInstance().MainCharacter.MaxHealthPoints)
+            if (GameBody.GetGameInstance().MainCharacter.Stats.HealthPoints >= GameBody.GetGameInstance().MainCharacter.Stats.MaxHealthPoints)
             {
                 return;
             }
-            GameBody.GetGameInstance().MainCharacter.HealthPoints++;
+            GameBody.GetGameInstance().MainCharacter.Stats.HealthPoints++;
             GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
             IsExpired = true;
         }

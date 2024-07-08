@@ -199,6 +199,7 @@ namespace OnlyDarker.CommonUsing
             Keys.D0 => '0',
             Keys.OemPeriod => '.',
             Keys.OemMinus => '_',
+            Keys.OemComma => ',',
             Keys.Space => ' ',
             _ => default,
         };

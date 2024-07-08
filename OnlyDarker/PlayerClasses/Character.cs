@@ -21,7 +21,7 @@ using System.IO;
 namespace OnlyDarker
 {
 
-    public class Character : IDamageable, IYSortable
+    public class Character : IYSortable
     {
         private readonly Texture2D _bodyTexture;
         private readonly Texture2D _handTexture;
@@ -41,7 +41,7 @@ namespace OnlyDarker
             );
         public Rectangle InteractionAura => new(new Point((int)Position.X - _bodyTexture.Width, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width * 2, (int)(_bodyTexture.Height * 1.25F)));
         public Rectangle BodyHitbox => new(new((int)(Position.X - _bodyTexture.Width / 2), (int)(Position.Y - _bodyTexture.Height / 2)), new(_bodyTexture.Width, _bodyTexture.Height));
-        public Rectangle AttackZone => new(RightHandPosition.ToPoint(), new((int)CurrentWeapon.AttackRange, (int)CurrentWeapon.AttackRange));
+        public Stats Stats {get; private set;}
         public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
         public List<Armor> ArmorSet { get; set; } = new();
         private Stack<IInteractive> _thingsToInteract = new();
@@ -53,65 +53,6 @@ namespace OnlyDarker
         public Timer InvincibilityTimer = new(0);
         public Timer DamagedEffectTimer = new(0);
         private SpriteEffects _flipEffect = SpriteEffects.None;
-        public float Speed { get; private set; } = 1F;
-        public const float MAX_CHARACTER_SPEED = 2F;
-        public const float MIN_CHARACTER_SPEED = 0.5F;
-        public const float I_FRAME_TIME = 500F;
-        public float CritChance { get; set; } = 5F;
-        public float CritDamage { get; set; } = 200F;
-        private float _staminaRegenValue = 0.02F;
-        private float _dashLength { get; set; } = 100F;
-        private float _dashEffectLength => _dashLength * 1.5F;
-        public float HandRotation { get; set; } = 0F;
-        private float _maxStamina = 100F;
-        public float StaminaCost { get; set; } = 50F;
-        public float MaxStamina
-        {
-            get
-            {
-                return _maxStamina;
-            }
-            set
-            {
-                _maxStamina = value;
-                OnChangingMaxStamina?.Invoke(_maxStamina);
-            }
-        }
-        private float _stamina = 100;
-        public float Stamina
-        {
-            get => _stamina;
-            private set
-            {
-                _stamina = value;
-                if (_stamina > MaxStamina)
-                    _stamina = MaxStamina;
-                OnChangingStamina?.Invoke(_stamina);
-            }
-        }
-        private float _healthPoints = 24;
-        public float HealthPoints
-        {
-            get => _healthPoints;
-            set
-            {
-                var previousValue = _healthPoints;
-                _healthPoints = value;
-                if (previousValue != _healthPoints)
-                {
-                    OnChangingHealth?.Invoke(_healthPoints);
-                    if (_healthPoints > previousValue)
-                    {
-                        OnHealing?.Invoke(_healthPoints);
-                    }
-                    if (_healthPoints < previousValue)
-                    {
-                        OnTakingDamage?.Invoke(_healthPoints);
-                    }
-                }
-            }
-        }
-        public float MaxHealthPoints { get; set; } = 24;
         public bool IsExpired { get; private set; }
         public bool IsInvincible
         {
@@ -120,22 +61,15 @@ namespace OnlyDarker
         }
         public bool IsPushable { get; set; } = false;
 
-        public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteStandartTile parentTile)
+        public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteStandartTile parentTile, Stats stats)
         {
             _bodyTexture = bodyTexture;
             _handTexture = handTexture;
             _handOrigin = new(handTexture.Width / 2, handTexture.Height / 2);
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
+            Stats = stats;
         }
-        public delegate void ObserveFloatStat(float statValue);
-        public delegate void NoParamsVoid();
-        public event NoParamsVoid OnNotEnoughStamina;
-        public event ObserveFloatStat OnChangingHealth;
-        public event ObserveFloatStat OnTakingDamage;
-        public event ObserveFloatStat OnHealing;
-        public event ObserveFloatStat OnChangingStamina;
-        public event ObserveFloatStat OnChangingMaxStamina;
         public void RunIFrames(float durationMilliseconds)
         {
             InvincibilityTimer.TimeLeft = Math.Max(InvincibilityTimer.TimeLeft, durationMilliseconds);
@@ -151,10 +85,7 @@ namespace OnlyDarker
             if (DamagedEffectTimer.TimeLeft > 0)
                 GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
         }
-        public void DrawHpBar()
-        {
-
-        }
+        public void DrawHpBar() { }
         public void SetRoomBounds(Point roomSize, Point tileSize)
         {
             _minPosition = new Vector2((-tileSize.X / 2) + Origin.X, (-tileSize.Y / 2) + Origin.Y - _bodyTexture.Height + GlobalUse.PIXEL_OFFSET);
@@ -174,10 +105,10 @@ namespace OnlyDarker
             DamagedEffectTimer.Update(elapsedMilliseconds);
             InvincibilityTimer.Update(elapsedMilliseconds);
             AttackCooldown.Update(elapsedMilliseconds);
-            Stamina += elapsedMilliseconds * _staminaRegenValue;
+            Stats.Stamina += elapsedMilliseconds * Stats.StaminaRegenValue;
             if (GlobalUse.IsDebugMode)
             {
-                Stamina = MaxStamina;
+                Stats.Stamina = Stats.MaxStamina;
             }
             if (ControlsManager.MousePosition.X < Position.X)
                 _flipEffect = SpriteEffects.FlipHorizontally;
@@ -206,12 +137,12 @@ namespace OnlyDarker
                 {
                     var currentDirection = ControlsManager.GetDirection();
                     CalculatePossibleCollisions(obstacles, ref currentDirection);
-                    Position += ControlsManager.GetDirection() / j * Speed;
+                    Position += ControlsManager.GetDirection() / j * Stats.Speed;
                 }
             }
             else
             {
-                Position += ControlsManager.GetDirection() * Speed;
+                Position += ControlsManager.GetDirection() * Stats.Speed;
             }
         }
 
@@ -219,22 +150,22 @@ namespace OnlyDarker
         {
             var ly = currentDirection.Y;
             var lx = currentDirection.X;
-            if (currentDirection.Y < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1F) * Speed))))
+            if (currentDirection.Y < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1F) * Stats.Speed))))
             {
                 ControlsManager.ZeroDirectionY();
                 ControlsManager.AddFriction();
             }
-            if (currentDirection.Y > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly + 1F) * Speed))))
+            if (currentDirection.Y > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly + 1F) * Stats.Speed))))
             {
                 ControlsManager.ZeroDirectionY();
                 ControlsManager.AddFriction();
             }
-            if (currentDirection.X < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx - 1F, ly) * Speed))))
+            if (currentDirection.X < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx - 1F, ly) * Stats.Speed))))
             {
                 ControlsManager.ZeroDirectionX();
                 ControlsManager.AddFriction();
             }
-            if (currentDirection.X > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx + 1F, ly) * Speed))))
+            if (currentDirection.X > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx + 1F, ly) * Stats.Speed))))
             {
                 ControlsManager.ZeroDirectionX();
                 ControlsManager.AddFriction();
@@ -248,13 +179,15 @@ namespace OnlyDarker
         }
         public void SetSpeed(float value)
         {
-            Speed = value;
+            Stats.Speed = value;
         }
         public void AddSpeed(float amount)
         {
-            Speed += amount;
-            if (Speed < MIN_CHARACTER_SPEED) Speed = MIN_CHARACTER_SPEED;
-            if (Speed > MAX_CHARACTER_SPEED) Speed = MAX_CHARACTER_SPEED;
+            Stats.Speed += amount;
+            if (Stats.Speed < Stats.MIN_CHARACTER_SPEED) 
+                Stats.Speed = Stats.MIN_CHARACTER_SPEED;
+            if (Stats.Speed > Stats.MAX_CHARACTER_SPEED) 
+                Stats.Speed = Stats.MAX_CHARACTER_SPEED;
         }
         public void SetPosition(Vector2 position)
         {
@@ -262,16 +195,40 @@ namespace OnlyDarker
             newPos.Y += Position.Y - MovementCollider.Location.Y;
             Position = newPos;
         }
+        public void SetRange(float value)
+        {
+            
+        }
+        public void SetStamina(float value)
+        {
+            Stats.Stamina = Stats.MaxStamina = value;
+        }
+        public void SetCritChance(float value)
+        {
+            Stats.CritChance = value;
+        }
+        public void SetCritDamage(float value)
+        {
+            Stats.CritDamage = value;
+        }
+        public void ConsoleSetPosition(string args)
+        {
+            string[] lArgs = args.Split(',');
+            if (lArgs.Length > 2)
+                throw new ArgumentException();
+            var newPos = new Vector2(float.Parse(lArgs[0]), float.Parse(lArgs[1]));
+            newPos.Y += Position.Y - MovementCollider.Location.Y;
+            Position = newPos;
+        }
         public void Dash()
         {
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 return;
-            if (Stamina < StaminaCost)
+            if (!Stats.IsEnoughStamina())
             {
-                OnNotEnoughStamina.Invoke();
                 return;
             }
-            Stamina -= StaminaCost;
+            Stats.Stamina -= Stats.StaminaCost;
             if (ControlsManager.GetDirection() != Vector2.Zero)
                 _dashForce = ControlsManager.GetDirection();
             else
@@ -279,9 +236,9 @@ namespace OnlyDarker
                 var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
                 _dashForce = difference / difference.Length() * ControlsManager.GetMaxDirectionVector(); ;
             }
-            DashTimer = new ActionTimer(_dashLength);
-            DashEffectTimer = new ActionTimer(_dashEffectLength);
-            RunIFrames(_dashEffectLength);
+            DashTimer = new ActionTimer(Stats.DashLength);
+            DashEffectTimer = new ActionTimer(Stats.DashEffectLength);
+            RunIFrames(Stats.DashEffectLength);
             DashTimer.TimeUpdated += DashAction;
             DashEffectTimer.TimeElapsed += DashEnded;
         }
@@ -296,15 +253,6 @@ namespace OnlyDarker
             var pos = Position;
             _dashFrames.Add(pos);
         }
-        //public void TakeDamage(DamageInstance damage)
-        //{
-        //    if (InvincibilityTimer.TimeLeft <= 0)
-        //    {
-        //        HealthPoints -= damage.ExtractValue(BaseArmor.Resistances.First(res => res.Type == damage.Type));
-        //        RunIFrames(I_FRAME_TIME);
-        //    }
-        //    else return;
-        //}
         public void TestTakingDamage(float value)
         {
             DamageInstance testD = new(value, 1, DamageType.Blunt, false);
@@ -321,7 +269,7 @@ namespace OnlyDarker
         }
         public void Heal(float healAmount)
         {
-            HealthPoints += healAmount;
+            Stats.HealthPoints += healAmount;
         }
         public void Attack()
         {
@@ -336,7 +284,7 @@ namespace OnlyDarker
             AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeed); //IMPLEMENT ATTACKSPEED!
             var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
             var direction = difference / difference.Length();
-            var range = (int)CurrentWeapon.AttackRange;
+            var range = (int)(CurrentWeapon.AttackRange + Stats.Range);
             var attackRect = new Rectangle(new
                 ((int)(Position.X + (direction.X * range) - range / 2), (int)(Position.Y + (direction.Y * range) - range / 2)),
                 new(range, range));
@@ -345,19 +293,20 @@ namespace OnlyDarker
                 new(range, range));
             CreateAttackAnimation(flipsf, range);
             //THIS DOES NOT WORK FINE
-            var critModifier = CritDamage / 100F;
+            var critModifier = Stats.CritDamage / 100F;
             foreach (var target in GameBody.GetGameInstance().SceneManager.CurrentRoom.Damageables.Where(target => target.BodyHitbox.Intersects(attackRect) || target.BodyHitbox.Intersects(attackRect2)))
             {
                 if (target.HealthPoints <= 0)
                 {
                     continue;
                 }
-                bool proc = GlobalUse.TryChance(CritChance);
+                bool proc = GlobalUse.TryChance(Stats.CritChance);
+                var dmg = CurrentWeapon.AttackDamage + Stats.Damage;
                 if (!proc)
-                    target.TakeDamage(new(CurrentWeapon.AttackDamage, 1.2F, CurrentWeapon.WeaponDamageType, proc));
+                    target.TakeDamage(new(dmg, 1.2F, CurrentWeapon.WeaponDamageType, proc));
                 else
                 {
-                    target.TakeDamage(new(CurrentWeapon.AttackDamage * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc));
+                    target.TakeDamage(new(dmg * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc));
                 }
             }
             foreach (var target in GameBody.GetGameInstance().ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
@@ -399,9 +348,9 @@ namespace OnlyDarker
                 }
                 var dmgTaken = locald.ExtractValue();
                 var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), dmgTaken.ToString(), damage.IsCritical);
-                HealthPoints -= dmgTaken;
-                RunIFrames(I_FRAME_TIME);
-                DamagedEffectTimer.TimeLeft += I_FRAME_TIME;
+                Stats.HealthPoints -= dmgTaken;
+                RunIFrames(Stats.I_FRAME_TIME);
+                DamagedEffectTimer.TimeLeft += Stats.I_FRAME_TIME;
             }
             //if (GlobalUse.IsDebugMode)
             //{
@@ -419,6 +368,102 @@ namespace OnlyDarker
             string fileName = $"character.state.{DateTime.UtcNow:yyyy-MM-dd}.json";
             await using FileStream f = File.Create(fileName);
             await JsonSerializer.SerializeAsync(f, this, options);
+        }
+    }
+    public class Stats
+    {
+        public float Range { get; set; }
+        public float Damage { get; set; }
+        public float AttackSpeed { get; set; }
+        public float Speed { get; set; }
+        public const float MAX_CHARACTER_SPEED = 2F;
+        public const float MIN_CHARACTER_SPEED = 0.5F;
+        public const float I_FRAME_TIME = 500F;
+        public float CritChance { get; set; }
+        public float CritDamage { get; set; }
+        public float StaminaRegenValue { get; set; }
+        public float DashLength { get; set; }
+        public float DashEffectLength => DashLength * 1.5F;
+        public float StaminaCost { get; set; }
+
+        private float _stamina;
+        public float Stamina
+        {
+            get => _stamina;
+            set
+            {
+                _stamina = value;
+                if (_stamina > MaxStamina)
+                    _stamina = MaxStamina;
+                OnChangingStamina?.Invoke(_stamina);
+            }
+        }
+        private float _maxStamina;
+        public float MaxStamina
+        {
+            get
+            {
+                return _maxStamina;
+            }
+            set
+            {
+                _maxStamina = value;
+                OnChangingMaxStamina?.Invoke(_maxStamina);
+            }
+        }
+        private float _healthPoints;
+        public float HealthPoints
+        {
+            get => _healthPoints;
+            set
+            {
+                var previousValue = _healthPoints;
+                _healthPoints = value;
+                if (previousValue != _healthPoints)
+                {
+                    OnChangingHealth?.Invoke(_healthPoints);
+                    if (_healthPoints > previousValue)
+                    {
+                        OnHealing?.Invoke(_healthPoints);
+                    }
+                    if (_healthPoints < previousValue)
+                    {
+                        OnTakingDamage?.Invoke(_healthPoints);
+                    }
+                }
+            }
+        }
+        public float MaxHealthPoints { get; set; }
+        public delegate void ObserveFloatStat(float statValue);
+        public delegate void NoParamsVoid();
+        public event NoParamsVoid OnNotEnoughStamina;
+        public event ObserveFloatStat OnChangingHealth;
+        public event ObserveFloatStat OnTakingDamage;
+        public event ObserveFloatStat OnHealing;
+        public event ObserveFloatStat OnChangingStamina;
+        public event ObserveFloatStat OnChangingMaxStamina;
+        public Stats(float speed, float maxHealth)
+        {
+            Range = 0;
+            Damage = 0;
+            AttackSpeed = 0;
+            Speed = speed;
+            CritChance = 5F;
+            CritDamage = 200F;
+            StaminaRegenValue = 0.02F;
+            DashLength = 100F;
+            StaminaCost = 50F;
+            Stamina = MaxStamina = 100F;
+            HealthPoints = MaxHealthPoints = maxHealth;
+        }
+        public bool IsEnoughStamina()
+        {
+            if (Stamina < StaminaCost)
+            {
+                OnNotEnoughStamina.Invoke();
+                return false;
+            }
+            else return true;
         }
     }
 }

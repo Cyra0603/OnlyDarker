@@ -80,10 +80,6 @@ namespace OnlyDarker.IngameMenu
                         {
                             _buffer.Clear();
                         }
-                        else
-                        {
-                            _notificationMessage = "Command not found";
-                        }
                         break;
                     }
                 case Keys.Back:
@@ -110,9 +106,12 @@ namespace OnlyDarker.IngameMenu
                     sb.Append(c);
             }
             _bufferToString = sb.ToString();
-            foreach (var command in _commands.AvailableCommands.Where(command => command.Alias.StartsWith(_bufferToString)))
+            if(_bufferToString != string.Empty)
             {
-                _availableCommandsAliases.Add("   " + command.Alias);
+                foreach (var command in _commands.AvailableCommands.Where(command => command.Alias.StartsWith(_bufferToString)))
+                {
+                    _availableCommandsAliases.Add("   " + command.Alias);
+                }
             }
             _lastKeyboardState = keyboardState;
         }
@@ -158,7 +157,6 @@ namespace OnlyDarker.IngameMenu
             return c != default;
         }
     }
-    delegate void CommandExecute(float value);
     internal interface IConsoleCommand
     {
         string Alias { get; }
@@ -166,6 +164,47 @@ namespace OnlyDarker.IngameMenu
         string ExecutionMessage { get; }
         void Execute(string arg, out bool isExecuted, out string executionMessage);
     }
+    internal class StringConsoleCommand : IConsoleCommand
+    {
+        public string Alias { get; init; }
+
+        public string Description { get; init; }
+
+        public string ExecutionMessage { get; init; }
+        public Action<string> Action { get; init; }
+        public StringConsoleCommand(string alias, string description, string message, Action<string> action)
+        {
+            Alias = alias;
+            Description = description;
+            ExecutionMessage = message;
+            Action = action;
+        }
+        public void Execute(string arg, out bool isExecuted, out string executionMessage)
+        {
+            try
+            {
+                Action?.Invoke(arg);
+                isExecuted = true;
+                executionMessage = ExecutionMessage + arg;
+            }
+            catch (ArgumentException)
+            {
+                isExecuted = false;
+                executionMessage = "Execution failed: invalid arguments";
+            }
+            catch (InvalidCastException)
+            {
+                isExecuted = false;
+                executionMessage = "Execution failed: invalid value type";
+            }
+            catch (FormatException)
+            {
+                isExecuted = false;
+                executionMessage = "Execution failed: invalid value format";
+            }
+        }
+    }
+
     internal class FloatConsoleCommand : IConsoleCommand
     {
         public string Alias { get; init; }
@@ -241,8 +280,11 @@ namespace OnlyDarker.IngameMenu
             //main character executables mc_
             AvailableCommands.Add(new FloatConsoleCommand("mc_set_speed", "Sets character speed value", "Character speed set to ", GameBody.GetGameInstance().MainCharacter.SetSpeed));
             AvailableCommands.Add(new FloatConsoleCommand("mc_heal", "Heals character by value", "Character healed by ", GameBody.GetGameInstance().MainCharacter.Heal));
+            AvailableCommands.Add(new FloatConsoleCommand("mc_set_stamina", "Sets character stamina to value", "Character stamina set to ", GameBody.GetGameInstance().MainCharacter.SetStamina));
+            AvailableCommands.Add(new FloatConsoleCommand("mc_set_cc", "Sets character crit chance to % value", "Character crit chance set to ", GameBody.GetGameInstance().MainCharacter.SetCritChance));
+            AvailableCommands.Add(new FloatConsoleCommand("mc_set_cd", "Sets character crit damage to % value", "Character crit damage set to ", GameBody.GetGameInstance().MainCharacter.SetCritDamage));
             AvailableCommands.Add(new FloatConsoleCommand("mc_take_damage", "Damages character by value", "Character damaged by ", GameBody.GetGameInstance().MainCharacter.TestTakingDamage));
-
+            AvailableCommands.Add(new StringConsoleCommand("mc_set_pos", "Sets character position vector to (X,Y)", "Position set to ", GameBody.GetGameInstance().MainCharacter.ConsoleSetPosition));
         }
         public static ConsoleCommandsData GetInstance()
         {
