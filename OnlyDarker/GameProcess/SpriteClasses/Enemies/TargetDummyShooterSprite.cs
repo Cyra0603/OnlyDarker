@@ -13,7 +13,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         private readonly Texture2D _projectileTexture;
         private readonly Room _parentRoomReference;
         public Vector2 Position { get; set; }
-        public Vector2 Origin { get; protected set; }
+        public Vector2 Origin { get;}
+        public Vector2 LastUpdatedPosition { get; private set; }
+        private Vector2 _direction;
         public Rectangle MovementCollider;
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
         private Timer _attackCooldown;
@@ -23,6 +25,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public bool IsExpired { get; private set; } = false;
         public bool IsInvincible { get; set; }
         public bool IsPushable { get; } = false;
+        public float Speed { get; }
         private float _healthPoints = 10000;
         public float HealthPoints
         {
@@ -53,9 +56,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             _projectileTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummyShooter/DummyShooterProjectile");
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
+            _direction = Vector2.Zero;
             MovementCollider = BodyHitbox;
             _attackCooldown = new(AttackCooldownTime);
             MaxHealthPoints = 10000;
+            Speed = 0.7F;
             ArmorSet.Add(BaseArmor);
         }
         public delegate void ObserveHP(float healthPoints);
@@ -83,11 +88,26 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
 
         public void Update(float elapsedMilliseconds)
         {
+            if (_parentRoomReference != GameBody.GetGameInstance().SceneManager.CurrentRoom)
+                return;
             _attackCooldown.Update(elapsedMilliseconds);
-            if (_parentRoomReference == GameBody.GetGameInstance().SceneManager.CurrentRoom && _attackCooldown.TimeLeft <= 0)
+            if (_attackCooldown.TimeLeft <= 0)
             {
                 Shoot();
             }
+            if (Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.Position) > 42 && Vector2.Distance(Position, LastUpdatedPosition) > 21)
+            {
+                    var destination = _parentRoomReference.GetPathDestination(Position, GameBody.GetGameInstance().MainCharacter.Position);
+                var ldirection = destination - Position;
+                _direction = Vector2.Normalize(ldirection / ldirection.Length());
+                    LastUpdatedPosition = Position;
+            }
+            if(Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.Position) < 42)
+            {
+                var ldirection = GameBody.GetGameInstance().MainCharacter.Position - Position;
+                _direction = Vector2.Normalize(ldirection / ldirection.Length());
+            }
+            Position += _direction * Speed;
         }
     }
 }

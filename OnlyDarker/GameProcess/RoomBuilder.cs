@@ -15,6 +15,7 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using System.Xml.Linq;
 
 namespace OnlyDarker.GameProcess
 {
@@ -29,9 +30,9 @@ namespace OnlyDarker.GameProcess
         private readonly Point _roomTileSize;
         private readonly Texture2D _roomPresetImage;
         public readonly SpriteStandartTile[,] _tiles;
-        public readonly SpriteStandartTile[,] _tilesNotBlocked;
         public readonly SpriteStandartObstacle[,] _standartObstacles;
         public readonly SpriteStandartTile[] _tilesToDraw;
+        private Node[,] _nodesAllocation;
         public List<IYSortable> ObjectsYSorted;
         public List<INonSortable> ObjectsNotSorted;
         public List<IInteractive> Interactives;
@@ -72,10 +73,10 @@ namespace OnlyDarker.GameProcess
             _roomTileSize.Y = presetData.GetLength(1);
             _roomTileSize.X = presetData.GetLength(0);
             CurrentBackground = new(emptyRoom.FloorType);
-            _tiles = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
-            _tilesNotBlocked = new SpriteStandartTile[_roomTileSize.X, _roomTileSize.Y];
+            _tiles = new SpriteStandartTile[_roomTileSize.Y, _roomTileSize.X];
+            _nodesAllocation = new Node[_roomTileSize.Y, _roomTileSize.X];
             _tilesToDraw = new SpriteStandartTile[_tiles.Length];
-            _standartObstacles = new SpriteStandartObstacle[_roomTileSize.X, _roomTileSize.Y];
+            _standartObstacles = new SpriteStandartObstacle[_roomTileSize.Y, _roomTileSize.X];
             ObjectsYSorted = new();
             ObjectsNotSorted = new();
             RoomColliders = new();
@@ -121,10 +122,11 @@ namespace OnlyDarker.GameProcess
                 {
                     for (int x = 0; x < _tiles.GetLength(1); x++)
                     {
+                        _nodesAllocation[y, x] = new Node(x, y);
                         var testRect = GetDeflatedRect(_tiles[y, x]);
                         if (!RoomColliders.Any(rect => rect.Intersects(testRect)))
                         {
-                            _tilesNotBlocked[y, x] = _tiles[y, x];
+                            _nodesAllocation[y, x].IsBlocked = false;
                             TempRectDrawList.Add(new((int)_tiles[y, x].Position.X, (int)_tiles[y, x].Position.Y, 1, 1));
                         }
                     }
@@ -197,9 +199,9 @@ namespace OnlyDarker.GameProcess
         }
         private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, List<Texture2D> portalTextures, Color[,] presetData, RoomBlueprint emptyRoom)
         {
-            for (int x = 0; x < _tiles.GetLength(0); x++)
+            for (int y = 0; y < _tiles.GetLength(0); y++)
             {
-                for (int y = 0; y < _tiles.GetLength(1); y++)
+                for (int x = 0; x < _tiles.GetLength(1); x++)
                 {
                     switch (_presetColorTranslator[ColorToVector4(presetData[x, y])])
                     {
@@ -224,15 +226,15 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "TargetDummy":
                             BuildTile(tileTextures, x, y);
-                            var targetDummy = new TargetDummySprite(_tiles[x, y]);
+                            var targetDummy = new TargetDummySprite(_tiles[y, x]);
                             ObjectsYSorted.Add(targetDummy);
                             Damageables.Add(targetDummy);
-                            RoomColliders.Add(targetDummy.MovementCollider);
+                            //RoomColliders.Add(targetDummy.MovementCollider);
                             ObstaclesBounds.Add(targetDummy.BodyHitbox);
                             break;
                         case "MobSummoner":
                             BuildTile(tileTextures, x, y);
-                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[x, y].Position, this), _tiles[x, y].Position, this, 2F, new Armor(ArmorType.Base), 30F, 15000F, 5);
+                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this), _tiles[y, x].Position, this, 2F, new Armor(ArmorType.Base), 30F, 15000F, 5);
                             ObjectsYSorted.Add(summoner);
                             Damageables.Add(summoner);
                             Updateables.Add(summoner);
@@ -241,7 +243,7 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "TargetDummyShooter":
                             BuildTile(tileTextures, x, y);
-                            var targetDummyShooter = new TargetDummyShooterSprite(_tiles[x, y], this);
+                            var targetDummyShooter = new TargetDummyShooterSprite(_tiles[y, x], this);
                             ObjectsYSorted.Add(targetDummyShooter);
                             Damageables.Add(targetDummyShooter);
                             RoomColliders.Add(targetDummyShooter.MovementCollider);
@@ -250,32 +252,32 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "WeaponStick":
                             BuildTile(tileTextures, x, y);
-                            var stickTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Stick");
+                            var stickTest = new WeaponSprite(new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)), "Stick");
                             stickTest.WeaponInstance = new WeaponStick(stickTest);
                             ObjectsYSorted.Add(stickTest);
                             Interactives.Add(stickTest);
                             break;
                         case "WeaponSword":
                             BuildTile(tileTextures, x, y);
-                            var swordTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Sword");
+                            var swordTest = new WeaponSprite(new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)), "Sword");
                             swordTest.WeaponInstance = new WeaponSword(swordTest);
                             ObjectsYSorted.Add(swordTest);
                             Interactives.Add(swordTest);
                             break;
                         case "WeaponLance":
                             BuildTile(tileTextures, x, y);
-                            var lanceTest = new WeaponSprite(new(x * _tiles[x, y].GetTextureWidth() - (_tiles[x, y].GetTextureWidth() / 2), y * _tiles[x, y].GetTextureHeight() - (_tiles[x, y].GetTextureHeight() / 2)), "Lance");
+                            var lanceTest = new WeaponSprite(new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)), "Lance");
                             lanceTest.WeaponInstance = new WeaponLance(lanceTest);
                             ObjectsYSorted.Add(lanceTest);
                             Interactives.Add(lanceTest);
                             break;
                         case "WoodenChest":
                             BuildTile(tileTextures, x, y);
-                            var chestTest = new ChestSprite(new(x * _tiles[x, y].GetTextureWidth(), y * _tiles[x, y].GetTextureHeight()), this);
+                            var chestTest = new ChestSprite(new(x * _tiles[y, x].GetTextureWidth(), y * _tiles[y, x].GetTextureHeight()), this);
                             break;
                         case "Boss":
                             BuildTile(tileTextures, x, y);
-                            var testBoss = new FloorOneBossSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, this, _tiles[x, y].Position, 50F, "the druid");
+                            var testBoss = new FloorOneBossSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, this, _tiles[y, x].Position, 50F, "the druid");
                             ObjectsYSorted.Add(testBoss);
                             Damageables.Add(testBoss);
                             Updateables.Add(testBoss);
@@ -321,13 +323,13 @@ namespace OnlyDarker.GameProcess
         private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
         {
             int i = GlobalUse.SeededStandartRNG.Next(0, standartObstacleTextures.Count);
-            _standartObstacles[x, y] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[x, y]);
+            _standartObstacles[y, x] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[y, x]);
         }
 
         private void BuildTile(List<Texture2D> tileTextures, int x, int y)
         {
             int i = GlobalUse.SeededStandartRNG.Next(0, tileTextures.Count);
-            _tiles[x, y] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
+            _tiles[y, x] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
         }
 
         private void BuildPortal(List<Texture2D> portalTextures, int x, int y, Direction portalDirection)
@@ -442,11 +444,168 @@ namespace OnlyDarker.GameProcess
             if (TempRectDrawList.Any())
                 TempRectDrawList.Clear();
         }
-        public Vector2 GetDestination(SpriteStandartTile start, SpriteStandartTile finish)
+        public Vector2 GetPathDestination(Vector2 start, Vector2 finish)
         {
-            int lx = (int)start.Position.X / 2;
-            int ly = (int)start.Position.Y / 2;
-            _tilesNotBlocked[ly, lx]
+            int sx = (int)start.X / 64;
+            int sy = (int)start.Y / 42;
+            int fx = (int)finish.X / 64;
+            int fy = (int)finish.Y / 42;
+            int height = _nodesAllocation.GetLength(0);
+            int width = _nodesAllocation.GetLength(1);
+            for (int y = 0; y < height; y++)
+            {
+                for (int x = 0; x < width; x++)
+                {
+                    if (_nodesAllocation[y, x].IsBlocked)
+                        continue;
+                    _nodesAllocation[y, x].Weight = 0;
+                    _nodesAllocation[y, x].IsUsed = false;
+                    _nodesAllocation[y, x].AStarWeight = Vector2.Distance(_tiles[y, x].Position, _tiles[fy, fx].Position);
+                }
+            }
+            _nodesAllocation[fy, fx].Weight = 1;
+            for (int startWeight = 1; startWeight < _nodesAllocation.Length; startWeight++)
+            {
+                int nodesFound = 0;
+                foreach (var node in _nodesAllocation)
+                {
+                    if (node.IsBlocked)
+                        continue;
+                    if (node.IsUsed)
+                        continue;
+                    if (node.Weight == startWeight)
+                    {
+                        nodesFound++;   
+                        if (node.X != 0 && !_nodesAllocation[node.Y, node.X - 1].IsBlocked && !_nodesAllocation[node.Y, node.X - 1].IsUsed)//Left
+                        {
+                            _nodesAllocation[node.Y, node.X - 1].Weight = startWeight + 1;
+                        }
+                        if (node.X != width - 1 && !_nodesAllocation[node.Y, node.X + 1].IsBlocked && !_nodesAllocation[node.Y, node.X + 1].IsUsed)//Right
+                        {
+                            _nodesAllocation[node.Y, node.X + 1].Weight = startWeight + 1;
+                        }
+                        if (node.Y != 0 && !_nodesAllocation[node.Y - 1, node.X].IsBlocked && !_nodesAllocation[node.Y - 1, node.X].IsUsed)//Up
+                        {
+                            _nodesAllocation[node.Y - 1, node.X].Weight = startWeight + 1;
+                        }
+                        if (node.Y != height - 1 && !_nodesAllocation[node.Y + 1, node.X].IsBlocked && !_nodesAllocation[node.Y + 1, node.X].IsUsed)//Down
+                        {
+                            _nodesAllocation[node.Y + 1, node.X].Weight = startWeight + 1;
+                        }
+                        if (sx != 0 && sy != 0 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked && !_nodesAllocation[sy - 1, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx - 1].IsUsed)//NW
+                        {
+                            _nodesAllocation[sy - 1, sx - 1].Weight = startWeight + 1;
+                        }
+                        if (sx != width - 1 && sy != 0 && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked && !_nodesAllocation[sy - 1, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx + 1].IsUsed)//NE
+                        {
+                            _nodesAllocation[sy - 1, sx + 1].Weight = startWeight + 1;
+                        }
+                        if (sx != 0 && sy != height - 1 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked && !_nodesAllocation[sy + 1, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx - 1].IsUsed)//SW
+                        {
+                            _nodesAllocation[sy + 1, sx - 1].Weight = startWeight + 1;
+                        }
+                        if (sx != width - 1 && sy != height - 1 && !_nodesAllocation[sy + 1, sx].IsBlocked && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy + 1, sx + 1].IsBlocked && !_nodesAllocation[sy + 1, sx + 1].IsUsed)//SE
+                        {
+                            _nodesAllocation[sy + 1, sx + 1].Weight = startWeight + 1;
+                        }
+                    }
+                    node.IsUsed = true;
+                }
+                if (nodesFound == 0)
+                    break;
+            }
+            float leastWeight = float.MaxValue;
+            int leastWeightX = sx;
+            int leastWeightY = sy;
+            if (sx != 0)//Left
+            {
+                if (!_nodesAllocation[sy, sx - 1].IsBlocked && _nodesAllocation[sy, sx - 1].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx - 1;
+                    leastWeightY = sy;
+                    leastWeight = _nodesAllocation[sy, sx - 1].TotalWeight;
+                }
+            }
+            if (sx != width - 1)//Right
+            {
+                if (!_nodesAllocation[sy, sx + 1].IsBlocked && _nodesAllocation[sy, sx + 1].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx + 1;
+                    leastWeightY = sy;
+                    leastWeight = _nodesAllocation[sy, sx + 1].TotalWeight;
+                }
+            }
+            if (sy != 0)//Up
+            {
+                if (!_nodesAllocation[sy - 1, sx].IsBlocked && _nodesAllocation[sy - 1, sx].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx;
+                    leastWeightY = sy - 1;
+                    leastWeight = _nodesAllocation[sy - 1, sx].TotalWeight;
+                }
+            }
+            if (sy != height - 1)//Down
+            {
+                if (!_nodesAllocation[sy + 1, sx].IsBlocked && _nodesAllocation[sy + 1, sx].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx;
+                    leastWeightY = sy + 1;
+                    leastWeight = _nodesAllocation[sy + 1, sx].TotalWeight;
+                }
+            }
+            if (sx != 0 && sy != 0 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NW
+            {
+                if (!_nodesAllocation[sy - 1, sx - 1].IsBlocked && _nodesAllocation[sy - 1, sx - 1].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx - 1;
+                    leastWeightY = sy - 1;
+                    leastWeight = _nodesAllocation[sy - 1, sx - 1].TotalWeight;
+                }
+            }
+            if (sx != width - 1 && sy != 0 && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NE
+            {
+                if (!_nodesAllocation[sy - 1, sx + 1].IsBlocked && _nodesAllocation[sy - 1, sx + 1].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx + 1;
+                    leastWeightY = sy - 1;
+                    leastWeight = _nodesAllocation[sy - 1, sx + 1].TotalWeight;
+                }
+            }
+            if (sx != 0 && sy != height - 1 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked)//SW
+            {
+                if (!_nodesAllocation[sy + 1, sx - 1].IsBlocked && _nodesAllocation[sy + 1, sx - 1].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx - 1;
+                    leastWeightY = sy + 1;
+                    leastWeight = _nodesAllocation[sy + 1, sx - 1].TotalWeight;
+                }
+            }
+            if (sx != width - 1 && sy != height - 1 && !_nodesAllocation[sy + 1, sx].IsBlocked && !_nodesAllocation[sy, sx + 1].IsBlocked)//SE
+            {
+                if (!_nodesAllocation[sy + 1, sx + 1].IsBlocked && _nodesAllocation[sy + 1, sx + 1].TotalWeight < leastWeight)
+                {
+                    leastWeightX = sx + 1;
+                    leastWeightY = sy + 1;
+                    leastWeight = _nodesAllocation[sy + 1, sx + 1].TotalWeight;
+                }
+            }
+            return _tiles[leastWeightY, leastWeightX].Position;
+        }
+    }
+
+    internal class Node
+    {
+        public bool IsUsed = false;
+        public bool IsBlocked = true;
+        public readonly int X;
+        public readonly int Y;
+        public float Weight;
+        public float AStarWeight;
+        public float TotalWeight => Weight + AStarWeight;
+        public Node(int x, int y)
+        {
+            X = x;
+            Y = y;
         }
     }
 }
