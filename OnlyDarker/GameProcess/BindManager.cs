@@ -24,6 +24,7 @@ namespace OnlyDarker.GameProcess
         public readonly Bind Dash;
         public readonly Bind ClickAction;
         public readonly Bind Interact;
+        public readonly Bind OpenInventory;
         public readonly Bind DamageCharacter;
         public readonly Bind HealCharacter;
         public readonly Bind Attack;
@@ -41,15 +42,16 @@ namespace OnlyDarker.GameProcess
             }
             //Ingame controls
             {
-                BindList.Add(MoveLeft = new(Keys.A, canBeHold, "move left"));
-                BindList.Add(MoveRight = new(Keys.D, canBeHold, "move right"));
-                BindList.Add(MoveUp = new(Keys.W, canBeHold, "move up"));
-                BindList.Add(MoveDown = new(Keys.S, canBeHold, "move down"));
-                BindList.Add(Dash = new(Keys.LeftShift, !canBeHold, "dash"));
-                BindList.Add(Interact = new(Keys.E, !canBeHold, "interact"));
-                BindList.Add(DamageCharacter = new(Keys.F11, !canBeHold, "self harm"));
-                BindList.Add(HealCharacter = new(Keys.F12, !canBeHold, "heal"));
-                BindList.Add(Attack = new(_defaultState.LeftButton, !canBeHold, "attack!"));
+                BindList.Add(MoveLeft = new(Keys.A, canBeHold, "move left:"));
+                BindList.Add(MoveRight = new(Keys.D, canBeHold, "move right:"));
+                BindList.Add(MoveUp = new(Keys.W, canBeHold, "move up:"));
+                BindList.Add(MoveDown = new(Keys.S, canBeHold, "move down:"));
+                BindList.Add(Dash = new(Keys.LeftShift, !canBeHold, "dash:"));
+                BindList.Add(Interact = new(Keys.E, !canBeHold, "interact:"));
+                BindList.Add(OpenInventory = new(Keys.Tab, !canBeHold, "open inventory"));
+                BindList.Add(DamageCharacter = new(Keys.F11, !canBeHold, "self harm:"));
+                BindList.Add(HealCharacter = new(Keys.F12, !canBeHold, "heal:"));
+                BindList.Add(Attack = new(_defaultState.LeftButton, !canBeHold, "attack!:"));
             }
             Debug.WriteLine("Bindmanager initialized");
 

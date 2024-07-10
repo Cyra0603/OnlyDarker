@@ -95,16 +95,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             {
                 Shoot();
             }
-            if (Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.Position) > 42 && Vector2.Distance(Position, LastUpdatedPosition) > 21)
+            if (Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2()) > 42 && Vector2.Distance(Position, LastUpdatedPosition) > 21)
             {
-                    var destination = _parentRoomReference.GetPathDestination(Position, GameBody.GetGameInstance().MainCharacter.Position);
+                    var destination = _parentRoomReference.GetPathDestination(Position, GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2());
                 var ldirection = destination - Position;
                 _direction = Vector2.Normalize(ldirection / ldirection.Length());
                     LastUpdatedPosition = Position;
             }
-            if(Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.Position) < 42)
+            if(Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2()) < 42)
             {
-                var ldirection = GameBody.GetGameInstance().MainCharacter.Position - Position;
+                var ldirection = GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2() - Position;
                 _direction = Vector2.Normalize(ldirection / ldirection.Length());
             }
             Position += _direction * Speed;

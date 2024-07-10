@@ -12,13 +12,19 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     public class SpriteStandartTile
     {
         private readonly Texture2D _texture;
-        public Vector2 Position { get; protected set; }
-        public Vector2 Origin { get; protected set; }
-        public SpriteStandartTile(Texture2D texture, Vector2 position)
+        public Vector2 Position { get; private set; }
+        public Vector2 Origin { get; private set; }
+        public Rectangle Bounds { get; private set; }
+        public int GridX { get; init; }
+            public int GridY { get; init; }
+        public SpriteStandartTile(Texture2D texture, Vector2 position, int X, int Y )
         {
             _texture = texture;
             Position = position;
             Origin = new(_texture.Width / 2, texture.Height / 2);
+            Bounds = new((int)Position.X - _texture.Width / 2, (int)Position.Y - _texture.Height / 2, _texture.Width, _texture.Height);
+            GridX = X;
+            GridY = Y;
         }
         public void Draw()
         {

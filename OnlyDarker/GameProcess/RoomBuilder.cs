@@ -127,7 +127,6 @@ namespace OnlyDarker.GameProcess
                         if (!RoomColliders.Any(rect => rect.Intersects(testRect)))
                         {
                             _nodesAllocation[y, x].IsBlocked = false;
-                            TempRectDrawList.Add(new((int)_tiles[y, x].Position.X, (int)_tiles[y, x].Position.Y, 1, 1));
                         }
                     }
                 }
@@ -329,7 +328,7 @@ namespace OnlyDarker.GameProcess
         private void BuildTile(List<Texture2D> tileTextures, int x, int y)
         {
             int i = GlobalUse.SeededStandartRNG.Next(0, tileTextures.Count);
-            _tiles[y, x] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y));
+            _tiles[y, x] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), x,y);
         }
 
         private void BuildPortal(List<Texture2D> portalTextures, int x, int y, Direction portalDirection)
@@ -457,62 +456,14 @@ namespace OnlyDarker.GameProcess
                 for (int x = 0; x < width; x++)
                 {
                     if (_nodesAllocation[y, x].IsBlocked)
-                        continue;
-                    _nodesAllocation[y, x].Weight = 0;
-                    _nodesAllocation[y, x].IsUsed = false;
-                    _nodesAllocation[y, x].AStarWeight = Vector2.Distance(_tiles[y, x].Position, _tiles[fy, fx].Position);
-                }
-            }
-            _nodesAllocation[fy, fx].Weight = 1;
-            for (int startWeight = 1; startWeight < _nodesAllocation.Length; startWeight++)
-            {
-                int nodesFound = 0;
-                foreach (var node in _nodesAllocation)
-                {
-                    if (node.IsBlocked)
-                        continue;
-                    if (node.IsUsed)
-                        continue;
-                    if (node.Weight == startWeight)
                     {
-                        nodesFound++;   
-                        if (node.X != 0 && !_nodesAllocation[node.Y, node.X - 1].IsBlocked && !_nodesAllocation[node.Y, node.X - 1].IsUsed)//Left
-                        {
-                            _nodesAllocation[node.Y, node.X - 1].Weight = startWeight + 1;
-                        }
-                        if (node.X != width - 1 && !_nodesAllocation[node.Y, node.X + 1].IsBlocked && !_nodesAllocation[node.Y, node.X + 1].IsUsed)//Right
-                        {
-                            _nodesAllocation[node.Y, node.X + 1].Weight = startWeight + 1;
-                        }
-                        if (node.Y != 0 && !_nodesAllocation[node.Y - 1, node.X].IsBlocked && !_nodesAllocation[node.Y - 1, node.X].IsUsed)//Up
-                        {
-                            _nodesAllocation[node.Y - 1, node.X].Weight = startWeight + 1;
-                        }
-                        if (node.Y != height - 1 && !_nodesAllocation[node.Y + 1, node.X].IsBlocked && !_nodesAllocation[node.Y + 1, node.X].IsUsed)//Down
-                        {
-                            _nodesAllocation[node.Y + 1, node.X].Weight = startWeight + 1;
-                        }
-                        if (sx != 0 && sy != 0 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked && !_nodesAllocation[sy - 1, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx - 1].IsUsed)//NW
-                        {
-                            _nodesAllocation[sy - 1, sx - 1].Weight = startWeight + 1;
-                        }
-                        if (sx != width - 1 && sy != 0 && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked && !_nodesAllocation[sy - 1, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx + 1].IsUsed)//NE
-                        {
-                            _nodesAllocation[sy - 1, sx + 1].Weight = startWeight + 1;
-                        }
-                        if (sx != 0 && sy != height - 1 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked && !_nodesAllocation[sy + 1, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx - 1].IsUsed)//SW
-                        {
-                            _nodesAllocation[sy + 1, sx - 1].Weight = startWeight + 1;
-                        }
-                        if (sx != width - 1 && sy != height - 1 && !_nodesAllocation[sy + 1, sx].IsBlocked && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy + 1, sx + 1].IsBlocked && !_nodesAllocation[sy + 1, sx + 1].IsUsed)//SE
-                        {
-                            _nodesAllocation[sy + 1, sx + 1].Weight = startWeight + 1;
-                        }
+                        _nodesAllocation[y, x].Weight = float.MaxValue;
+                        continue;
                     }
-                    node.IsUsed = true;
+                    _nodesAllocation[y, x].Weight = 0;
+                    _nodesAllocation[y, x].IsMarked = false;
+                    _nodesAllocation[y, x].AStarWeight = Math.Abs(Vector2.Distance(_tiles[y, x].Position, _tiles[fy, fx].Position));
                 }
-                if (nodesFound == 0)
-                    break;
             }
             float leastWeight = float.MaxValue;
             int leastWeightX = sx;
@@ -595,7 +546,7 @@ namespace OnlyDarker.GameProcess
 
     internal class Node
     {
-        public bool IsUsed = false;
+        public bool IsMarked = false;
         public bool IsBlocked = true;
         public readonly int X;
         public readonly int Y;
