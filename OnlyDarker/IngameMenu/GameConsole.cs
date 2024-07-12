@@ -285,6 +285,8 @@ namespace OnlyDarker.IngameMenu
             AvailableCommands.Add(new FloatConsoleCommand("mc_set_cd", "Sets character crit damage to % value", "Character crit damage set to ", GameBody.GetGameInstance().MainCharacter.SetCritDamage));
             AvailableCommands.Add(new FloatConsoleCommand("mc_take_damage", "Damages character by value", "Character damaged by ", GameBody.GetGameInstance().MainCharacter.TestTakingDamage));
             AvailableCommands.Add(new StringConsoleCommand("mc_set_pos", "Sets character position vector to (X,Y)", "Position set to ", GameBody.GetGameInstance().MainCharacter.ConsoleSetPosition));
+
+            _instance = this;
         }
         public static ConsoleCommandsData GetInstance()
         {

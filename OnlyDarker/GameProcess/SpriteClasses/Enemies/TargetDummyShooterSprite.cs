@@ -1,6 +1,7 @@
 ﻿using OnlyDarker.CommonUsing;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -16,6 +17,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public Vector2 Origin { get;}
         public Vector2 LastUpdatedPosition { get; private set; }
         private Vector2 _direction;
+        private Vector2 _destination;
         public Rectangle MovementCollider;
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
         private Timer _attackCooldown;
@@ -52,7 +54,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public TargetDummyShooterSprite(SpriteStandartTile parentTile, Room parentRoom)
         {
             _parentRoomReference = parentRoom;
-            _bodyTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummy/TargetDummy");
+            _bodyTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummyShooter/DummyShooterProjectile");//CHANGE THE TEXTURE
             _projectileTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummyShooter/DummyShooterProjectile");
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
@@ -75,6 +77,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 GameBody.DrawRectangleOutline(BodyHitbox, Color.Black, 2);
                 GameBody.DrawRectangleOutline(MovementCollider, Color.Black, 2);
                 GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X, Position.Y - _bodyTexture.Height), Color.White, 0F, Origin, 0.25F, SpriteEffects.None, 0.5F);
+                GlobalUse.SpriteBatch.DrawLine(Position, _destination, Color.Red);
             }
         }
         public void Shoot()
@@ -95,9 +98,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             {
                 Shoot();
             }
-            if (Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2()) > 42 && Vector2.Distance(Position, LastUpdatedPosition) > 21)
+            if (Vector2.Distance(Position, GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2() + GameBody.GetGameInstance().MainCharacter.MovementCollider.Center.ToVector2()) > 42 && Vector2.Distance(Position, LastUpdatedPosition) > 4)
             {
                     var destination = _parentRoomReference.GetPathDestination(Position, GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2());
+                _destination = destination;
                 var ldirection = destination - Position;
                 _direction = Vector2.Normalize(ldirection / ldirection.Length());
                     LastUpdatedPosition = Position;

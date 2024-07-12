@@ -202,7 +202,7 @@ namespace OnlyDarker.GameProcess
             {
                 for (int x = 0; x < _tiles.GetLength(1); x++)
                 {
-                    switch (_presetColorTranslator[ColorToVector4(presetData[x, y])])
+                    switch (_presetColorTranslator[ColorToVector4(in presetData[x, y])])
                     {
                         case "Tile":
                             BuildTile(tileTextures, x, y);
@@ -245,8 +245,6 @@ namespace OnlyDarker.GameProcess
                             var targetDummyShooter = new TargetDummyShooterSprite(_tiles[y, x], this);
                             ObjectsYSorted.Add(targetDummyShooter);
                             Damageables.Add(targetDummyShooter);
-                            RoomColliders.Add(targetDummyShooter.MovementCollider);
-                            ObstaclesBounds.Add(targetDummyShooter.BodyHitbox);
                             Updateables.Add(targetDummyShooter);
                             break;
                         case "WeaponStick":
@@ -319,16 +317,16 @@ namespace OnlyDarker.GameProcess
                 portal.Update();
             }
         }
-        private void BuildObstacle(List<Texture2D> standartObstacleTextures, int x, int y)
+        private void BuildObstacle(List<Texture2D> standartObstacleTextures, in int x, in int y)
         {
             int i = GlobalUse.SeededStandartRNG.Next(0, standartObstacleTextures.Count);
             _standartObstacles[y, x] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[y, x]);
         }
 
-        private void BuildTile(List<Texture2D> tileTextures, int x, int y)
+        private void BuildTile(List<Texture2D> tileTextures, in int x, in int y)
         {
             int i = GlobalUse.SeededStandartRNG.Next(0, tileTextures.Count);
-            _tiles[y, x] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), x,y);
+            _tiles[y, x] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), x, y);
         }
 
         private void BuildPortal(List<Texture2D> portalTextures, int x, int y, Direction portalDirection)
@@ -369,7 +367,7 @@ namespace OnlyDarker.GameProcess
                 return false;
             }
         }
-        private static Vector4 ColorToVector4(Color color)
+        private static Vector4 ColorToVector4(in Color color)
         {
             return new Vector4(color.R, color.G, color.B, color.A);
         }
@@ -443,104 +441,193 @@ namespace OnlyDarker.GameProcess
             if (TempRectDrawList.Any())
                 TempRectDrawList.Clear();
         }
-        public Vector2 GetPathDestination(Vector2 start, Vector2 finish)
+        public Vector2 GetPathDestination(in Vector2 start, in Vector2 finish)
         {
-            int sx = (int)start.X / 64;
-            int sy = (int)start.Y / 42;
-            int fx = (int)finish.X / 64;
-            int fy = (int)finish.Y / 42;
+            var startTile = GetTileByPosition(in start);
+            var finishTile = GetTileByPosition(in finish);
+            int sx = startTile.GridX;
+            int sy = startTile.GridY;
+            int fx = finishTile.GridX;
+            int fy = finishTile.GridY;
             int height = _nodesAllocation.GetLength(0);
             int width = _nodesAllocation.GetLength(1);
-            for (int y = 0; y < height; y++)
+            Span<Point> safeNodes = stackalloc Point[height * width];
+            int safeNodesI = 0;
+            safeNodes[0] = new Point(fx, fy);
+            foreach (var node in _nodesAllocation)
             {
-                for (int x = 0; x < width; x++)
+                node.IsMarked = false;
+                node.Weight = float.MaxValue;
+                node.AStarWeight = float.MaxValue;
+            }
+            _nodesAllocation[fy, fx].Weight = 0;
+            bool done = false;
+            while (!done)
+            {
+                int lx = fx;
+                int ly = fy;
+                int blocks = 0;
+                float leastWeight = float.MaxValue;
+                if (fx != 0 && !_nodesAllocation[fy, fx - 1].IsBlocked && !_nodesAllocation[fy, fx - 1].IsMarked) //Left
                 {
-                    if (_nodesAllocation[y, x].IsBlocked)
+                    _nodesAllocation[fy, fx - 1].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                    _nodesAllocation[fy, fx - 1].AStarWeight = Vector2.Distance(_tiles[fy, fx - 1].Position, _tiles[sy, sx].Position);
+                    if (_nodesAllocation[fy, fx - 1].AStarWeight < leastWeight)
                     {
-                        _nodesAllocation[y, x].Weight = float.MaxValue;
-                        continue;
+                        leastWeight = _nodesAllocation[fy, fx - 1].AStarWeight;
+                        ly = fy;
+                        lx = fx - 1;
                     }
-                    _nodesAllocation[y, x].Weight = 0;
-                    _nodesAllocation[y, x].IsMarked = false;
-                    _nodesAllocation[y, x].AStarWeight = Math.Abs(Vector2.Distance(_tiles[y, x].Position, _tiles[fy, fx].Position));
                 }
-            }
-            float leastWeight = float.MaxValue;
-            int leastWeightX = sx;
-            int leastWeightY = sy;
-            if (sx != 0)//Left
-            {
-                if (!_nodesAllocation[sy, sx - 1].IsBlocked && _nodesAllocation[sy, sx - 1].TotalWeight < leastWeight)
+                if (_nodesAllocation[fy, fx - 1].IsBlocked)
+                    blocks++;
+                if (fx != width - 1 && !_nodesAllocation[fy, fx + 1].IsBlocked && !_nodesAllocation[fy, fx + 1].IsMarked) //Right
                 {
-                    leastWeightX = sx - 1;
-                    leastWeightY = sy;
-                    leastWeight = _nodesAllocation[sy, sx - 1].TotalWeight;
+                    _nodesAllocation[fy, fx + 1].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                    _nodesAllocation[fy, fx + 1].AStarWeight = Vector2.Distance(_tiles[fy, fx + 1].Position, _tiles[sy, sx].Position);
+                    if (_nodesAllocation[fy, fx + 1].AStarWeight < leastWeight)
+                    {
+                        leastWeight = _nodesAllocation[fy, fx + 1].AStarWeight;
+                        ly = fy;
+                        lx = fx + 1;
+                    }
                 }
-            }
-            if (sx != width - 1)//Right
-            {
-                if (!_nodesAllocation[sy, sx + 1].IsBlocked && _nodesAllocation[sy, sx + 1].TotalWeight < leastWeight)
+                if (_nodesAllocation[fy, fx + 1].IsBlocked)
+                    blocks++;
+                if (fy != 0 && !_nodesAllocation[fy - 1, fx].IsBlocked && !_nodesAllocation[fy - 1, fx].IsMarked) //Up
                 {
-                    leastWeightX = sx + 1;
-                    leastWeightY = sy;
-                    leastWeight = _nodesAllocation[sy, sx + 1].TotalWeight;
+                    _nodesAllocation[fy - 1, fx].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                    _nodesAllocation[fy - 1, fx].AStarWeight = Vector2.Distance(_tiles[fy - 1, fx].Position, _tiles[sy, sx].Position) / GlobalUse.DIMENSION_DRAWING_OFFSET;
+                    if (_nodesAllocation[fy - 1, fx].AStarWeight < leastWeight)
+                    {
+                        leastWeight = _nodesAllocation[fy - 1, fx].AStarWeight;
+                        ly = fy - 1;
+                        lx = fx;
+                    }
                 }
-            }
-            if (sy != 0)//Up
-            {
-                if (!_nodesAllocation[sy - 1, sx].IsBlocked && _nodesAllocation[sy - 1, sx].TotalWeight < leastWeight)
+                if (_nodesAllocation[fy - 1, fx].IsBlocked)
+                    blocks++;
+                if (fy != height - 1 && !_nodesAllocation[fy + 1, fx].IsBlocked && !_nodesAllocation[fy + 1, fx].IsMarked) //Down
                 {
-                    leastWeightX = sx;
-                    leastWeightY = sy - 1;
-                    leastWeight = _nodesAllocation[sy - 1, sx].TotalWeight;
+                    _nodesAllocation[fy + 1, fx].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                    _nodesAllocation[fy + 1, fx].AStarWeight = Vector2.Distance(_tiles[fy + 1, fx].Position, _tiles[sy, sx].Position) / GlobalUse.DIMENSION_DRAWING_OFFSET;
+                    if (_nodesAllocation[fy + 1, fx].AStarWeight < leastWeight)
+                    {
+                        leastWeight = _nodesAllocation[fy + 1, fx].AStarWeight;
+                        ly = fy + 1;
+                        lx = fx;
+                    }
                 }
-            }
-            if (sy != height - 1)//Down
-            {
-                if (!_nodesAllocation[sy + 1, sx].IsBlocked && _nodesAllocation[sy + 1, sx].TotalWeight < leastWeight)
+                if (_nodesAllocation[fy + 1, fx].IsBlocked)
+                    blocks++;
+                _nodesAllocation[fy, fx].IsMarked = true;
+                if (fx == lx && fy == ly)
                 {
-                    leastWeightX = sx;
-                    leastWeightY = sy + 1;
-                    leastWeight = _nodesAllocation[sy + 1, sx].TotalWeight;
+                    fx = safeNodes[safeNodesI].X;
+                    fy = safeNodes[safeNodesI].Y;
+                    safeNodesI--;
+                    if (safeNodesI < 0)
+                    {
+                        safeNodesI = 0;
+                        safeNodes[0] = new Point(startTile.GridX, startTile.GridY);
+                    }
                 }
-            }
-            if (sx != 0 && sy != 0 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NW
-            {
-                if (!_nodesAllocation[sy - 1, sx - 1].IsBlocked && _nodesAllocation[sy - 1, sx - 1].TotalWeight < leastWeight)
+                else
                 {
-                    leastWeightX = sx - 1;
-                    leastWeightY = sy - 1;
-                    leastWeight = _nodesAllocation[sy - 1, sx - 1].TotalWeight;
+                    fx = lx;
+                    fy = ly;
+                    if (blocks < 2)
+                    {
+                        safeNodes[safeNodesI + 1] = new Point(fx, fy);
+                        safeNodesI++;
+                    }
                 }
-            }
-            if (sx != width - 1 && sy != 0 && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NE
-            {
-                if (!_nodesAllocation[sy - 1, sx + 1].IsBlocked && _nodesAllocation[sy - 1, sx + 1].TotalWeight < leastWeight)
+                if (fx == sx && fy == sy)
                 {
-                    leastWeightX = sx + 1;
-                    leastWeightY = sy - 1;
-                    leastWeight = _nodesAllocation[sy - 1, sx + 1].TotalWeight;
+                    done = true;
                 }
             }
-            if (sx != 0 && sy != height - 1 && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked)//SW
+            int x = sx;
+            int y = sy;
+            float finalWeight = float.MaxValue;
+            if (sx != 0 && !_nodesAllocation[sy, sx - 1].IsBlocked && _nodesAllocation[sy, sx - 1].Weight < finalWeight)//left
             {
-                if (!_nodesAllocation[sy + 1, sx - 1].IsBlocked && _nodesAllocation[sy + 1, sx - 1].TotalWeight < leastWeight)
-                {
-                    leastWeightX = sx - 1;
-                    leastWeightY = sy + 1;
-                    leastWeight = _nodesAllocation[sy + 1, sx - 1].TotalWeight;
-                }
+                finalWeight = _nodesAllocation[sy, sx - 1].Weight;
+                y = sy;
+                x = sx - 1;
             }
-            if (sx != width - 1 && sy != height - 1 && !_nodesAllocation[sy + 1, sx].IsBlocked && !_nodesAllocation[sy, sx + 1].IsBlocked)//SE
+            if (sx != width - 1 && !_nodesAllocation[sy, sx + 1].IsBlocked && _nodesAllocation[sy, sx + 1].Weight <= finalWeight)//right
             {
-                if (!_nodesAllocation[sy + 1, sx + 1].IsBlocked && _nodesAllocation[sy + 1, sx + 1].TotalWeight < leastWeight)
-                {
-                    leastWeightX = sx + 1;
-                    leastWeightY = sy + 1;
-                    leastWeight = _nodesAllocation[sy + 1, sx + 1].TotalWeight;
-                }
+                finalWeight = _nodesAllocation[sy, sx + 1].Weight;
+                y = sy;
+                x = sx + 1;
             }
-            return _tiles[leastWeightY, leastWeightX].Position;
+            if (sy != 0 && !_nodesAllocation[sy - 1, sx].IsBlocked && _nodesAllocation[sy - 1, sx].Weight <= finalWeight)//up
+            {
+                finalWeight = _nodesAllocation[sy - 1, sx].Weight;
+                y = sy - 1;
+                x = sx;
+            }
+            if (sy != height - 1 && !_nodesAllocation[sy + 1, sx].IsBlocked && _nodesAllocation[sy + 1, sx].Weight <= finalWeight)//down
+            {
+                finalWeight = _nodesAllocation[sy + 1, sx].Weight;
+                y = sy + 1;
+                x = sx;
+            }
+            if (sx != 0 && sy != 0 && !_nodesAllocation[sy - 1, sx - 1].IsBlocked && _nodesAllocation[sy - 1, sx - 1].Weight <= finalWeight && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NW
+            {
+                finalWeight = _nodesAllocation[sy - 1, sx - 1].Weight;
+                y = sy - 1;
+                x = sx - 1;
+            }
+            if (sx != width - 1 && sy != 0 && !_nodesAllocation[sy - 1, sx + 1].IsBlocked && _nodesAllocation[sy - 1, sx + 1].Weight <= finalWeight && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NE
+            {
+                finalWeight = _nodesAllocation[sy - 1, sx + 1].Weight;
+                y = sy - 1;
+                x = sx + 1;
+            }
+            if (sx != 0 && sy != height - 1 && !_nodesAllocation[sy + 1, sx - 1].IsBlocked && _nodesAllocation[sy + 1, sx - 1].Weight <= finalWeight && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked)//SW
+            {
+                finalWeight = _nodesAllocation[sy + 1, sx - 1].Weight;
+                y = sy + 1;
+                x = sx - 1;
+            }
+            if (sx != width - 1 && sy != height - 1 && !_nodesAllocation[sy + 1, sx + 1].IsBlocked && _nodesAllocation[sy + 1, sx + 1].Weight <= finalWeight && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked)//SE
+            {
+                finalWeight = _nodesAllocation[sy + 1, sx + 1].Weight;
+                y = sy + 1;
+                x = sx + 1;
+            }
+            return _tiles[y, x].Position;
+        }
+
+        private SpriteStandartTile GetTileByPosition(in Vector2 position)
+        {
+            int lx = (int)position.X / 64;
+            int ly = (int)position.Y / 42;
+            int maxHeight = _tiles.GetLength(0) - 1;
+            int maxWidth = _tiles.GetLength(1) - 1;
+            var estimate = _tiles[ly, lx];
+            if (estimate.Bounds.Contains(position))
+                return estimate;
+            if (lx != 0 && _tiles[ly, lx - 1].Bounds.Contains(position))//left
+                return _tiles[ly, lx - 1];
+            if (lx != maxWidth && _tiles[ly, lx + 1].Bounds.Contains(position))//right
+                return _tiles[ly, lx + 1];
+            if (ly != 0 && _tiles[ly - 1, lx].Bounds.Contains(position))//up
+                return _tiles[ly - 1, lx];
+            if (ly != maxHeight && _tiles[ly + 1, lx].Bounds.Contains(position))//down
+                return _tiles[ly + 1, lx];
+            if (lx != 0 && ly != 0 && _tiles[ly - 1, lx - 1].Bounds.Contains(position))//NW
+                return _tiles[ly - 1, lx - 1];
+            if (lx != maxWidth && ly != 0 && _tiles[ly - 1, lx + 1].Bounds.Contains(position))//NE
+                return _tiles[ly - 1, lx + 1];
+            if (lx != 0 && ly != maxHeight && _tiles[ly + 1, lx - 1].Bounds.Contains(position))//SW
+                return _tiles[ly + 1, lx - 1];
+            if (lx != maxWidth && ly != maxHeight && _tiles[ly + 1, lx + 1].Bounds.Contains(position))//SE
+                return _tiles[ly + 1, lx + 1];
+            Debug.WriteLine("Pathfinder couldn't find the tile {GetTileByPosition}");
+            return estimate;
         }
     }
 
