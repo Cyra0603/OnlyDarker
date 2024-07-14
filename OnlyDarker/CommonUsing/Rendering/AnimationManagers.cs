@@ -88,7 +88,7 @@ namespace OnlyDarker.CommonUsing.Rendering
         private int _maxSteps;
         public Timer FrameTimer;
         public bool IsActive = false;
-        public DrawCallArgs? DrawCallArgs;
+        public DrawCallArgs DrawCallArgs;
         public EffectAnimationManager(Texture2D spriteSheet, int sourceRectWidth, int sourceRectHeight, int maxSteps, float animationFrequency = 42F)
         {
             _spriteSheet = spriteSheet;
@@ -138,7 +138,7 @@ namespace OnlyDarker.CommonUsing.Rendering
                 DrawCallArgs.SpriteEffect,
                 DrawCallArgs.LayerDepth);
         }
-        public void Activate(DrawCallArgs drawCallArgs)
+        public void Activate(in DrawCallArgs drawCallArgs)
         {
             if (IsActive)
                 return;
@@ -191,13 +191,13 @@ namespace OnlyDarker.CommonUsing.Rendering
                 GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, "-" + _message, Position, Color.White * ColorDencity, 0F, Vector2.Zero, 0.2F, SpriteEffects.None, 0F);
         }
     }
-    public class DrawCallArgs 
+    public readonly struct DrawCallArgs 
     {
-        public Vector2 Position;
-        public float Rotation;
-        public float Scale;
-        public SpriteEffects SpriteEffect;
-        public float LayerDepth;
+        public readonly Vector2 Position;
+        public readonly float Rotation;
+        public readonly float Scale;
+        public readonly SpriteEffects SpriteEffect;
+        public readonly float LayerDepth;
         public DrawCallArgs(Vector2 position, float rotation = 0F, float scale = 1F, SpriteEffects spriteEffect = SpriteEffects.None, float layerDepth = 0F)
         {
             Position = position;
@@ -205,10 +205,6 @@ namespace OnlyDarker.CommonUsing.Rendering
             Scale = scale;
             SpriteEffect = spriteEffect;
             LayerDepth = layerDepth;
-        }
-        ~DrawCallArgs()
-        {
-            Debug.WriteLine("Drawcallargs disposed");
         }
     }
 }
