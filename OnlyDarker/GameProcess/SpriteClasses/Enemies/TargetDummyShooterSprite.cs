@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -14,16 +15,19 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         private readonly Texture2D _projectileTexture;
         private readonly Room _parentRoomReference;
         public Vector2 Position { get; set; }
-        public Vector2 Origin { get;}
+        public Vector2 Origin { get; }
         public Vector2 LastUpdatedPosition { get; private set; }
         private Vector2 _direction;
         private Vector2 _destination;
-        private Vector2 _mainCharPosition => GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.ToVector2() + GameBody.GetGameInstance().MainCharacter.MovementCollider.Center.ToVector2();
+        private Vector2[] _path;
+        private Vector2 _mainCharPosition => new(
+            GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.X + GameBody.GetGameInstance().MainCharacter.MovementCollider.Width / 2,
+            GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.Y + GameBody.GetGameInstance().MainCharacter.MovementCollider.Height / 2);
         public Rectangle MovementCollider;
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
         private Timer _attackCooldown;
         public readonly float AttackCooldownTime = 1000F;
-        public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
+        public Armor BaseArmor { get; private set; } = new(ArmorType.Base, string.Empty);
         public List<Armor> ArmorSet { get; } = new();
         public bool IsExpired { get; private set; } = false;
         public bool IsInvincible { get; set; }
@@ -61,6 +65,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
             _direction = Vector2.Zero;
+            _path = Array.Empty<Vector2>();
             MovementCollider = BodyHitbox;
             _attackCooldown = new(AttackCooldownTime);
             MaxHealthPoints = 10000;
@@ -80,7 +85,14 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 GameBody.DrawRectangleOutline(MovementCollider, Color.Black, 2);
                 GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X, Position.Y - _bodyTexture.Height), Color.White, 0F, Origin, 0.25F, SpriteEffects.None, 0.5F);
                 GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{_test}", Position, Color.White, 0F, Origin, 0.25F, SpriteEffects.None, 0.5F);
-                GlobalUse.SpriteBatch.DrawLine(Position, _destination, Color.Red);
+                Vector2 lastPos = Position;
+                foreach (var pos in _path)
+                {
+                    if (pos == Vector2.Zero)
+                        break;
+                    GlobalUse.SpriteBatch.DrawLine(lastPos, pos, Color.Red);
+                    lastPos = pos;
+                }
             }
         }
         public void Shoot()
@@ -103,17 +115,22 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             }
             if (Vector2.Distance(Position, _mainCharPosition) > 42 && Vector2.Distance(Position, LastUpdatedPosition) > 4)
             {
-                var destination = _parentRoomReference.GetPathDestination(Position, _mainCharPosition);
-                _destination = destination;
-                var ldirection = destination - Position;
-                _direction = Vector2.Normalize(ldirection / ldirection.Length());
-                LastUpdatedPosition = Position;
+                if (_parentRoomReference.LineCastIsCollidingObstacles(Position, _mainCharPosition))
+                {
+                    var destination = _parentRoomReference.GetPathDestination(Position, _mainCharPosition);
+                    _destination = destination;
+                    var ldirection = destination - Position;
+                    _direction = Vector2.Normalize(ldirection / ldirection.Length());
+                    LastUpdatedPosition = Position;
+                }
+                else
+                {
+                    var ldirection = _mainCharPosition - Position;
+                    _direction = Vector2.Normalize(ldirection / ldirection.Length());
+                    _destination = _mainCharPosition;
+                }
             }
-            if(Vector2.Distance(Position, _mainCharPosition) < 42)
-            {
-                var ldirection = _mainCharPosition - Position;
-                _direction = Vector2.Normalize(ldirection / ldirection.Length());
-            }
+
             Position += _direction * Speed;
         }
     }

@@ -63,7 +63,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             HealthPoints = maxHealthPoints;
             MaxHealthPoints = maxHealthPoints;
             ArmorSet = new();
-            _baseArmor = new(ArmorType.Base, sliceX: 0.9F, pokeX: 0.9F, bluntX: 0.85F);
+            _baseArmor = new(ArmorType.Base, string.Empty, sliceX: 0.9F, pokeX: 0.9F, bluntX: 0.85F);
             ArmorSet.Add(_baseArmor);
             PatternChanger = new(0);
             SummonCooldown = new(0);

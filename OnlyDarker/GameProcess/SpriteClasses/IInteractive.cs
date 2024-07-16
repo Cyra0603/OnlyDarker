@@ -10,13 +10,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 {
     public interface IInteractive
     {
-        string Name { get;}
+        string IngameName { get;}
         static string BaseMessage => $"[{GameBody.GetGameInstance().ControlsManager.BindManager.Interact.Key}] to ";
         string InteractionMessage { get; }
         Rectangle MovementCollider { get; }
         void ShowInteractionMessage()
         {
-            InteractionMessageBar.GetInstance().PushMessage(BaseMessage + InteractionMessage + Name);
+            InteractionMessageBar.GetInstance().PushMessage(BaseMessage + InteractionMessage + IngameName);
         }
         void Interact();
     }

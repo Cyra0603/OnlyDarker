@@ -15,7 +15,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Rectangle MovementCollider => new((int)Position.X - Texture.Width / 2, (int)Position.Y - Texture.Height / 2, Texture.Width, Texture.Height);
         public IWeapon WeaponInstance;
 
-        public string Name { get; set; }
+        public string IngameName { get; set; }
         public string PickupSound { get; } //temp
         public bool IsExpired { get; private set; } = false;
 
@@ -35,7 +35,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             Texture = GlobalUse.Content.Load<Texture2D>("Weapons/" + weaponName);
             Position = position;
-            Name = weaponName;
+            IngameName = weaponName;
         }
         public void Draw()
         {

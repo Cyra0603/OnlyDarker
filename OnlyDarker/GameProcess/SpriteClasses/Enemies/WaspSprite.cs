@@ -41,7 +41,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Position = position;
             _initialPosition = position;
             ParentRoomRef = parentRoomRef;
-            _baseArmor = new(ArmorType.Base, pokeX: 0.95F, bluntX: 1.1F);
+            _baseArmor = new(ArmorType.Base, string.Empty, pokeX: 0.95F, bluntX: 1.1F);
             ArmorSet = new List<Armor>
             {
                 _baseArmor

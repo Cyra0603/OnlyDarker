@@ -27,7 +27,7 @@ namespace OnlyDarker
         public BindManager BindManager { get; private set; }
         public TextureMapper TextureMapper { get; private set; }
         public Menu Menu { get; private set; }
-        public Character? MainCharacter { get; private set; } = null;
+        public Character MainCharacter { get; private set; } = null;
         private CharacterHealthbar _characterHealthbar;
         private CharacterStaminaBar _staminaBar;
         private StatsBar _statsBar;

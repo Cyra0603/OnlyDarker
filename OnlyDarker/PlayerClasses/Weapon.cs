@@ -19,6 +19,7 @@ namespace OnlyDarker.PlayerClasses
         public float AttackRange { get; }
         public float AttackDamage { get; }
         public float AttackSpeed { get; }
+        public string IngameName { get; }
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
     }
@@ -27,6 +28,7 @@ namespace OnlyDarker.PlayerClasses
         public float AttackRange { get; }
         public float AttackDamage { get; }
         public float AttackSpeed { get; }
+        public string IngameName { get; }
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
         public WeaponFist()
@@ -35,6 +37,7 @@ namespace OnlyDarker.PlayerClasses
             AttackDamage = 2F;
             AttackSpeed = 2F;
             WeaponDamageType = DamageType.Blunt;
+            IngameName = string.Empty;
         }
     }
     public class WeaponSword : IWeapon
@@ -42,9 +45,9 @@ namespace OnlyDarker.PlayerClasses
         public float AttackRange { get; }
         public float AttackDamage { get; }
         public float AttackSpeed { get; }
+        public string IngameName { get; }
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
-
         public WeaponSword(WeaponSprite spriteRef)
         {
             AttackRange = 84F;
@@ -52,6 +55,7 @@ namespace OnlyDarker.PlayerClasses
             AttackSpeed = 2F;
             WeaponDamageType = DamageType.Slice;
             WeaponPickupSprite = spriteRef;
+            IngameName = spriteRef.IngameName;
         }
     }
     public class WeaponStick : IWeapon
@@ -59,6 +63,7 @@ namespace OnlyDarker.PlayerClasses
         public float AttackRange { get; }
         public float AttackDamage { get; }
         public float AttackSpeed { get; }
+        public string IngameName { get; }
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
 
@@ -69,6 +74,7 @@ namespace OnlyDarker.PlayerClasses
             AttackSpeed = 3F;
             WeaponDamageType = DamageType.Blunt;
             WeaponPickupSprite = spriteRef;
+            IngameName = spriteRef.IngameName;
         }
     }
     public class WeaponLance : IWeapon
@@ -76,6 +82,7 @@ namespace OnlyDarker.PlayerClasses
         public float AttackRange { get; }
         public float AttackDamage { get; }
         public float AttackSpeed { get; }
+        public string IngameName { get; }
         public DamageType WeaponDamageType { get; }
         public WeaponSprite WeaponPickupSprite { get; }
 
@@ -86,6 +93,7 @@ namespace OnlyDarker.PlayerClasses
             AttackSpeed = 1.5F;
             WeaponDamageType = DamageType.Poke;
             WeaponPickupSprite = spriteRef;
+            IngameName = spriteRef.IngameName;
         }
     }
 

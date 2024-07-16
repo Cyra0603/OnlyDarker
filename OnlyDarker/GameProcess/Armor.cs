@@ -14,14 +14,20 @@ namespace OnlyDarker.GameProcess
         public Resistance PokeResistance { get; private set; }
         public Resistance BluntResistance { get; private set; }
         public List<Resistance> Resistances { get; } = new();
+        public string IngameName { get; }
         public ArmorType Type { get; }
 
-        public Armor(ArmorType armorType, float sliceX = 1F, float pokeX = 1F, float bluntX = 1F)
+        public Armor(ArmorType armorType, string ingameName, float sliceX = 1F, float pokeX = 1F, float bluntX = 1F)
         {
             Type = armorType;
             Resistances.Add(SliceResistance = new(DamageType.Slice, sliceX));
             Resistances.Add(PokeResistance = new(DamageType.Poke, pokeX));
             Resistances.Add(BluntResistance = new(DamageType.Blunt, bluntX));
+            if (ingameName == string.Empty || ingameName == null)
+            {
+                IngameName = string.Empty;
+            }
+            else IngameName = ingameName;
         }
         public void AddFlatArmor(float value)
         {

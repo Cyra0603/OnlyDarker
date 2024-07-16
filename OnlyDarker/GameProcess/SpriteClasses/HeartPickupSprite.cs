@@ -12,6 +12,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Texture2D Texture { get; }
         public Vector2 Position { get; set; }
         private Vector2 _finalPosition { get; }
+        private const string _ingameName = "Heart";
+        public string IngameName => _ingameName;
         public bool IsExpired { get; private set; } = false;
         public Timer _spawnTimer;
         public Rectangle MovementCollider => new((int)Position.X - Texture.Width / 2, (int)Position.Y - Texture.Height / 2, Texture.Width, Texture.Height);

@@ -9,14 +9,14 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class TargetDummySprite : IDamageable,IYSortable
+    public class TargetDummySprite : IDamageable, IYSortable
     {
         private readonly Texture2D _bodyTexture;
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         public Rectangle MovementCollider;
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
-        public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
+        public Armor BaseArmor { get; private set; } = new(ArmorType.Base, string.Empty);
         public List<Armor> ArmorSet { get; } = new();
         public bool IsInvincible { get; set; }
         public bool IsExpired { get; private set; } = false;
@@ -52,11 +52,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             MaxHealthPoints = 10000;
             MovementCollider = BodyHitbox;
             ArmorSet.Add(BaseArmor);
-            ArmorSet.Add(new(ArmorType.Helmet, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Pants, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Chest, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Boots, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Gloves, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Helmet, string.Empty, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Pants, string.Empty, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Chest, string.Empty, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Boots, string.Empty, bluntX: 0.8F));
+            ArmorSet.Add(new(ArmorType.Gloves, string.Empty, bluntX: 0.8F));
             foreach (var armor in ArmorSet)
             {
                 armor.AddFlatArmor(5F);
@@ -73,13 +73,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             {
                 GameBody.DrawRectangleOutline(BodyHitbox, Color.Black, 2);
                 GameBody.DrawRectangleOutline(MovementCollider, Color.Black, 2);
-                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X,Position.Y - _bodyTexture.Height), Color.White, 0F, Origin, 0.25F, SpriteEffects.None, 0.5F);
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.MainFont, $"{HealthPoints}", new(Position.X, Position.Y - _bodyTexture.Height), Color.White, 0F, Origin, 0.25F, SpriteEffects.None, 0.5F);
             }
         }
 
         public void Update()
         {
-            
+
         }
 
         public void SetPosition(Vector2 position)

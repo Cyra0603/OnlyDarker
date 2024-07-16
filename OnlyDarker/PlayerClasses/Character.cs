@@ -42,7 +42,8 @@ namespace OnlyDarker
         public Rectangle InteractionAura => new(new Point((int)Position.X - _bodyTexture.Width, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width * 2, (int)(_bodyTexture.Height * 1.25F)));
         public Rectangle BodyHitbox => new(new((int)(Position.X - _bodyTexture.Width / 2), (int)(Position.Y - _bodyTexture.Height / 2)), new(_bodyTexture.Width, _bodyTexture.Height));
         public Stats Stats {get; private set;}
-        public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
+        public Inventory Inventory { get; private set; }
+        public Armor BaseArmor { get; private set; } = new(ArmorType.Base, string.Empty);
         public List<Armor> ArmorSet { get; set; } = new();
         private Stack<IInteractive> _thingsToInteract = new();
         public IWeapon CurrentWeapon = new WeaponFist();
@@ -69,6 +70,7 @@ namespace OnlyDarker
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
             Stats = stats;
+            Inventory = new(ArmorSet, Stats, CurrentWeapon);
         }
         public void RunIFrames(float durationMilliseconds)
         {

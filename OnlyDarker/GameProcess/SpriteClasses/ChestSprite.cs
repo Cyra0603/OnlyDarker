@@ -16,7 +16,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private EffectAnimationManager _animator;
         public Vector2 Position { get; set; }
         public ChestType Type { get; }
-        public string Name => Type + " chest";
+        public string IngameName => Type + " chest";
         private Timer _lootDropDelay;
         private float _lootDropDelayValue;
         private int _maxAnimationSteps { get; }

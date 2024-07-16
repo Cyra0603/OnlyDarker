@@ -233,7 +233,7 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "MobSummoner":
                             BuildTile(tileTextures, x, y);
-                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this), _tiles[y, x].Position, this, 2F, new Armor(ArmorType.Base), 30F, 15000F, 5);
+                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this), _tiles[y, x].Position, this, 2F, new Armor(ArmorType.Base, string.Empty), 30F, 15000F, 5);
                             ObjectsYSorted.Add(summoner);
                             Damageables.Add(summoner);
                             Updateables.Add(summoner);
@@ -441,6 +441,30 @@ namespace OnlyDarker.GameProcess
             if (TempRectDrawList.Any())
                 TempRectDrawList.Clear();
         }
+        public bool LineCastIsCollidingObstacles(in Vector2 start, in Vector2 finish)
+        {
+            var halfTile = 1;
+            Vector2 difference = finish - start;
+            int iterations;
+            if ((int)difference.Length() > 1)
+            {
+                iterations = (int)difference.Length() / halfTile;
+            }
+            else
+            {
+                iterations = 2;
+            }
+            Vector2 direction = difference / iterations;
+            Vector2 currentPosition = start;
+            for (int i = 0; i < iterations; i++)
+            {
+                var tile = GetTileByPosition(currentPosition);
+                if (_standartObstacles[tile.GridY, tile.GridX] is not null && _standartObstacles[tile.GridY, tile.GridX].MovementCollider.Contains(currentPosition))
+                    return true;
+                currentPosition += direction;
+            }
+            return false;
+        }
         public Vector2 GetPathDestination(in Vector2 start, in Vector2 finish)
         {
             var startTile = GetTileByPosition(in start);
@@ -468,10 +492,14 @@ namespace OnlyDarker.GameProcess
                 int ly = fy;
                 int blocks = 0;
                 float leastWeight = float.MaxValue;
-                if (fx != 0 && !_nodesAllocation[fy, fx - 1].IsBlocked && !_nodesAllocation[fy, fx - 1].IsMarked && _nodesAllocation[fy, fx - 1].Weight == float.MaxValue) //Left
+                if (fx != 0 && !_nodesAllocation[fy, fx - 1].IsBlocked && !_nodesAllocation[fy, fx - 1].IsMarked) //Left
                 {
-                    _nodesAllocation[fy, fx - 1].Weight = _nodesAllocation[fy, fx].Weight + 1;
-                    _nodesAllocation[fy, fx - 1].AStarWeight = Vector2.Distance(_tiles[fy, fx - 1].Position, _tiles[sy, sx].Position);
+
+                    if (_nodesAllocation[fy, fx - 1].Weight == float.MaxValue)
+                    {
+                        _nodesAllocation[fy, fx - 1].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                        _nodesAllocation[fy, fx - 1].AStarWeight = Vector2.Distance(_tiles[fy, fx - 1].Position, _tiles[sy, sx].Position);
+                    }
                     if (_nodesAllocation[fy, fx - 1].AStarWeight < leastWeight)
                     {
                         leastWeight = _nodesAllocation[fy, fx - 1].AStarWeight;
@@ -479,12 +507,16 @@ namespace OnlyDarker.GameProcess
                         lx = fx - 1;
                     }
                 }
-                if (_nodesAllocation[fy, fx - 1].IsBlocked)
+                else
                     blocks++;
-                if (fx != width - 1 && !_nodesAllocation[fy, fx + 1].IsBlocked && !_nodesAllocation[fy, fx + 1].IsMarked && _nodesAllocation[fy, fx + 1].Weight == float.MaxValue) //Right
+                if (fx != width - 1 && !_nodesAllocation[fy, fx + 1].IsBlocked && !_nodesAllocation[fy, fx + 1].IsMarked) //Right
                 {
-                    _nodesAllocation[fy, fx + 1].Weight = _nodesAllocation[fy, fx].Weight + 1;
-                    _nodesAllocation[fy, fx + 1].AStarWeight = Vector2.Distance(_tiles[fy, fx + 1].Position, _tiles[sy, sx].Position);
+
+                    if (_nodesAllocation[fy, fx + 1].Weight == float.MaxValue)
+                    {
+                        _nodesAllocation[fy, fx + 1].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                        _nodesAllocation[fy, fx + 1].AStarWeight = Vector2.Distance(_tiles[fy, fx + 1].Position, _tiles[sy, sx].Position);
+                    }
                     if (_nodesAllocation[fy, fx + 1].AStarWeight < leastWeight)
                     {
                         leastWeight = _nodesAllocation[fy, fx + 1].AStarWeight;
@@ -492,12 +524,16 @@ namespace OnlyDarker.GameProcess
                         lx = fx + 1;
                     }
                 }
-                if (_nodesAllocation[fy, fx + 1].IsBlocked)
+                else
                     blocks++;
-                if (fy != 0 && !_nodesAllocation[fy - 1, fx].IsBlocked && !_nodesAllocation[fy - 1, fx].IsMarked && _nodesAllocation[fy - 1, fx].Weight == float.MaxValue) //Up
+                if (fy != 0 && !_nodesAllocation[fy - 1, fx].IsBlocked && !_nodesAllocation[fy - 1, fx].IsMarked) //Up
                 {
-                    _nodesAllocation[fy - 1, fx].Weight = _nodesAllocation[fy, fx].Weight + 1;
-                    _nodesAllocation[fy - 1, fx].AStarWeight = Vector2.Distance(_tiles[fy - 1, fx].Position, _tiles[sy, sx].Position);
+
+                    if (_nodesAllocation[fy - 1, fx].Weight == float.MaxValue)
+                    {
+                        _nodesAllocation[fy - 1, fx].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                        _nodesAllocation[fy - 1, fx].AStarWeight = Vector2.Distance(_tiles[fy - 1, fx].Position, _tiles[sy, sx].Position);
+                    }
                     if (_nodesAllocation[fy - 1, fx].AStarWeight < leastWeight)
                     {
                         leastWeight = _nodesAllocation[fy - 1, fx].AStarWeight;
@@ -505,12 +541,16 @@ namespace OnlyDarker.GameProcess
                         lx = fx;
                     }
                 }
-                if (_nodesAllocation[fy - 1, fx].IsBlocked)
+                else
                     blocks++;
-                if (fy != height - 1 && !_nodesAllocation[fy + 1, fx].IsBlocked && !_nodesAllocation[fy + 1, fx].IsMarked && _nodesAllocation[fy + 1, fx].Weight == float.MaxValue) //Down
+                if (fy != height - 1 && !_nodesAllocation[fy + 1, fx].IsBlocked && !_nodesAllocation[fy + 1, fx].IsMarked) //Down
                 {
-                    _nodesAllocation[fy + 1, fx].Weight = _nodesAllocation[fy, fx].Weight + 1;
-                    _nodesAllocation[fy + 1, fx].AStarWeight = Vector2.Distance(_tiles[fy + 1, fx].Position, _tiles[sy, sx].Position);
+
+                    if (_nodesAllocation[fy + 1, fx].Weight == float.MaxValue)
+                    {
+                        _nodesAllocation[fy + 1, fx].Weight = _nodesAllocation[fy, fx].Weight + 1;
+                        _nodesAllocation[fy + 1, fx].AStarWeight = Vector2.Distance(_tiles[fy + 1, fx].Position, _tiles[sy, sx].Position);
+                    }
                     if (_nodesAllocation[fy + 1, fx].AStarWeight < leastWeight)
                     {
                         leastWeight = _nodesAllocation[fy + 1, fx].AStarWeight;
@@ -518,7 +558,7 @@ namespace OnlyDarker.GameProcess
                         lx = fx;
                     }
                 }
-                if (_nodesAllocation[fy + 1, fx].IsBlocked)
+                else
                     blocks++;
                 _nodesAllocation[fy, fx].IsMarked = true;
                 if (fx == lx && fy == ly)
@@ -528,15 +568,14 @@ namespace OnlyDarker.GameProcess
                     safeNodesI--;
                     if (safeNodesI < 0)
                     {
-                        safeNodesI = 0;
-                        safeNodes[0] = new Point(startTile.GridX, startTile.GridY);
+                        return Vector2.Zero;
                     }
                 }
                 else
                 {
                     fx = lx;
                     fy = ly;
-                    if (blocks < 2)
+                    if (blocks < 3)
                     {
                         safeNodes[safeNodesI + 1] = new Point(fx, fy);
                         safeNodesI++;
@@ -550,7 +589,7 @@ namespace OnlyDarker.GameProcess
             int x = sx;
             int y = sy;
             float finalWeight = float.MaxValue;
-            if (sx != 0 && !_nodesAllocation[sy, sx - 1].IsBlocked && _nodesAllocation[sy, sx - 1].Weight < finalWeight)//left
+            if (sx != 0 && !_nodesAllocation[sy, sx - 1].IsBlocked && _nodesAllocation[sy, sx - 1].Weight <= finalWeight)//left
             {
                 finalWeight = _nodesAllocation[sy, sx - 1].Weight;
                 y = sy;
@@ -562,7 +601,7 @@ namespace OnlyDarker.GameProcess
                 y = sy;
                 x = sx + 1;
             }
-            if (sy != 0 && !_nodesAllocation[sy - 1, sx].IsBlocked && _nodesAllocation[sy - 1, sx].Weight  <= finalWeight)//up
+            if (sy != 0 && !_nodesAllocation[sy - 1, sx].IsBlocked && _nodesAllocation[sy - 1, sx].Weight <= finalWeight)//up
             {
                 finalWeight = _nodesAllocation[sy - 1, sx].Weight;
                 y = sy - 1;
@@ -574,25 +613,25 @@ namespace OnlyDarker.GameProcess
                 y = sy + 1;
                 x = sx;
             }
-            if (sx != 0 && sy != 0 && !_nodesAllocation[sy - 1, sx - 1].IsBlocked && _nodesAllocation[sy - 1, sx - 1].Weight <= finalWeight && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NW
+            if (sx != 0 && sy != 0 && !_nodesAllocation[sy - 1, sx - 1].IsBlocked && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked && _nodesAllocation[sy - 1, sx - 1].Weight <= finalWeight)//NW
             {
                 finalWeight = _nodesAllocation[sy - 1, sx - 1].Weight;
                 y = sy - 1;
                 x = sx - 1;
             }
-            if (sx != width - 1 && sy != 0 && !_nodesAllocation[sy - 1, sx + 1].IsBlocked && _nodesAllocation[sy - 1, sx + 1].Weight <= finalWeight && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked)//NE
+            if (sx != width - 1 && sy != 0 && !_nodesAllocation[sy - 1, sx + 1].IsBlocked && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy - 1, sx].IsBlocked && _nodesAllocation[sy - 1, sx + 1].Weight <= finalWeight)//NE
             {
                 finalWeight = _nodesAllocation[sy - 1, sx + 1].Weight;
                 y = sy - 1;
                 x = sx + 1;
             }
-            if (sx != 0 && sy != height - 1 && !_nodesAllocation[sy + 1, sx - 1].IsBlocked && _nodesAllocation[sy + 1, sx - 1].Weight <= finalWeight && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked)//SW
+            if (sx != 0 && sy != height - 1 && !_nodesAllocation[sy + 1, sx - 1].IsBlocked && !_nodesAllocation[sy, sx - 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked && _nodesAllocation[sy + 1, sx - 1].Weight <= finalWeight)//SW
             {
                 finalWeight = _nodesAllocation[sy + 1, sx - 1].Weight;
                 y = sy + 1;
                 x = sx - 1;
             }
-            if (sx != width - 1 && sy != height - 1 && !_nodesAllocation[sy + 1, sx + 1].IsBlocked && _nodesAllocation[sy + 1, sx + 1].Weight <= finalWeight && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked)//SE
+            if (sx != width - 1 && sy != height - 1 && !_nodesAllocation[sy + 1, sx + 1].IsBlocked && !_nodesAllocation[sy, sx + 1].IsBlocked && !_nodesAllocation[sy + 1, sx].IsBlocked && _nodesAllocation[sy + 1, sx + 1].Weight <= finalWeight)//SE
             {
                 finalWeight = _nodesAllocation[sy + 1, sx + 1].Weight;
                 y = sy + 1;

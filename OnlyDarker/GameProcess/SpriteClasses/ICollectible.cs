@@ -11,6 +11,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     {
         Texture2D Texture { get; }
         Vector2 Position { get; set; }
+        string IngameName { get; }
         Rectangle MovementCollider { get; }
         static Vector2 SwayOffset => new(0, (float)Math.Sin(GameBody.GetGameInstance().GetSwayFunctionValue() * SWAY_FREQUENCY) * SWAY_AMPLITUDE);
         const float PUSHAWAY_MAX_FORCE = 1F;
