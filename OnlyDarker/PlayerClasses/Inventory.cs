@@ -20,7 +20,8 @@ namespace OnlyDarker.PlayerClasses
         public Rectangle MainBounds => new(0, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 5, GlobalUse.WindowSize.Y / 2);
         public Rectangle SlotsBounds => new(GlobalUse.WindowSize.X / 4, GlobalUse.WindowSize.Y, GlobalUse.WindowSize.Y / 2, GlobalUse.WindowSize.Y / 10);
         private const int SLOTS_DRAWING_OFFSET = 5;
-        public Point SlotSize => new(, SlotsBounds.Height - SLOTS_DRAWING_OFFSET);
+        public Point SlotSize => new(SlotsBounds.Height - SLOTS_DRAWING_OFFSET, SlotsBounds.Height - SLOTS_DRAWING_OFFSET);
+
         public Inventory(List<Armor> armorSet, Stats stats, IWeapon weapon) 
         { 
             ArmorSet = armorSet;

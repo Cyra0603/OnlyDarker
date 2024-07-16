@@ -175,6 +175,7 @@ namespace OnlyDarker
         protected override void Update(GameTime gameTime)
         {
             CheckWindowFocus();
+            ControlsManager.GetInputStates();
             ControlsManager.UpdateInputs();
             if (_gameState == GameState.IsRunning)
             {
@@ -187,6 +188,7 @@ namespace OnlyDarker
             {
                 Menu.Update();
             }
+            ControlsManager.SaveInputStates();
             base.Update(gameTime);
         }
 

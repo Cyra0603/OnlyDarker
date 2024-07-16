@@ -20,11 +20,15 @@ namespace OnlyDarker
             get
             {
                 return
-                    Mouse.GetState().Position.ToVector2()
+                    CurrentMouseState.Position.ToVector2()
                     + GameBody.GetGameInstance().MainCharacter.Position -
                     new Vector2(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
             }
         }
+        public MouseState CurrentMouseState { get; private set; }
+        public MouseState LastMouseState { get; private set; }
+        public KeyboardState CurrentKeyboardState { get; private set; }
+        public KeyboardState LastKeyboardState { get; private set; }
         public const float DIRECTION_X_MAX_VALUE = 1.75F;
         public const float DIRECTION_Y_MAX_VALUE = 1.15F;
         private readonly float _friction = 0.88F;
@@ -44,17 +48,26 @@ namespace OnlyDarker
             BindManager.Dash.KeyPressed += GameBody.GetGameInstance().MainCharacter.Dash;
             BindManager.Attack.KeyPressed += GameBody.GetGameInstance().MainCharacter.Attack;
         }
+        public void GetInputStates()
+        {
+            CurrentMouseState = Mouse.GetState();
+            CurrentKeyboardState = Keyboard.GetState();
+        }
+        public void SaveInputStates()
+        {
+            LastMouseState = CurrentMouseState;
+            LastKeyboardState = CurrentKeyboardState;
+        }
         public void UpdateInputs()
         {
             if (!GameBody.GetGameInstance().IsActive)
                 return;
-            var keyboardState = Keyboard.GetState();
             foreach (var bind in BindManager.AppHotKeys)
             {
-                bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
+                bind.IsKeyDown = CurrentKeyboardState.IsKeyDown(bind.Key);
                 if (bind.Key == Keys.None)
                 {
-                    bind.IsKeyDown = ButtonStateToBool(Mouse.GetState().LeftButton);
+                    bind.IsKeyDown = ButtonStateToBool(CurrentMouseState.LeftButton);
                 }
             }
         }
@@ -62,13 +75,12 @@ namespace OnlyDarker
         {
             if (!GameBody.GetGameInstance().IsActive)
                 return;
-            var keyboardState = Keyboard.GetState();
             foreach (var bind in BindManager.BindList)
             {
-                bind.IsKeyDown = keyboardState.IsKeyDown(bind.Key);
+                bind.IsKeyDown = CurrentKeyboardState.IsKeyDown(bind.Key);
                 if (bind.Key == Keys.None)
                 {
-                    bind.IsKeyDown = ButtonStateToBool(Mouse.GetState().LeftButton);
+                    bind.IsKeyDown = ButtonStateToBool(CurrentMouseState.LeftButton);
                 }
             }
         }
