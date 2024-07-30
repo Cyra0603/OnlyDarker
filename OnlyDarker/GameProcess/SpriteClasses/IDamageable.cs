@@ -18,7 +18,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         bool IsPushable { get; }
         float HealthPoints { get; set; }
         float MaxHealthPoints { get; }
-        List<Armor> ArmorSet { get; }
+        BaseArmor BaseArmor { get; }
         void TakeDamage(in DamageInstance damage)
         {
             if (IsInvincible)
@@ -26,10 +26,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 return;
             }
             var locald = damage;
-            foreach (var armor in ArmorSet)
-            {
-                locald *= armor.Resistances.First(res => res.Type == locald.Type);
-            }
+            BaseArmor.ProcessDamageInstance(ref locald);
+            //foreach (var armor in ArmorSet)
+            //{
+            //    locald *= armor.Resistances.First(res => res.Type == locald.Type);
+            //}
             var dmgTaken = locald.ExtractValue();
             if (dmgTaken < 0)
                 dmgTaken = 0;

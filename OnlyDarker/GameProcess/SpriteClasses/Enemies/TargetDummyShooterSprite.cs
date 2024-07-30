@@ -27,8 +27,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
         private Timer _attackCooldown;
         public readonly float AttackCooldownTime = 1000F;
-        public Armor BaseArmor { get; private set; } = new(ArmorType.Base, string.Empty);
-        public List<Armor> ArmorSet { get; } = new();
+        public BaseArmor BaseArmor { get; }
         public bool IsExpired { get; private set; } = false;
         public bool IsInvincible { get; set; }
         public bool IsPushable { get; } = false;
@@ -70,7 +69,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             _attackCooldown = new(AttackCooldownTime);
             MaxHealthPoints = 10000;
             Speed = 0.7F;
-            ArmorSet.Add(BaseArmor);
+            BaseArmor = new();
         }
         public delegate void ObserveHP(float healthPoints);
         public event ObserveHP OnChangingHealth;

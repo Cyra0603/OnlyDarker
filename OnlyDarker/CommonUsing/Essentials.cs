@@ -23,16 +23,16 @@ namespace OnlyDarker.CommonUsing
         Wooden,
         Iron,
         Golden,
-        Luxurious
+        Luxurious,
     }
     public enum ArmorType
     {
-        Base,
         Helmet,
         Chest,
         Pants,
         Gloves,
         Boots,
+        Accessory,
     }
     public enum DamageType
     {
@@ -106,6 +106,18 @@ namespace OnlyDarker.CommonUsing
             var value = SeededStandartRNG.Next(0, 101);
             return value < chance;
         }
+        public static Color[,] TextureTo2DArray(Texture2D texture)
+        {
+            Color[] colors1D = new Color[texture.Width * texture.Height];
+            texture.GetData(colors1D);
+
+            Color[,] colors2D = new Color[texture.Width, texture.Height];
+            for (int x = 0; x < texture.Width; x++)
+                for (int y = 0; y < texture.Height; y++)
+                    colors2D[x, y] = colors1D[x + y * texture.Width];
+
+            return colors2D;
+        }
         public static string GetName(this Floor floorType) => floorType switch
         {
             Floor.One => nameof(Floor.One),
@@ -143,12 +155,12 @@ namespace OnlyDarker.CommonUsing
         };
         public static string GetName(this ArmorType armorType) => armorType switch
         {
-            ArmorType.Base => nameof(ArmorType.Base),
             ArmorType.Helmet => nameof(ArmorType.Helmet),
             ArmorType.Chest => nameof(ArmorType.Chest),
             ArmorType.Pants => nameof(ArmorType.Pants),
             ArmorType.Gloves => nameof(ArmorType.Gloves),
             ArmorType.Boots => nameof(ArmorType.Boots),
+            ArmorType.Accessory => nameof(ArmorType.Accessory),
             _ => throw new ArgumentOutOfRangeException(nameof(armorType), armorType, null)
         };
         public static string GetName(this ChestType chestType) => chestType switch

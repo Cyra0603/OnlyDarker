@@ -27,6 +27,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             set
             {
                 _healthPoints = value;
+                if(_healthPoints <= 0.1)
+                {
+                    _healthPoints = 0;
+                }
                 if (_healthPoints <= 0)
                 {
                     IsExpired = true;
@@ -38,9 +42,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         private float _summonCooldownTime;
         private float _baseDamage;
         private int _maxSummons;
-        private Armor _baseArmor;
-        public List<Armor> ArmorSet { get; protected set; }
-        public MobSummonerSprite(Texture2D texture, ISummonable summonableEntity, Vector2 position, Room parentRoomRef, float contactDamage, Armor baseArmor, float healthPoints, float summonCooldownMs, int maxSummons)
+        public BaseArmor BaseArmor { get; }
+        public MobSummonerSprite(Texture2D texture, ISummonable summonableEntity, Vector2 position, Room parentRoomRef, float contactDamage, BaseArmor baseArmor, float healthPoints, float summonCooldownMs, int maxSummons)
         {
             _texture = texture;
             Position = position;
@@ -48,14 +51,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             _initialPosition = position;
             _parentRoomRef = parentRoomRef;
             _baseDamage = contactDamage;
-            _baseArmor = baseArmor;
+            BaseArmor = baseArmor;
             _summonCooldownTime = summonCooldownMs;
             _summonTimer.TimeLeft = RandomizeSpawnTime();
             _maxSummons = maxSummons;
-            ArmorSet = new List<Armor>
-            {
-                _baseArmor
-            };
             _healthPoints = healthPoints;
             MaxHealthPoints = _healthPoints;
         }

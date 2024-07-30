@@ -42,7 +42,7 @@ namespace OnlyDarker
             BindManager.MoveLeft.KeyPressed += PlayerMoveLeft;
             BindManager.MoveRight.KeyPressed += PlayerMoveRight;
             BindManager.Interact.KeyPressed += GameBody.GetGameInstance().MainCharacter.Interact;
-            BindManager.OpenInventory.KeyPressed += GameBody.GetGameInstance().MainCharacter.TestTakingDamage;
+            BindManager.OpenInventory.KeyPressed += GameBody.GetGameInstance().MainCharacter.Inventory.ToggleInventory;
             BindManager.HealCharacter.KeyPressed += GameBody.GetGameInstance().MainCharacter.TestHealing;
             BindManager.DamageCharacter.KeyPressed += GameBody.GetGameInstance().MainCharacter.TestTakingDamage;
             BindManager.Dash.KeyPressed += GameBody.GetGameInstance().MainCharacter.Dash;

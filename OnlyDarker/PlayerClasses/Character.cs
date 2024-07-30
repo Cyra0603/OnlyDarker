@@ -27,6 +27,7 @@ namespace OnlyDarker
         private readonly Texture2D _handTexture;
         private static ControlsManager ControlsManager => GameBody.GetGameInstance().ControlsManager;
         private List<Vector2> _dashFrames = new();
+        private Stack<IInteractive> _thingsToInteract = new();
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         private Vector2 _handOrigin;
@@ -41,12 +42,10 @@ namespace OnlyDarker
             );
         public Rectangle InteractionAura => new(new Point((int)Position.X - _bodyTexture.Width, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width * 2, (int)(_bodyTexture.Height * 1.25F)));
         public Rectangle BodyHitbox => new(new((int)(Position.X - _bodyTexture.Width / 2), (int)(Position.Y - _bodyTexture.Height / 2)), new(_bodyTexture.Width, _bodyTexture.Height));
-        public Stats Stats {get; private set;}
+        public Stats Stats { get; private set; }
         public Inventory Inventory { get; private set; }
-        public Armor BaseArmor { get; private set; } = new(ArmorType.Base, string.Empty);
-        public List<Armor> ArmorSet { get; set; } = new();
-        private Stack<IInteractive> _thingsToInteract = new();
-        public IWeapon CurrentWeapon = new WeaponFist();
+        public BaseArmor BaseArmor { get; private set; }
+        public WeaponSprite CurrentWeapon => Inventory.WeaponSlot.Container as WeaponSprite;
         private Texture2D _attackAnimation = GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation");
         public ActionTimer? DashTimer;
         public ActionTimer? DashEffectTimer;
@@ -70,7 +69,8 @@ namespace OnlyDarker
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
             Stats = stats;
-            Inventory = new(ArmorSet, Stats, CurrentWeapon);
+            BaseArmor = new BaseArmor();
+            Inventory = new(Stats, PremadeWeaponSprites.GetInstance().GetNewSprite("Fist"));
         }
         public void RunIFrames(float durationMilliseconds)
         {
@@ -186,9 +186,9 @@ namespace OnlyDarker
         public void AddSpeed(float amount)
         {
             Stats.Speed += amount;
-            if (Stats.Speed < Stats.MIN_CHARACTER_SPEED) 
+            if (Stats.Speed < Stats.MIN_CHARACTER_SPEED)
                 Stats.Speed = Stats.MIN_CHARACTER_SPEED;
-            if (Stats.Speed > Stats.MAX_CHARACTER_SPEED) 
+            if (Stats.Speed > Stats.MAX_CHARACTER_SPEED)
                 Stats.Speed = Stats.MAX_CHARACTER_SPEED;
         }
         public void SetPosition(Vector2 position)
@@ -199,7 +199,7 @@ namespace OnlyDarker
         }
         public void SetRange(float value)
         {
-            
+
         }
         public void SetStamina(float value)
         {
@@ -275,18 +275,17 @@ namespace OnlyDarker
         }
         public void Attack()
         {
-            if (AttackCooldown.TimeLeft > 0)
+            if (AttackCooldown.TimeLeft > 0 || Inventory.IsActive)
             {
-                //Debug.WriteLine("attack is on cooldown");
                 return;
             }
             var flipsf = SpriteEffects.None;
             if (ControlsManager.MousePosition.X < Position.X)
                 flipsf = SpriteEffects.FlipVertically;
-            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.AttackSpeed); //IMPLEMENT ATTACKSPEED!
+            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.Data.AttackSpeed); //IMPLEMENT ATTACKSPEED!
             var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
             var direction = difference / difference.Length();
-            var range = (int)(CurrentWeapon.AttackRange + Stats.Range);
+            var range = (int)(CurrentWeapon.Data.AttackRange + Stats.Range);
             var attackRect = new Rectangle(new
                 ((int)(Position.X + (direction.X * range) - range / 2), (int)(Position.Y + (direction.Y * range) - range / 2)),
                 new(range, range));
@@ -303,12 +302,12 @@ namespace OnlyDarker
                     continue;
                 }
                 bool proc = GlobalUse.TryChance(Stats.CritChance);
-                var dmg = CurrentWeapon.AttackDamage + Stats.Damage;
+                var dmg = CurrentWeapon.Data.AttackDamage + Stats.Damage;
                 if (!proc)
-                    target.TakeDamage(new(dmg, 1.2F, CurrentWeapon.WeaponDamageType, proc));
+                    target.TakeDamage(new(dmg, 1.2F, CurrentWeapon.Data.WeaponDamageType, proc));
                 else
                 {
-                    target.TakeDamage(new(dmg * critModifier, 1.2F, CurrentWeapon.WeaponDamageType, proc));
+                    target.TakeDamage(new(dmg * critModifier, 1.2F, CurrentWeapon.Data.WeaponDamageType, proc));
                 }
             }
             foreach (var target in GameBody.GetGameInstance().ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
@@ -344,20 +343,17 @@ namespace OnlyDarker
             if (!IsInvincible)
             {
                 var locald = damage;
-                foreach (var armor in ArmorSet)
+                BaseArmor.ProcessDamageInstance(ref locald);
+                foreach (var armor in Inventory.GetArmorSet())
                 {
-                    locald *= armor.Resistances.First(res => res.Type == locald.Type);
+                    (armor as ArmorSprite)?.ProcessDamageInstance(ref locald);
                 }
                 var dmgTaken = locald.ExtractValue();
-                var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), dmgTaken.ToString(), damage.IsCritical);
+                var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
                 Stats.HealthPoints -= dmgTaken;
                 RunIFrames(Stats.I_FRAME_TIME);
                 DamagedEffectTimer.TimeLeft += Stats.I_FRAME_TIME;
             }
-            //if (GlobalUse.IsDebugMode)
-            //{
-            //    SaveCharState();
-            //}
             else return;
         }
         private async void SaveCharState()

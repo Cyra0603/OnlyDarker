@@ -14,15 +14,18 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private Vector2 _finalPosition { get; }
         private const string _ingameName = "Heart";
         public string IngameName => _ingameName;
+        public string TextureFileName { get; }
+        public string Description { get; }
         public bool IsExpired { get; private set; } = false;
         public Timer _spawnTimer;
-        public Rectangle MovementCollider => new((int)Position.X - Texture.Width / 2, (int)Position.Y - Texture.Height / 2, Texture.Width, Texture.Height);
+        public Rectangle MovementCollider => new((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
         public HeartPickupSprite(Texture2D texture, Vector2 spawnPosition, Vector2 finalPosition)
         {
             Texture = texture;
             Position = spawnPosition;
             _finalPosition = finalPosition;
             _spawnTimer = new(500F);
+            Description = string.Empty;
             GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(this);
             GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(this);
         }
@@ -51,11 +54,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
         public void Draw()
         {
-            if (_spawnTimer.TimeLeft > 0)
-            {
-                GlobalUse.SpriteBatch.Draw(Texture, Position, Color.White);
-            }
-            else (this as ICollectible).DynamicDraw();
+            (this as ICollectible).CollectibleDraw();
         }
     }
 }

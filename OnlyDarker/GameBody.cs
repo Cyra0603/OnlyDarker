@@ -6,6 +6,7 @@ using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
 using OnlyDarker.IngameMenu;
+using OnlyDarker.PlayerClasses;
 using OnlyDarker.UI;
 using System;
 using System.Collections.Generic;
@@ -183,6 +184,10 @@ namespace OnlyDarker
                 _collectiblesTimeAccumulator += (float)gameTime.ElapsedGameTime.TotalSeconds;
                 _staminaBar.Update((float)gameTime.ElapsedGameTime.TotalMilliseconds);
                 _fixedElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                if (MainCharacter.Inventory.IsActive)
+                {
+                    MainCharacter.Inventory.Update();
+                }
             }
             if (_gameState == GameState.Paused)
             {
@@ -294,7 +299,8 @@ namespace OnlyDarker
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
 
             _characterHealthbar.StandaloneDraw();
-            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
+            GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend, samplerState: SamplerState.AnisotropicWrap, rasterizerState: RasterizerState.CullNone);
+            MainCharacter.Inventory.Draw();
             _minimap.Draw();
             _statsBar.Draw();
             _currentFloorBar.Draw();

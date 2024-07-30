@@ -53,8 +53,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             }
         }
         public float MaxHealthPoints { get; }
-        private Armor _baseArmor;
-        public List<Armor> ArmorSet { get; }
+        public BaseArmor BaseArmor { get; }
         public FloorOneBossSprite(Texture2D bodyTexture, Room parentRoomRef, Vector2 position, float maxHealthPoints, string bossName)
         {
             BodyTexture = bodyTexture;
@@ -62,9 +61,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             Position = position;
             HealthPoints = maxHealthPoints;
             MaxHealthPoints = maxHealthPoints;
-            ArmorSet = new();
-            _baseArmor = new(ArmorType.Base, string.Empty, sliceX: 0.9F, pokeX: 0.9F, bluntX: 0.85F);
-            ArmorSet.Add(_baseArmor);
+            BaseArmor = new(sliceX: 0.9F, pokeX: 0.9F, bluntX: 0.85F);
             PatternChanger = new(0);
             SummonCooldown = new(0);
             ShootCooldown = new(0);

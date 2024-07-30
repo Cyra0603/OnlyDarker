@@ -233,7 +233,7 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "MobSummoner":
                             BuildTile(tileTextures, x, y);
-                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this), _tiles[y, x].Position, this, 2F, new Armor(ArmorType.Base, string.Empty), 30F, 15000F, 5);
+                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this), _tiles[y, x].Position, this, 2F, new BaseArmor(), 30F, 15000F, 5);
                             ObjectsYSorted.Add(summoner);
                             Damageables.Add(summoner);
                             Updateables.Add(summoner);
@@ -249,22 +249,19 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "WeaponStick":
                             BuildTile(tileTextures, x, y);
-                            var stickTest = new WeaponSprite(new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)), "Stick");
-                            stickTest.WeaponInstance = new WeaponStick(stickTest);
+                            var stickTest = PremadeWeaponSprites.GetInstance().GetNewSprite("Stick", new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)));
                             ObjectsYSorted.Add(stickTest);
                             Interactives.Add(stickTest);
                             break;
                         case "WeaponSword":
                             BuildTile(tileTextures, x, y);
-                            var swordTest = new WeaponSprite(new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)), "Sword");
-                            swordTest.WeaponInstance = new WeaponSword(swordTest);
+                            var swordTest = PremadeWeaponSprites.GetInstance().GetNewSprite("Sword", new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)));
                             ObjectsYSorted.Add(swordTest);
                             Interactives.Add(swordTest);
                             break;
                         case "WeaponLance":
                             BuildTile(tileTextures, x, y);
-                            var lanceTest = new WeaponSprite(new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)), "Lance");
-                            lanceTest.WeaponInstance = new WeaponLance(lanceTest);
+                            var lanceTest = PremadeWeaponSprites.GetInstance().GetNewSprite("Lance", new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)));
                             ObjectsYSorted.Add(lanceTest);
                             Interactives.Add(lanceTest);
                             break;
@@ -338,21 +335,25 @@ namespace OnlyDarker.GameProcess
         {
             if (Damageables.Count >= MAX_ENTITIES)
                 return;
-            if (TryCast<IDamageable>(entity, out var damageable))
+            if (TryCast<IDamageable>(entity, out var damageable) && damageable is not null)
             {
                 Damageables.Add(damageable);
             }
-            if (TryCast<IMyUpdateable>(entity, out var updateable))
+            if (TryCast<IMyUpdateable>(entity, out var updateable) && updateable is not null)
             {
                 Updateables.Add(updateable);
             }
-            if (TryCast<INonSortable>(entity, out var nonSortable))
+            if (TryCast<INonSortable>(entity, out var nonSortable) && nonSortable is not null)
             {
                 ObjectsNotSorted.Add(nonSortable);
             }
-            if (TryCast<IYSortable>(entity, out var ySortable))
+            if (TryCast<IYSortable>(entity, out var ySortable) && ySortable is not null)
             {
                 ObjectsYSorted.Add(ySortable);
+            }
+            if (TryCast<IInteractive>(entity, out var interactive) && interactive is not null)
+            {
+                Interactives.Add(interactive);
             }
             bool TryCast<T>(object obj, out T cast)
             {

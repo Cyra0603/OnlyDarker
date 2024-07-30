@@ -16,8 +16,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Vector2 Origin { get; protected set; }
         public Rectangle MovementCollider;
         public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
-        public Armor BaseArmor { get; private set; } = new(ArmorType.Base, string.Empty);
-        public List<Armor> ArmorSet { get; } = new();
+        public BaseArmor BaseArmor { get;}
+        public List<ArmorSprite> ArmorSet { get; } = new();
         public bool IsInvincible { get; set; }
         public bool IsExpired { get; private set; } = false;
         public bool IsPushable { get; } = false;
@@ -51,16 +51,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
             MaxHealthPoints = 10000;
             MovementCollider = BodyHitbox;
-            ArmorSet.Add(BaseArmor);
-            ArmorSet.Add(new(ArmorType.Helmet, string.Empty, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Pants, string.Empty, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Chest, string.Empty, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Boots, string.Empty, bluntX: 0.8F));
-            ArmorSet.Add(new(ArmorType.Gloves, string.Empty, bluntX: 0.8F));
-            foreach (var armor in ArmorSet)
-            {
-                armor.AddFlatArmor(5F);
-            }
+            BaseArmor = new();
         }
         public delegate void ObserveHP(float healthPoints);
         public event ObserveHP OnChangingHealth;

@@ -22,8 +22,8 @@ using System.Threading.Tasks;
 //            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 8)
 //            );
 //        public Rectangle BodyHitbox => new(Position.ToPoint(), new(_bodyTexture.Width, _bodyTexture.Height));
-//        public Armor BaseArmor { get; private set; } = new(ArmorType.Base);
-//        public List<Armor> ArmorSet { get; set; } = new();
+//        public ArmorSprite BaseArmor { get; private set; } = new(ArmorType.Base);
+//        public List<ArmorSprite> ArmorSet { get; set; } = new();
 //        public float Speed { get; private set; } = 0.5F;
 //        public bool IsInvincible { get; set; } = false;
 //        private float _healthPoints = 10;

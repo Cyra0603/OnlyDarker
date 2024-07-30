@@ -3,7 +3,10 @@ using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Runtime.CompilerServices;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -12,30 +15,306 @@ namespace OnlyDarker.PlayerClasses
     public class Inventory
     {
         //data
-        public readonly List<Armor> ArmorSet;
         public readonly Stats Stats;
-        public IWeapon Weapon;
-        public readonly ICollectible[] Slots;
-        //drawing
-        public Rectangle MainBounds => new(0, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 5, GlobalUse.WindowSize.Y / 2);
-        public Rectangle SlotsBounds => new(GlobalUse.WindowSize.X / 4, GlobalUse.WindowSize.Y, GlobalUse.WindowSize.Y / 2, GlobalUse.WindowSize.Y / 10);
-        private const int SLOTS_DRAWING_OFFSET = 5;
-        public Point SlotSize => new(SlotsBounds.Height - SLOTS_DRAWING_OFFSET, SlotsBounds.Height - SLOTS_DRAWING_OFFSET);
+        public readonly InventorySlot[] Slots;
+        private InventorySlot _tempSlot;
+        private InventorySlot _draggedSlot;
+        private InventorySlot _hoveredSlot;
+        private List<DescriptionElement> _currentDescription;
+        private ContextMenu _contextMenu;
 
-        public Inventory(List<Armor> armorSet, Stats stats, IWeapon weapon) 
-        { 
-            ArmorSet = armorSet;
+        public InventorySlot WeaponSlot;
+        private WeaponSprite WeaponFist;
+
+        private readonly List<ArmorInventorySlot> _armorInventorySlots;
+        public ArmorInventorySlot HelmetSlot;
+        public ArmorInventorySlot ChestSlot;
+        public ArmorInventorySlot GlovesSlot;
+        public ArmorInventorySlot BootsSlot;
+        public ArmorInventorySlot PantsSlot;
+        public ArmorInventorySlot AccessorySlot;
+
+        private bool _isActive = false;
+        public bool IsActive
+        {
+            get => _isActive;
+            set
+            {
+                _isActive = value;
+                if (_tempSlot.Container is not null)
+                {
+                    _draggedSlot.Container = _tempSlot.Container;
+                    _tempSlot.Container = null;
+                    _draggedSlot = null;
+                }
+                GC.Collect();
+            }
+        }
+        //drawing
+        private const int SLOTS_DRAWING_OFFSET = 5;
+        public Rectangle MainBounds => new(0, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 5, (GlobalUse.WindowSize.Y / 17) * Slots.Length - SLOTS_DRAWING_OFFSET / 2);
+        public Rectangle SlotsBounds => new(MainBounds.X + MainBounds.Width, MainBounds.Y, GlobalUse.WindowSize.Y / 17, (GlobalUse.WindowSize.Y / 17) * (Slots.Length + 1));
+        public Rectangle WeaponSlotBounds => new(MainBounds.Location.X + SLOTS_DRAWING_OFFSET + MainBounds.Width / 2 + SlotSize.X / 2, MainBounds.Location.Y + MainBounds.Height / 3 - SlotSize.Y / 2, SlotSize.X, SlotSize.Y);
+        public Rectangle ContextMenuRect;
+        public Point SlotSize => new(SlotsBounds.Width - SLOTS_DRAWING_OFFSET, SlotsBounds.Width - SLOTS_DRAWING_OFFSET);
+        private Color _hoveredSlotColor;
+        private bool _contextMenuShouldBeDrawn = false;
+        public Inventory(Stats stats, WeaponSprite weapon)
+        {
             Stats = stats;
-            Weapon = weapon;
-            Slots = new ICollectible[10];
+            Slots = new InventorySlot[10];
+            _tempSlot = new InventorySlot(Rectangle.Empty, Point.Zero);
+            _draggedSlot = new InventorySlot(Rectangle.Empty, Point.Zero);
+            _hoveredSlot = null;
+            WeaponFist = weapon;
+            ChestSlot = new(ArmorType.Chest, new(WeaponSlotBounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, WeaponSlotBounds.Y, WeaponSlotBounds.Width, WeaponSlotBounds.Height), Point.Zero);
+            HelmetSlot = new(ArmorType.Helmet, new(ChestSlot.Bounds.X, ChestSlot.Bounds.Y - SLOTS_DRAWING_OFFSET - SlotSize.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
+            GlovesSlot = new(ArmorType.Gloves, new(ChestSlot.Bounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, ChestSlot.Bounds.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
+            PantsSlot = new(ArmorType.Pants, new(ChestSlot.Bounds.X, ChestSlot.Bounds.Y + SLOTS_DRAWING_OFFSET + SlotSize.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
+            BootsSlot = new(ArmorType.Boots, new(PantsSlot.Bounds.X, PantsSlot.Bounds.Y + SLOTS_DRAWING_OFFSET + SlotSize.Y, PantsSlot.Bounds.Width, PantsSlot.Bounds.Height), Point.Zero);
+            AccessorySlot = new(ArmorType.Accessory, new(HelmetSlot.Bounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, HelmetSlot.Bounds.Y, HelmetSlot.Bounds.Width, HelmetSlot.Bounds.Height), Point.Zero);
+            _armorInventorySlots = new()
+            {
+                HelmetSlot,
+                ChestSlot,
+                GlovesSlot,
+                BootsSlot,
+                PantsSlot,
+                AccessorySlot,
+            };
+            var slotsBounds = SlotsBounds;
+            var slotSize = new Point(slotsBounds.Width - SLOTS_DRAWING_OFFSET, slotsBounds.Width - SLOTS_DRAWING_OFFSET);
+            for (int i = 0; i < Slots.Length; i++)
+            {
+                Slots[i] = new InventorySlot(new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + i * (SLOTS_DRAWING_OFFSET + slotSize.X), slotsBounds.Width - SLOTS_DRAWING_OFFSET, slotsBounds.Width - SLOTS_DRAWING_OFFSET), new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + SLOTS_DRAWING_OFFSET / 2 + i * (SLOTS_DRAWING_OFFSET + slotSize.X)));
+            }
+            WeaponSlot = new InventorySlot(Rectangle.Empty, WeaponSlotBounds.Location)
+            {
+                Container = weapon
+            };
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Stick"), out string test);
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Sword"), out string test1);
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Lance"), out string test2);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather helmet"), out string test3);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather armor"), out string test4);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather boots"), out string test5);
+        }
+        public void Update()
+        {
+            if (!IsActive)
+                return;
+            var localMouseState = GameBody.GetGameInstance().ControlsManager.CurrentMouseState;
+            var localLastMouseState = GameBody.GetGameInstance().ControlsManager.LastMouseState;
+            var localKeyboardState = GameBody.GetGameInstance().ControlsManager.CurrentKeyboardState;
+            var cursor = localMouseState.Position;
+            _hoveredSlot = null;
+            _contextMenuShouldBeDrawn = false;
+            if (_tempSlot.Container is not null)
+            {
+                _hoveredSlotColor = Color.Transparent;
+            }
+            else
+            {
+                _hoveredSlotColor = Color.NavajoWhite;
+            }
+            HandleSlotsIntersection(in localMouseState, in localLastMouseState, in cursor);
+            HandleWeaponSlotIntersection(in localMouseState, in localLastMouseState, in cursor);
+            HandleArmorSlotsIntersection(in localMouseState, in localLastMouseState, in cursor);
+            if (localMouseState.LeftButton == ButtonState.Released && localLastMouseState.LeftButton == ButtonState.Pressed && _tempSlot.Container is not null)
+            {
+                DropItem(_tempSlot);
+            }
+            if (_hoveredSlot is not null)
+            {
+                _contextMenuShouldBeDrawn = true;
+                if (_currentDescription is null && _hoveredSlot.Container is not null)
+                {
+                    switch (_hoveredSlot.Container)
+                    {
+                        case WeaponSprite:
+                            _currentDescription = (_hoveredSlot.Container as WeaponSprite).Data.GetDescriptionElements();
+                            _contextMenu = new(new(SlotsBounds.Location.X + SlotsBounds.Width, SlotsBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
+                            break;
+                        case ArmorSprite:
+                            _currentDescription = GetDescriptionElements(_hoveredSlot.Container as ArmorSprite);
+                            _contextMenu = new(new(SlotsBounds.Location.X + SlotsBounds.Width, SlotsBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
+                            break;
+                    }
+                }
+            }
+            else
+            {
+                _currentDescription = null;
+                _contextMenu = null;
+            }
+        }
+        private void HandleArmorSlotsIntersection(in MouseState localMouseState, in MouseState localLastMouseState, in Point cursor)
+        {
+            foreach (var slot in _armorInventorySlots)
+            {
+                if (slot.Bounds.Contains(cursor))
+                {
+                    _hoveredSlot = slot;
+                    if (_tempSlot.Container is not null && _tempSlot.Container is ArmorSprite && (_tempSlot.Container as ArmorSprite).Type == slot.ArmorType)
+                    {
+                        _hoveredSlotColor = Color.NavajoWhite;
+                    }
+                    if (localMouseState.LeftButton == ButtonState.Pressed && localLastMouseState.LeftButton == ButtonState.Released)
+                    {
+
+                        if (slot.Container is not null)
+                        {
+                            _tempSlot.Container = slot.Container;
+                            _draggedSlot = slot;
+                            slot.Container = null;
+                        }
+                    }
+                    if (localMouseState.LeftButton == ButtonState.Released && localLastMouseState.LeftButton == ButtonState.Pressed && _tempSlot.Container is not null)
+                    {
+                        if (_tempSlot.Container is ArmorSprite && (_tempSlot.Container as ArmorSprite).Type == slot.ArmorType)
+                        {
+                            _draggedSlot.Container = slot.Container;
+                            slot.Container = _tempSlot.Container;
+                            _tempSlot.Container = null;
+                        }
+                        else
+                        {
+                            _draggedSlot.Container = _tempSlot.Container;
+                            _tempSlot.Container = null;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+        private void HandleWeaponSlotIntersection(in MouseState localMouseState, in MouseState localLastMouseState, in Point cursor)
+        {
+            if (WeaponSlotBounds.Contains(cursor))
+            {
+                _hoveredSlot = WeaponSlot;
+                _hoveredSlot.Bounds = WeaponSlotBounds;
+                if (_tempSlot.Container is not null && _tempSlot.Container is WeaponSprite)
+                {
+                    _hoveredSlotColor = Color.NavajoWhite;
+                }
+                if (localMouseState.LeftButton == ButtonState.Pressed && localLastMouseState.LeftButton == ButtonState.Released)
+                {
+
+                    if (WeaponSlot.Container is not null && WeaponSlot.Container.IngameName != WeaponFist.IngameName)
+                    {
+                        _tempSlot.Container = WeaponSlot.Container;
+                        _draggedSlot = WeaponSlot;
+                        WeaponSlot.Container = WeaponFist;
+                    }
+                }
+                if (localMouseState.LeftButton == ButtonState.Released && localLastMouseState.LeftButton == ButtonState.Pressed && _tempSlot.Container is not null)
+                {
+                    if (_tempSlot.Container is WeaponSprite)
+                    {
+                        if (WeaponSlot.Container.IngameName != WeaponFist.IngameName)
+                            _draggedSlot.Container = WeaponSlot.Container;
+                        WeaponSlot.Container = _tempSlot.Container;
+                        _tempSlot.Container = null;
+                    }
+                    else
+                    {
+                        _draggedSlot.Container = _tempSlot.Container;
+                        _tempSlot.Container = null;
+                    }
+                }
+            }
+        }
+        private void HandleSlotsIntersection(in MouseState localMouseState, in MouseState localLastMouseState, in Point cursor)
+        {
+            for (int i = 0; i < Slots.Length; i++)
+            {
+                if (Slots[i].Bounds.Contains(cursor))
+                {
+                    _hoveredSlot = Slots[i];
+                    _hoveredSlotColor = Color.NavajoWhite;
+                    Slots[i].GetDescription();
+                    if (localMouseState.LeftButton == ButtonState.Pressed && localLastMouseState.LeftButton == ButtonState.Released)
+                    {
+                        _tempSlot.Container = Slots[i].Container;
+                        _draggedSlot = Slots[i];
+                        Slots[i].Container = null;
+                    }
+                    if (localMouseState.LeftButton == ButtonState.Released && localLastMouseState.LeftButton == ButtonState.Pressed && _tempSlot.Container is not null)
+                    {
+                        if (Slots[i].Container is null)
+                        {
+                            Slots[i].Container = _tempSlot.Container;
+                            _tempSlot.Container = null;
+                        }
+                        else
+                        {
+                            _draggedSlot.Container = Slots[i].Container;
+                            Slots[i].Container = _tempSlot.Container;
+                            _tempSlot.Container = null;
+                        }
+                    }
+                    break;
+                }
+            }
+        }
+
+        public void Draw()
+        {
+            if (!IsActive)
+                return;
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, MainBounds, Color.Gray);
+            //GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, SlotsBounds, Color.Black);
+            foreach (var slot in Slots)
+            {
+                GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, slot.Bounds, Color.DarkGray);
+                GameBody.DrawRectangleOutline(slot.Bounds, Color.White, borderWidth: 2);
+                if (slot.Container is not null)
+                {
+                    GlobalUse.SpriteBatch.Draw(slot.Container.Texture, slot.Bounds, Color.White);
+                }
+            }
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, WeaponSlotBounds, Color.DarkGray);
+            foreach (var slot in _armorInventorySlots)
+            {
+                GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, slot.Bounds, Color.DarkGray);
+                if (slot.Container is not null)
+                {
+                    GlobalUse.SpriteBatch.Draw(slot.Container.Texture, slot.Bounds, Color.White);
+                }
+            }
+            if (_hoveredSlot is not null)
+            {
+                GameBody.DrawRectangleOutline(_hoveredSlot.Bounds, _hoveredSlotColor, borderWidth: 2);
+            }
+            if (WeaponSlot.Container.IngameName != WeaponFist.IngameName)
+                GlobalUse.SpriteBatch.Draw(WeaponSlot.Container.Texture, WeaponSlotBounds, Color.White);
+            if (_tempSlot.Container is not null)
+            {
+                GlobalUse.SpriteBatch.Draw(_tempSlot.Container.Texture, GameBody.GetGameInstance().ControlsManager.CurrentMouseState.Position.ToVector2(), Color.White * 0.8F);
+            }
+            if(_contextMenu is not null)
+            {
+                _contextMenu.Draw();
+            }
+        }
+        public IEnumerable<ArmorSprite> GetArmorSet()
+        {
+            foreach (var slot in _armorInventorySlots)
+            {
+                yield return slot.Container as ArmorSprite;
+            }
+        }
+        public void ToggleInventory()
+        {
+            IsActive = !IsActive;
         }
         public bool TryStore(ICollectible collectible, out string message)
         {
-            for(int i = 0; i < Slots.Length; i++ )
+            for (int i = 0; i < Slots.Length; i++)
             {
-                if (Slots[i] is null)
+                if (Slots[i].Container is null)
                 {
-                    Slots[i] = collectible;
+                    Slots[i].Container = collectible;
                     message = $"Picked up {collectible.IngameName}";
                     return true;
                 }
@@ -43,48 +322,155 @@ namespace OnlyDarker.PlayerClasses
             message = $"Not enough space for {collectible.IngameName}";
             return false;
         }
-        public bool TryWear(Armor newItem, out string message, out Armor currentItem)
+        public bool TryWear(ArmorSprite newItem/*, out string message, out ArmorSprite currentItem*/)
         {
-            int index = ArmorSet.FindIndex(item => item.Type == newItem.Type);
-            if (index == -1)
+            ArmorInventorySlot slot = newItem.Type switch
             {
-                currentItem = null;
-                ArmorSet.Add(newItem);
-                message = $"Picked up {newItem.IngameName}";
+                ArmorType.Helmet => HelmetSlot,
+                ArmorType.Boots => BootsSlot,
+                ArmorType.Chest => ChestSlot,
+                ArmorType.Pants => PantsSlot,
+                ArmorType.Gloves => GlovesSlot,
+                ArmorType.Accessory => AccessorySlot,
+                _ => throw new NotImplementedException(),
+            };
+            if (slot.Container is null)
+            {
+                //currentItem = null;
+                slot.Container = newItem;
+                //message = $"Picked up {newItem.IngameName}";
                 return true;
             }
             else
             {
-                currentItem = ArmorSet[index];
-                ArmorSet[index] = newItem;
-                message = $"Swapped {currentItem.IngameName} to {newItem.IngameName}";
-                return true;
+                if (TryStore(newItem, out _))
+                    return true;
             }
+            return false;
         }
-        public bool TryPickupWeapon(IWeapon newWeapon, out string message, out IWeapon currentWeapon)
+        public bool TryPickupWeapon(WeaponSprite newWeapon/*, out string message, out WeaponSprite currentWeapon*/)
         {
-            if(Weapon is WeaponFist)
-                { 
-                currentWeapon = Weapon;
-                message = $"Picked up {newWeapon.IngameName}";
-                Weapon = newWeapon;
+            if (WeaponSlot.Container.IngameName == WeaponFist.IngameName)
+            {
+                //currentWeapon = WeaponSlot.Container as WeaponSprite;
+                //message = $"Picked up {newWeapon.IngameName}";
+                WeaponSlot.Container = newWeapon;
                 return true;
             }
             else
             {
-                currentWeapon = Weapon;
-                message = $"Swapped to {newWeapon.IngameName}";
-                Weapon = newWeapon;
-                return true;
+                if (TryStore(newWeapon, out _))
+                    //currentWeapon = WeaponSlot.Container as WeaponSprite;
+                    //DropItem(WeaponSlot);
+                    //message = $"Swapped to {newWeapon.IngameName}";
+                    //WeaponSlot.Container = newWeapon;
+                    return true;
             }
+            return false;
         }
-        public void Update()
+        public void ShowOptions(InventorySlot currentSlot)
         {
+            if (currentSlot is null)
+                return;
+        }
 
+        private List<DescriptionElement> GetDescriptionElements(ArmorSprite armor)
+        {
+            var elements = new List<DescriptionElement>
+            {
+                new("Armor type", armor.Type.GetName())
+            };
+            foreach (var resistance in armor.Resistances)
+            {
+                elements.Add(new DescriptionElement(resistance.Type.GetName(), $"{resistance.Modifier}"));
+            }
+            return elements;
+        }
+        private static void DropItem(InventorySlot slot)
+        {
+            slot.Container.Position = GameBody.GetGameInstance().MainCharacter.Position;
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.SpawnEntity(slot.Container);
+            slot.Container = null;
+        }
+    }
+    public class InventorySlot
+    {
+        public Rectangle Bounds { get; set; }
+        public ICollectible Container { get; set; }
+        public Point DrawnPosition { get; set; }
+        public Point HiddenPosition => new(Bounds.Width * -2, DrawnPosition.Y);
+        public InventorySlot(Rectangle bounds, Point drawnPosition)
+        {
+            Bounds = bounds;
+            DrawnPosition = drawnPosition;
+            Container = null;
+        }
+        public InventorySlot(ICollectible container, Rectangle bounds, Point drawnPosition)
+        {
+            Bounds = bounds;
+            DrawnPosition = drawnPosition;
+            Container = container;
+        }
+        public string GetDescription() => Container?.Description ?? string.Empty;
+    }
+    public class ArmorInventorySlot : InventorySlot
+    {
+        public ArmorType ArmorType { get; set; }
+        public ArmorInventorySlot(ArmorType armorType, Rectangle bounds, Point drawnPosition) : base(bounds, drawnPosition)
+        {
+            ArmorType = armorType;
+        }
+    }
+    public class ContextMenu
+    {
+        public Rectangle Bounds;
+        public Rectangle DescriptionBounds;
+        public Texture2D ItemTexture;
+        public string Title;
+        public string Description;
+        public List<string> StringsToDraw;
+        public ContextMenu(Point location, ICollectible item, List<DescriptionElement> elements)
+        {
+            Title = item.IngameName;
+            Description = item.Description;
+            ItemTexture = item.Texture;
+            StringsToDraw = new List<string>(elements.Count);
+            foreach (var element in elements)
+            {
+                StringsToDraw.Add($"{element.Name} : {element.Value}");
+            }
+            int maxwidth = 200;
+            int maxheight = 30;
+            DescriptionBounds = new(location.X, location.Y + maxheight + maxheight * elements.Count, maxwidth, maxheight + maxheight * elements.Count);
+            Bounds = new(location.X, location.Y, maxwidth, maxheight + item.Texture.Height);
         }
         public void Draw()
         {
-
+            int maxwidth = 200;
+            int maxheight = 30;
+            float textSize = 0.2F;
+            var titleLength = GlobalUse.Arial.MeasureString(Title) * textSize;
+            var descriptionLength = GlobalUse.Arial.MeasureString(Description) * textSize;
+            var titlePos = new Vector2(Bounds.Location.X + Bounds.Width / 2, Bounds.Location.Y + maxheight / 2);
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, Bounds, Color.Gray);
+            GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, Title, titlePos, Color.White, 0F, titleLength / 2, textSize, SpriteEffects.None, 0F);
+            var texturePos = new Vector2(titlePos.X, titlePos.Y + maxheight / 2);
+            GlobalUse.SpriteBatch.Draw(ItemTexture, texturePos, null, Color.White, 0F, ItemTexture.Bounds.Size.ToVector2() / 2, 1F, SpriteEffects.None, 0F);
+            var descPos = new Vector2(texturePos.X, texturePos.Y + maxheight / 2);
+            GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, Description, descPos, Color.White, 0F, descriptionLength / 2, textSize, SpriteEffects.None, 0F);
+            var stringsPos = new Vector2(descPos.X, descPos.Y + maxheight / 2);
+            foreach (var str in StringsToDraw)
+            {
+                var strLength = GlobalUse.Arial.MeasureString(str) * textSize;
+                GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, str, stringsPos, Color.White, 0F, strLength / 2, textSize, SpriteEffects.None, 0F);
+                stringsPos.Y += maxheight / 2;
+            }
+            GameBody.DrawRectangleOutline(DescriptionBounds, Color.White, borderWidth: 2);
         }
+    }
+    public class DescriptionElement(string name, string value)
+    {
+        public string Name { get; set; } = name;
+        public string Value { get; set; } = value;
     }
 }

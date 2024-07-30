@@ -34,18 +34,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         private float _baseDamage = 1F;
         private float _baseSpeed = 0.7F;
-        private Armor _baseArmor;
-        public List<Armor> ArmorSet { get; protected set; }
+        public BaseArmor BaseArmor { get; }
         public WaspSprite(Vector2 position, Room parentRoomRef)
         {
             Position = position;
             _initialPosition = position;
             ParentRoomRef = parentRoomRef;
-            _baseArmor = new(ArmorType.Base, string.Empty, pokeX: 0.95F, bluntX: 1.1F);
-            ArmorSet = new List<Armor>
-            {
-                _baseArmor
-            };
+            BaseArmor = new(pokeX: 0.95F, bluntX: 1.1F);
             _healthPoints = 10;
             MaxHealthPoints = _healthPoints;
         }
