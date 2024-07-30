@@ -382,7 +382,7 @@ namespace OnlyDarker.PlayerClasses
             };
             foreach (var resistance in armor.Resistances)
             {
-                elements.Add(new DescriptionElement(resistance.Type.GetName(), $"{resistance.Modifier}"));
+                elements.Add(new DescriptionElement($"{resistance.Type.GetName()} resistance", $"{Math.Round((1 - resistance.Modifier) * 100)} %"));
             }
             return elements;
         }
@@ -429,6 +429,7 @@ namespace OnlyDarker.PlayerClasses
         public string Title;
         public string Description;
         public List<string> StringsToDraw;
+        public float TextSize = 0.2F;
         public ContextMenu(Point location, ICollectible item, List<DescriptionElement> elements)
         {
             Title = item.IngameName;
@@ -439,33 +440,37 @@ namespace OnlyDarker.PlayerClasses
             {
                 StringsToDraw.Add($"{element.Name} : {element.Value}");
             }
-            int maxwidth = 200;
+            ;
+            int maxwidth = (int)(GlobalUse.Arial.MeasureString(Description).X * TextSize);
             int maxheight = 30;
             DescriptionBounds = new(location.X, location.Y + maxheight + maxheight * elements.Count, maxwidth, maxheight + maxheight * elements.Count);
-            Bounds = new(location.X, location.Y, maxwidth, maxheight + item.Texture.Height);
+            Bounds = new(location.X, location.Y, maxwidth, maxheight + item.Texture.Height + DescriptionBounds.Height);
         }
         public void Draw()
         {
-            int maxwidth = 200;
+            int offsetX = 30;
             int maxheight = 30;
             float textSize = 0.2F;
             var titleLength = GlobalUse.Arial.MeasureString(Title) * textSize;
             var descriptionLength = GlobalUse.Arial.MeasureString(Description) * textSize;
-            var titlePos = new Vector2(Bounds.Location.X + Bounds.Width / 2, Bounds.Location.Y + maxheight / 2);
+            var titlePos = new Vector2(Bounds.Location.X + Bounds.Width / 2 - titleLength.X / 2, Bounds.Location.Y + maxheight);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, Bounds, Color.Gray);
             GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, Title, titlePos, Color.White, 0F, titleLength / 2, textSize, SpriteEffects.None, 0F);
-            var texturePos = new Vector2(titlePos.X, titlePos.Y + maxheight / 2);
-            GlobalUse.SpriteBatch.Draw(ItemTexture, texturePos, null, Color.White, 0F, ItemTexture.Bounds.Size.ToVector2() / 2, 1F, SpriteEffects.None, 0F);
-            var descPos = new Vector2(texturePos.X, texturePos.Y + maxheight / 2);
+            var texturePos = new Vector2(Bounds.X + Bounds.Width / 2 - ItemTexture.Width / 2, Bounds.Y + titleLength.Y + maxheight);
+            var textureRect = ItemTexture.Bounds;
+            textureRect.Location = texturePos.ToPoint();
+            GlobalUse.SpriteBatch.Draw(ItemTexture, textureRect, Color.White);
+            var descPos = new Vector2(Bounds.X + offsetX, texturePos.Y + maxheight);
             GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, Description, descPos, Color.White, 0F, descriptionLength / 2, textSize, SpriteEffects.None, 0F);
-            var stringsPos = new Vector2(descPos.X, descPos.Y + maxheight / 2);
+            var stringsPos = new Vector2(descPos.X, descPos.Y + maxheight);
             foreach (var str in StringsToDraw)
             {
                 var strLength = GlobalUse.Arial.MeasureString(str) * textSize;
                 GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, str, stringsPos, Color.White, 0F, strLength / 2, textSize, SpriteEffects.None, 0F);
-                stringsPos.Y += maxheight / 2;
+                stringsPos.Y += maxheight;
             }
-            GameBody.DrawRectangleOutline(DescriptionBounds, Color.White, borderWidth: 2);
+            GameBody.DrawRectangleOutline(Bounds, Color.White, borderWidth: 2);
+            GameBody.DrawRectangleOutline(textureRect, Color.White);
         }
     }
     public class DescriptionElement(string name, string value)
