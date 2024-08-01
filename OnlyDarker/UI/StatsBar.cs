@@ -28,7 +28,9 @@ namespace OnlyDarker.UI
                 $"Tile X: {(int)(GameBody.GetGameInstance().MainCharacter.Position.X / 64)}\n\n" +
                 $"Tile Y: {(int)(GameBody.GetGameInstance().MainCharacter.Position.Y / 42)}\n\n" +
                 $"Position: {GameBody.GetGameInstance().MainCharacter.Position.X} : {GameBody.GetGameInstance().MainCharacter.Position.Y}\n\n" +
-                $"SEED: {GlobalUse.CurrentSeed}\n\n"
+                $"SEED: {GlobalUse.CurrentSeed}\n\n" +
+                $"Level: {GameBody.GetGameInstance().MainCharacter.Stats.CharacterLevel} [{GameBody.GetGameInstance().MainCharacter.Stats.XP} / {GameBody.GetGameInstance().MainCharacter.Stats.LevelThreshold}]\n\n" +
+                $"Total XP: {GameBody.GetGameInstance().MainCharacter.Stats.TotalXP} \n\n"
                 ),
                 _statsPosition, Color.White, 0F, _statsPosition, 0.6F, SpriteEffects.None, 0F);
         }

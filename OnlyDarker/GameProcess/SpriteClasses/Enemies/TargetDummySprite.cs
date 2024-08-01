@@ -19,7 +19,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public BaseArmor BaseArmor { get;}
         public List<ArmorSprite> ArmorSet { get; } = new();
         public bool IsInvincible { get; set; }
-        public bool IsExpired { get; private set; } = false;
+        public bool IsExpired { get; set; } = false;
         public bool IsPushable { get; } = false;
         private float _healthPoints = 10000;
         public float HealthPoints
@@ -44,12 +44,19 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             }
         }
         public float MaxHealthPoints { get; set; }
+
+        public int XPReward { get; }
+
+        public bool IsSummoned { get; }
+
         public TargetDummySprite(SpriteStandartTile parentTile)
         {
             _bodyTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummy/TargetDummy");
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
             MaxHealthPoints = 10000;
+            XPReward = 0;
+            IsSummoned = true;
             MovementCollider = BodyHitbox;
             BaseArmor = new();
         }

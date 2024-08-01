@@ -8,6 +8,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 {
     public interface INonSortable
     {
+        Texture2D Texture { get; }
         Vector2 Position { get; set; }
         bool IsExpired { get; }
         void Draw();

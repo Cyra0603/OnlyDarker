@@ -86,12 +86,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private void DropLoot()
         {
             var lootTableValue = 5;//TEMP
-            var loot = new List<HeartPickupSprite>(lootTableValue);
             for(int i = 0; i < lootTableValue; i++)
             {
                 var offsetx = RandomNumberGenerator.GetInt32(-50, 51);
                 var offsety = RandomNumberGenerator.GetInt32(-50, 51);
-                loot.Add(new HeartPickupSprite(GameBody.GetGameInstance().TextureMapper.HeartPickupSpriteTexture, Position, new Vector2(Position.X + offsetx, Position.Y + offsety)));
+                var loot = new HeartPickupSprite(GameBody.GetGameInstance().TextureMapper.HeartPickupSpriteTexture, Position, new Vector2(Position.X + offsetx, Position.Y + offsety));
             }
         }
     }

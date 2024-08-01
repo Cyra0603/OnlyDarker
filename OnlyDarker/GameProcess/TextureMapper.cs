@@ -15,6 +15,7 @@ namespace OnlyDarker.GameProcess
         public Texture2D DummyProjectileSprite { get;private set; }
         public Texture2D DruidProjectileSprite { get; private set; }
         public Texture2D HeartPickupSpriteTexture { get; private set; }
+        public Texture2D XPOrbSpriteTexture { get; private set; }
         public Texture2D WaspSpriteTexture { get; private set; }
         public Texture2D TargetDummySpriteTexture { get; private set; }
         private TextureMapper()
@@ -22,6 +23,7 @@ namespace OnlyDarker.GameProcess
             ShadowTexture = GlobalUse.Content.Load<Texture2D>("Shadow");
             WaspSpriteTexture = GlobalUse.Content.Load<Texture2D>("Entities/Floor/One/WaspSprite");
             HeartPickupSpriteTexture = GlobalUse.Content.Load<Texture2D>("PickupSprites/HeartPickupSprite");
+            XPOrbSpriteTexture = GlobalUse.Content.Load<Texture2D>("PickupSprites/XPOrb");
             TargetDummySpriteTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummy/TargetDummy");
             DummyProjectileSprite = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummyShooter/DummyShooterProjectile");
             DruidProjectileSprite = GlobalUse.Content.Load<Texture2D>("Entities/DruidBoss/DruidSeed");

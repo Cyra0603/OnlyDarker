@@ -233,7 +233,7 @@ namespace OnlyDarker.GameProcess
                             break;
                         case "MobSummoner":
                             BuildTile(tileTextures, x, y);
-                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this), _tiles[y, x].Position, this, 2F, new BaseArmor(), 30F, 15000F, 5);
+                            var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this, true), _tiles[y, x].Position, this, 2F, new BaseArmor(), 30F, 15000F, 5);
                             ObjectsYSorted.Add(summoner);
                             Damageables.Add(summoner);
                             Updateables.Add(summoner);
@@ -355,6 +355,7 @@ namespace OnlyDarker.GameProcess
             {
                 Interactives.Add(interactive);
             }
+
             bool TryCast<T>(object obj, out T cast)
             {
                 if (obj is T value)

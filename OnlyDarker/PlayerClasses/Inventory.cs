@@ -92,12 +92,12 @@ namespace OnlyDarker.PlayerClasses
             {
                 Container = weapon
             };
-            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Stick"), out string test);
-            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Sword"), out string test1);
-            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Lance"), out string test2);
-            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather helmet"), out string test3);
-            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather armor"), out string test4);
-            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather boots"), out string test5);
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Stick"), out _);
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Sword"), out _);
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Lance"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather helmet"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather armor"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather boots"), out _);
         }
         public void Update()
         {
@@ -439,28 +439,27 @@ namespace OnlyDarker.PlayerClasses
             foreach (var element in elements)
             {
                 StringsToDraw.Add($"{element.Name} : {element.Value}");
-            }
-            ;
-            int maxwidth = (int)(GlobalUse.Arial.MeasureString(Description).X * TextSize);
-            int maxheight = 30;
+            };
+            int maxheight = 45;         
+            int maxwidth = (int)(GetLongestStringLength() * TextSize) + maxheight;
             DescriptionBounds = new(location.X, location.Y + maxheight + maxheight * elements.Count, maxwidth, maxheight + maxheight * elements.Count);
             Bounds = new(location.X, location.Y, maxwidth, maxheight + item.Texture.Height + DescriptionBounds.Height);
         }
         public void Draw()
         {
-            int offsetX = 30;
+            int offset = 45;
             int maxheight = 30;
             float textSize = 0.2F;
             var titleLength = GlobalUse.Arial.MeasureString(Title) * textSize;
             var descriptionLength = GlobalUse.Arial.MeasureString(Description) * textSize;
-            var titlePos = new Vector2(Bounds.Location.X + Bounds.Width / 2 - titleLength.X / 2, Bounds.Location.Y + maxheight);
+            var titlePos = new Vector2(Bounds.Location.X + Bounds.Width / 2 - titleLength.X / 2, Bounds.Location.Y + maxheight / 2);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, Bounds, Color.Gray);
             GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, Title, titlePos, Color.White, 0F, titleLength / 2, textSize, SpriteEffects.None, 0F);
             var texturePos = new Vector2(Bounds.X + Bounds.Width / 2 - ItemTexture.Width / 2, Bounds.Y + titleLength.Y + maxheight);
             var textureRect = ItemTexture.Bounds;
             textureRect.Location = texturePos.ToPoint();
             GlobalUse.SpriteBatch.Draw(ItemTexture, textureRect, Color.White);
-            var descPos = new Vector2(Bounds.X + offsetX, texturePos.Y + maxheight);
+            var descPos = new Vector2(Bounds.X + offset, texturePos.Y + maxheight * 2);
             GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, Description, descPos, Color.White, 0F, descriptionLength / 2, textSize, SpriteEffects.None, 0F);
             var stringsPos = new Vector2(descPos.X, descPos.Y + maxheight);
             foreach (var str in StringsToDraw)
@@ -471,6 +470,23 @@ namespace OnlyDarker.PlayerClasses
             }
             GameBody.DrawRectangleOutline(Bounds, Color.White, borderWidth: 2);
             GameBody.DrawRectangleOutline(textureRect, Color.White);
+        }
+        private int GetLongestStringLength()
+        {
+            int maxwidth = 0;
+            float title = GlobalUse.Arial.MeasureString(Title).X;
+            if (title > maxwidth)
+                maxwidth = (int)title;
+            float description = GlobalUse.Arial.MeasureString(Description).X;
+            if (description > maxwidth)
+                maxwidth = (int)description;
+            foreach (var str in StringsToDraw)
+            {
+                float strLength = GlobalUse.Arial.MeasureString(str).X;
+                if (strLength > maxwidth)
+                    maxwidth = (int)strLength;
+            }
+            return maxwidth;
         }
     }
     public class DescriptionElement(string name, string value)

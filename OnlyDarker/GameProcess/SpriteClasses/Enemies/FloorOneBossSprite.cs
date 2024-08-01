@@ -17,6 +17,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public Vector2 Position { get; set; }
         public Vector2 AttackOrigin => new(Position.X + BodyTexture.Width / 2, Position.Y + BodyTexture.Height / 2);
         public string BossName { get; }
+        public int XPReward { get;}
+        public bool IsSummoned { get; }
         public enum AttackPattern
         {
             Pattern1,
@@ -33,7 +35,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public Timer ShootCooldown;
         private float _summonCooldownTime;
         public Timer SummonCooldown;
-        public bool IsExpired { get; private set; }
+        public bool IsExpired { get; set; }
         public Rectangle BodyHitbox => new((int)Position.X, (int)Position.Y, BodyTexture.Width, BodyTexture.Height);
         public bool IsInvincible { get; private set; } = false;
         public bool IsPushable { get; } = false;
@@ -60,6 +62,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             _parentRoomRef = parentRoomRef;
             Position = position;
             HealthPoints = maxHealthPoints;
+            IsSummoned = false;
+            XPReward = 1000;
             MaxHealthPoints = maxHealthPoints;
             BaseArmor = new(sliceX: 0.9F, pokeX: 0.9F, bluntX: 0.85F);
             PatternChanger = new(0);
@@ -137,7 +141,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             }
             if (SummonCooldown.TimeLeft <= 0)
             {
-                var summon = new WaspSprite(AttackOrigin, _parentRoomRef);
+                var summon = new WaspSprite(AttackOrigin, _parentRoomRef, true);
                 _parentRoomRef.EntitiesToSpawn.Push(summon);
                 SummonCooldown.TimeLeft = _summonCooldownTime;
             }
@@ -160,8 +164,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         {
             if (SummonCooldown.TimeLeft <= 0)
             {
-                var summon = new WaspSprite(AttackOrigin, _parentRoomRef);
-                var summon2 = new WaspSprite(AttackOrigin, _parentRoomRef);
+                var summon = new WaspSprite(AttackOrigin, _parentRoomRef, true);
+                var summon2 = new WaspSprite(AttackOrigin, _parentRoomRef, true);
                 _parentRoomRef.EntitiesToSpawn.Push(summon);
                 _parentRoomRef.EntitiesToSpawn.Push(summon2);
                 SummonCooldown.TimeLeft = _summonCooldownTime;

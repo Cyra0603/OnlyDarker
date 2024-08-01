@@ -19,6 +19,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public bool IsExpired { get; set; }
         public bool IsInvincible { get; }
         public bool IsPushable { get; } = false;
+        public int XPReward { get; }
+        public bool IsSummoned { get; }
         public float MaxHealthPoints { get; }
         private float _healthPoints;
         public float HealthPoints
@@ -43,17 +45,20 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         private float _baseDamage;
         private int _maxSummons;
         public BaseArmor BaseArmor { get; }
+
         public MobSummonerSprite(Texture2D texture, ISummonable summonableEntity, Vector2 position, Room parentRoomRef, float contactDamage, BaseArmor baseArmor, float healthPoints, float summonCooldownMs, int maxSummons)
         {
             _texture = texture;
             Position = position;
+            XPReward = 75;
+            IsSummoned = false;
             _summonableEntity = summonableEntity;
             _initialPosition = position;
             _parentRoomRef = parentRoomRef;
             _baseDamage = contactDamage;
             BaseArmor = baseArmor;
             _summonCooldownTime = summonCooldownMs;
-            _summonTimer.TimeLeft = RandomizeSpawnTime();
+            _summonTimer.TimeLeft = RandomizeSpawnTime(_summonCooldownTime / 3);
             _maxSummons = maxSummons;
             _healthPoints = healthPoints;
             MaxHealthPoints = _healthPoints;
@@ -76,7 +81,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             {
                 _summonableEntity.GetCopy(out var summon);
                 _parentRoomRef.EntitiesToSpawn.Push(summon);
-                _summonTimer.TimeLeft = RandomizeSpawnTime();
+                _summonTimer.TimeLeft = RandomizeSpawnTime(_summonCooldownTime);
                 _maxSummons--;
             }
             if (BodyHitbox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
@@ -90,9 +95,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             HealthPoints = MaxHealthPoints;
             Position = _initialPosition;
         }
-        private float RandomizeSpawnTime()
+        private float RandomizeSpawnTime(float maxTime)
         {
-            return RandomNumberGenerator.GetInt32((int)_summonCooldownTime / 3, (int)_summonCooldownTime);
+            return RandomNumberGenerator.GetInt32((int)maxTime / 3, (int)maxTime);
         }
     }
 }

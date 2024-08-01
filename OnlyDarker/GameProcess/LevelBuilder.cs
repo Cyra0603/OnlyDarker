@@ -24,10 +24,11 @@ namespace OnlyDarker.GameProcess
         };
         public readonly Floor FloorType;
         private readonly IFloorConfig _floorConfig;
-        public List<Room> BuiltFloor { get; private set; } = new();
+        public List<Room> BuiltFloor { get; private set; }
         public Room[,] LevelGrid { get; private set; }
         public Level(Floor floor)
         {
+            BuiltFloor = new();
             FloorType = floor;
             _floorConfigPairs.TryGetValue(floor, out _floorConfig);
             RoomBlueprint[,] grid = GenerateGrid(floor);
@@ -298,6 +299,55 @@ namespace OnlyDarker.GameProcess
             X = x; Y = y;
         }
     }
-
+    public class EntityTableManager
+    {
+        public Floor Floor { get; init; }
+        private string[] PickupLootTable{ get; init;}
+        private string[] ItemLootTable { get; init; }
+        private string[] MobSummonerTable { get; init; }
+        private string[] SummonTable { get; init; }
+        private string[] EnemyChaserTable { get; init; }
+        private string[] EnemyShooterTable { get; init; }
+        public EntityTableManager(Floor floor)
+        {
+            Floor = floor;
+            PickupLootTable = [];//TEMP
+            ItemLootTable = [];
+            MobSummonerTable = [];
+            SummonTable = [];
+            EnemyChaserTable = [];
+            EnemyShooterTable = [];
+        }
+        public string GetRandomPickupName()
+        {
+            int i = RandomNumberGenerator.GetInt32(0, PickupLootTable.Length);
+            return PickupLootTable[i];
+        }
+        public string GetRandomItemName()
+        {
+            int i = RandomNumberGenerator.GetInt32(0, ItemLootTable.Length);
+            return ItemLootTable[i];
+        }
+        public string GetRandomMobSummonerName()
+        {
+            int i = RandomNumberGenerator.GetInt32(0, MobSummonerTable.Length);
+            return MobSummonerTable[i];
+        }
+        public string GetRandomSummonName()
+        {
+            int i = RandomNumberGenerator.GetInt32(0, SummonTable.Length);
+            return SummonTable[i];
+        }
+        public string GetRandomChaserName()
+        {
+            int i = RandomNumberGenerator.GetInt32(0, EnemyChaserTable.Length);
+            return EnemyChaserTable[i];
+        }
+        public string GetRandomShooterName()
+        {
+            int i = RandomNumberGenerator.GetInt32(0, EnemyShooterTable.Length);
+            return EnemyShooterTable[i];
+        }
+    }
 }
 

@@ -56,48 +56,51 @@ namespace OnlyDarker.IngameMenu
             if (!IsActive)
                 return;
             _availableCommandsAliases.Clear();
-            var k = keyboardState.GetPressedKeys().FirstOrDefault();
-            switch (k)
+            var keys = keyboardState.GetPressedKeys();
+            foreach (var k in keys)
             {
-                case Keys.Escape:
-                    {
-                        if (_lastKeyboardState.IsKeyDown(k))
-                            break;
-                        IsActive = false; break;
-                    }
-                case Keys.Enter:
-                    {
-                        if (_lastKeyboardState.IsKeyDown(k))
-                            break;
-                        StringBuilder stringBuilder = new();
-                        foreach (char c in _buffer)
+                switch (k)
+                {
+                    case Keys.Escape:
                         {
-                            if (c != default)
-                                stringBuilder.Append(c);
+                            if (_lastKeyboardState.IsKeyDown(k))
+                                break;
+                            IsActive = false; break;
                         }
-                        var command = stringBuilder.ToString();
-                        if (TryExecute(command))
+                    case Keys.Enter:
                         {
-                            _buffer.Clear();
+                            if (_lastKeyboardState.IsKeyDown(k))
+                                break;
+                            StringBuilder stringBuilder = new();
+                            foreach (char c in _buffer)
+                            {
+                                if (c != default)
+                                    stringBuilder.Append(c);
+                            }
+                            var command = stringBuilder.ToString();
+                            if (TryExecute(command))
+                            {
+                                _buffer.Clear();
+                            }
+                            break;
                         }
-                        break;
-                    }
-                case Keys.Back:
-                    {
-                        if (_lastKeyboardState.IsKeyDown(k) || _buffer.Count == 0)
+                    case Keys.Back:
+                        {
+                            if (_lastKeyboardState.IsKeyDown(k) || _buffer.Count == 0)
+                                break;
+                            _buffer.RemoveAt(_buffer.Count - 1);
+                            _notificationMessage = string.Empty;
                             break;
-                        _buffer.RemoveAt(_buffer.Count - 1);
-                        _notificationMessage = string.Empty;
-                        break;
-                    }
-                default:
-                    {
-                        if (_lastKeyboardState.IsKeyDown(k))
+                        }
+                    default:
+                        {
+                            if (_lastKeyboardState.IsKeyDown(k))
+                                break;
+                            if (KeyToChar(k, out char c))
+                                _buffer.Add(c);
                             break;
-                        if (KeyToChar(k, out char c))
-                            _buffer.Add(c);
-                        break;
-                    }
+                        }
+                }
             }
             StringBuilder sb = new();
             foreach (char c in _buffer)
@@ -106,7 +109,7 @@ namespace OnlyDarker.IngameMenu
                     sb.Append(c);
             }
             _bufferToString = sb.ToString();
-            if(_bufferToString != string.Empty)
+            if (_bufferToString != string.Empty)
             {
                 foreach (var command in _commands.AvailableCommands.Where(command => command.Alias.StartsWith(_bufferToString)))
                 {
@@ -285,7 +288,7 @@ namespace OnlyDarker.IngameMenu
             AvailableCommands.Add(new FloatConsoleCommand("mc_set_cd", "Sets character crit damage to % value", "Character crit damage set to ", GameBody.GetGameInstance().MainCharacter.SetCritDamage));
             AvailableCommands.Add(new FloatConsoleCommand("mc_take_damage", "Damages character by value", "Character damaged by ", GameBody.GetGameInstance().MainCharacter.TestTakingDamage));
             AvailableCommands.Add(new StringConsoleCommand("mc_set_pos", "Sets character position vector to (X,Y)", "Position set to ", GameBody.GetGameInstance().MainCharacter.ConsoleSetPosition));
-
+            AvailableCommands.Add(new StringConsoleCommand("mc_add_xp", "Adds character xp", "Character xp increased by ", GameBody.GetGameInstance().MainCharacter.ConsoleAddXP));
             _instance = this;
         }
         public static ConsoleCommandsData GetInstance()

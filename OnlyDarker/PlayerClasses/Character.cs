@@ -218,7 +218,15 @@ namespace OnlyDarker
             string[] lArgs = args.Split(',');
             if (lArgs.Length > 2)
                 throw new ArgumentException();
-            var newPos = new Vector2(float.Parse(lArgs[0]), float.Parse(lArgs[1]));
+            if (!float.TryParse(lArgs[0], out float value1))
+            {
+                throw new ArgumentException();
+            }
+            if (!float.TryParse(lArgs[1], out float value2))
+            {
+                throw new ArgumentException();
+            }
+            var newPos = new Vector2(value1, value2);
             newPos.Y += Position.Y - MovementCollider.Location.Y;
             Position = newPos;
         }
@@ -356,6 +364,22 @@ namespace OnlyDarker
             }
             else return;
         }
+        public void AddXP(int xp)
+        {
+            Stats.XP += xp;
+        }
+        public void ConsoleAddXP(string xp)
+        {
+            string[] lArgs = xp.Split(',');
+            if (lArgs.Length > 2)
+                throw new ArgumentException();
+            if (int.TryParse(lArgs[0], out int value))
+            {
+                Stats.XP += value;
+            }
+            else
+                throw new ArgumentException();
+        }
         private async void SaveCharState()
         {
             var options = new JsonSerializerOptions
@@ -370,6 +394,35 @@ namespace OnlyDarker
     }
     public class Stats
     {
+        private int _xp;
+        public int XP
+        {
+            get => _xp;
+            set
+            {
+                var oldxp = _xp;
+                _xp = value;
+                TotalXP += _xp - oldxp;
+                while (_xp > LevelThreshold)
+                {
+                    _xp -= LevelThreshold;
+                    CharacterLevel++;
+                    LevelThreshold = (int)(LevelThreshold * 1.2F);
+                };
+            }
+        }
+        public int TotalXP;
+        private int _characterLevel;
+        public int CharacterLevel
+        {
+            get => _characterLevel;
+            set
+            {
+                _characterLevel = value;
+                OnChangingLevel?.Invoke(_characterLevel);
+            }
+        }
+        public int LevelThreshold;
         public float Range { get; set; }
         public float Damage { get; set; }
         public float AttackSpeed { get; set; }
@@ -433,8 +486,10 @@ namespace OnlyDarker
         }
         public float MaxHealthPoints { get; set; }
         public delegate void ObserveFloatStat(float statValue);
+        public delegate void ObserverIntStat(int statValue);
         public delegate void NoParamsVoid();
         public event NoParamsVoid OnNotEnoughStamina;
+        public event ObserverIntStat OnChangingLevel;
         public event ObserveFloatStat OnChangingHealth;
         public event ObserveFloatStat OnTakingDamage;
         public event ObserveFloatStat OnHealing;
@@ -442,6 +497,10 @@ namespace OnlyDarker
         public event ObserveFloatStat OnChangingMaxStamina;
         public Stats(float speed, float maxHealth)
         {
+            XP = 0;
+            TotalXP = 0;
+            LevelThreshold = 1000;
+            CharacterLevel = 1;
             Range = 0;
             Damage = 0;
             AttackSpeed = 0;

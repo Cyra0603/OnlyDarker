@@ -28,9 +28,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         private Timer _attackCooldown;
         public readonly float AttackCooldownTime = 1000F;
         public BaseArmor BaseArmor { get; }
-        public bool IsExpired { get; private set; } = false;
+        public bool IsExpired { get; set; } = false;
         public bool IsInvincible { get; set; }
         public bool IsPushable { get; } = false;
+
+        public int XPReward { get; }
+
+        public bool IsSummoned { get; }
         public float Speed { get; }
         private float _healthPoints = 10000;
         private long _test;
@@ -56,6 +60,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             }
         }
         public float MaxHealthPoints { get; set; }
+
         public TargetDummyShooterSprite(SpriteStandartTile parentTile, Room parentRoom)
         {
             _parentRoomReference = parentRoom;
@@ -63,6 +68,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             _projectileTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummyShooter/DummyShooterProjectile");
             Origin = new(_bodyTexture.Width / 2, _bodyTexture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - _bodyTexture.Width) / 2);
+            XPReward = 50;
+            IsSummoned = false;
             _direction = Vector2.Zero;
             _path = Array.Empty<Vector2>();
             MovementCollider = BodyHitbox;

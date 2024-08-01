@@ -188,7 +188,7 @@ namespace OnlyDarker.IngameMenu
             Buttons[2] = new MenuButton(this, 3, "settings", String.Empty);
             Buttons[2].ButtonPressed += Menu.GetInstance().OpenSettingsWindow;
             Buttons[3] = new MenuButton(this, 4, "resume", String.Empty);
-            Buttons[3].ButtonPressed += GameBody.GetGameInstance().GamePause;
+            Buttons[3].ButtonPressed += GameBody.GetGameInstance().GameUnpause;
         }
     }
     public class SettingsWindow : IMenuWindow
