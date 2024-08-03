@@ -14,6 +14,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 
 namespace OnlyDarker
@@ -40,6 +41,9 @@ namespace OnlyDarker
         public List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         public List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
         public List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
+        public List<Vector2> CoinPositions;
+        public int CoinsToSpawn;
+        public Vector2 CoinsSpawnPosition => new(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
         private GameState _gameState;
         private float _fixedElapsedTimeMilliseconds;
         private float _fixedElapsedTime
@@ -120,7 +124,7 @@ namespace OnlyDarker
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
                 SceneManager.CurrentRoom._tiles[2, 2],
-                new(1F,24F));
+                new(1F, 24F));
 
             MainCharacter.SetRoomBounds(SceneManager.CurrentRoom.RoomSize, SceneManager.CurrentRoom.TileSize);
 
@@ -140,6 +144,8 @@ namespace OnlyDarker
             {
                 room.ObjectsYSorted.Add(MainCharacter);
             }
+
+            CoinPositions = new();
 
             _characterHealthbar = new(GlobalUse.Content.Load<Texture2D>("UI/Heart"));
 
@@ -222,6 +228,25 @@ namespace OnlyDarker
             {
                 proj.Update(milliseconds);
             }
+            if (CoinsToSpawn > 0)
+            {
+                float randomx = RandomNumberGenerator.GetInt32(-50, 50);
+                float randomy = RandomNumberGenerator.GetInt32(-50, 50);
+                Vector2 newPos = new(CoinsSpawnPosition.X + randomx, CoinsSpawnPosition.Y + randomy);
+                CoinPositions.Add(newPos);
+                CoinsToSpawn--;
+            }
+            for (int i = 0; i < CoinPositions.Count; i++)
+            {
+                CoinPositions[i] = Vector2.Lerp(CoinPositions[i], _statsBar.CoinRect.Location.ToVector2(), 0.1F);
+                CoinPositions[i] = Vector2.SmoothStep(CoinPositions[i], _statsBar.CoinRect.Location.ToVector2(), 0.05F);
+
+                if (_statsBar.CoinRect.Contains(CoinPositions[i]))
+                {
+                    MainCharacter.AddCoins(1);
+                }
+            }
+            CoinPositions.RemoveAll(pos => _statsBar.CoinRect.Contains(pos));
             EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
             DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
             ProjectileSprites.RemoveAll(proj => proj.Lifetime.TimeLeft <= 0);
@@ -307,6 +332,10 @@ namespace OnlyDarker
             _staminaBar.Draw();
             _interactionMessageBar.Draw();
             _bossHPBar.Draw();
+            foreach (var pos in CoinPositions)
+            {
+                DrawCoin(pos);
+            }
             GlobalUse.SpriteBatch.End();
             if (_gameState == GameState.Paused)
             {
@@ -320,7 +349,14 @@ namespace OnlyDarker
             ShowFPS();
             FPS++;
         }
-
+        private void DrawCoin(Vector2 coinPos)
+        {
+            GlobalUse.SpriteBatch.Draw(TextureMapper.CoinTexture, coinPos, Color.White);
+        }
+        public void SpawnCoins(int amount)
+        {
+            CoinsToSpawn += amount;
+        }
         private void DebugModeDraw()
         {
             if (GlobalUse.IsDebugMode)

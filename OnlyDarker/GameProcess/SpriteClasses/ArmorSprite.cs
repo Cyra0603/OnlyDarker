@@ -172,7 +172,8 @@ namespace OnlyDarker.GameProcess
             {
                 new ArmorSprite(ArmorType.Helmet, Vector2.Zero, "Leather helmet",  "LeatherHelmet","Common leather helmet, nothing special", sliceX: 0.95F, pokeX: 0.95F),
                 new ArmorSprite(ArmorType.Chest, Vector2.Zero, "Leather armor",  "LeatherChestArmor","Common leather armor, nothing special", sliceX: 0.95F, pokeX: 0.95F, bluntX: 0.95F),
-                new ArmorSprite(ArmorType.Boots, Vector2.Zero, "Leather boots",  "LeatherBoots","Common leather boots, nothing special", sliceX: 0.95F, pokeX: 0.95F, bluntX: 0.95F)
+                new ArmorSprite(ArmorType.Boots, Vector2.Zero, "Leather boots",  "LeatherBoots","Common leather boots, nothing special", sliceX: 0.95F, pokeX: 0.95F, bluntX: 0.95F),
+                new ArmorSprite(ArmorType.Accessory, Vector2.Zero, "Iron ring",  "IronRing","Shiny heavy iron ring", sliceX: 0.95F, bluntX: 0.95F),
             };
             _instance = this;
         }

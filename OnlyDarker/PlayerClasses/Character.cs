@@ -318,12 +318,12 @@ namespace OnlyDarker
                     target.TakeDamage(new(dmg * critModifier, 1.2F, CurrentWeapon.Data.WeaponDamageType, proc));
                 }
             }
-            foreach (var target in GameBody.GetGameInstance().ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
-            {
-                var newForce = Vector2.Lerp(difference / difference.Length(), target.Force, 0.03F);
-                target.ChangeForce(newForce);
-                target.Lifetime.TimeLeft /= 2;
-            }
+            //foreach (var target in GameBody.GetGameInstance().ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
+            //{
+            //    var newForce = Vector2.Lerp(difference / difference.Length(), target.Force, 0.03F);
+            //    target.ChangeForce(newForce);
+            //    target.Lifetime.TimeLeft /= 2;
+            //}
             if (GlobalUse.IsDebugMode)
             {
                 GameBody.GetGameInstance().SceneManager.CurrentRoom.AddTempDrawableRect(attackRect);
@@ -348,30 +348,57 @@ namespace OnlyDarker
 
         public void TakeDamage(in DamageInstance damage)
         {
-            if (!IsInvincible)
+            if (IsInvincible)
             {
-                var locald = damage;
-                BaseArmor.ProcessDamageInstance(ref locald);
-                foreach (var armor in Inventory.GetArmorSet())
-                {
-                    (armor as ArmorSprite)?.ProcessDamageInstance(ref locald);
-                }
-                var dmgTaken = locald.ExtractValue();
-                var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
-                Stats.HealthPoints -= dmgTaken;
-                RunIFrames(Stats.I_FRAME_TIME);
-                DamagedEffectTimer.TimeLeft += Stats.I_FRAME_TIME;
+                return;
             }
-            else return;
+            var locald = damage;
+            BaseArmor.ProcessDamageInstance(ref locald);
+            foreach (var armor in Inventory.GetArmorSet())
+            {
+                armor?.ProcessDamageInstance(ref locald);
+            }
+            var dmgTaken = locald.ExtractValue();
+            var animator = new DamageNumberAnimationManager(new(Position.X, Position.Y), Math.Round((double)dmgTaken, 1).ToString(), damage.IsCritical);
+            Stats.HealthPoints -= dmgTaken;
+            RunIFrames(Stats.I_FRAME_TIME);
+            DamagedEffectTimer.TimeLeft += Stats.I_FRAME_TIME;
+
         }
-        public void AddXP(int xp)
+        public void AddXP(int amount)
         {
-            Stats.XP += xp;
+            Stats.XP += amount;
+        }
+        public void AddCoins(int amount)
+        {
+            Stats.CoinCount += amount;  
+        }
+        public void ConsoleAddCoins(string amount)
+        {
+            string[] lArgs = amount.Split(',');
+            if (lArgs.Length > 1)
+                throw new ArgumentException();
+            if (int.TryParse(lArgs[0], out int value))
+            {
+                Stats.CoinCount += value;
+            }
+            else
+                throw new ArgumentException();
+        }
+        public void RemoveCoins(int amount, out bool result)
+        {
+            if (Stats.CoinCount < amount)
+                { 
+                result = false;
+                return;
+                }
+            Stats.CoinCount -= amount;
+            result = true;
         }
         public void ConsoleAddXP(string xp)
         {
             string[] lArgs = xp.Split(',');
-            if (lArgs.Length > 2)
+            if (lArgs.Length > 1)
                 throw new ArgumentException();
             if (int.TryParse(lArgs[0], out int value))
             {
@@ -412,6 +439,7 @@ namespace OnlyDarker
             }
         }
         public int TotalXP;
+        public int CoinCount;
         private int _characterLevel;
         public int CharacterLevel
         {
@@ -499,6 +527,7 @@ namespace OnlyDarker
         {
             XP = 0;
             TotalXP = 0;
+            CoinCount = 0;
             LevelThreshold = 1000;
             CharacterLevel = 1;
             Range = 0;

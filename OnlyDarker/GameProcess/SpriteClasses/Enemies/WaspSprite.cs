@@ -1,4 +1,5 @@
 ﻿using OnlyDarker.CommonUsing;
+using OnlyDarker.UI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -32,6 +33,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 {
                     IsExpired = true;
                     (this as IDamageable).SpawnXPOrbs();
+                    GameBody.GetGameInstance().SpawnCoins(25);
                 }
             }
         }

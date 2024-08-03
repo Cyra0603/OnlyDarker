@@ -98,6 +98,7 @@ namespace OnlyDarker.PlayerClasses
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather helmet"), out _);
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather armor"), out _);
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather boots"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Iron ring"), out _);
         }
         public void Update()
         {
