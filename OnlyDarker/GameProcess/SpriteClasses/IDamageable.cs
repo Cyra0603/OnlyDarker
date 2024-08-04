@@ -56,6 +56,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         void SpawnXPOrbs()
         {
+            if (IsSummoned)
+                return;
             if (XPReward <= 500)
             {
                 SpawnOrb(XPReward);
@@ -88,7 +90,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             var offsety = RandomNumberGenerator.GetInt32(-BodyHitbox.Height, BodyHitbox.Height);
             //Spawn Entity is slow, but will be cleaner if optimized
             //GameBody.GetGameInstance().SceneManager.CurrentRoom.SpawnEntity(new XPOrbSprite(GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTexture, value, new Vector2(Position.X + offsetx, Position.Y + offsety)));
-            var orb = new XPOrbSprite(GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTexture, value, new Vector2(Position.X + offsetx, Position.Y + offsety));
+            var orb = new XPOrbSprite(GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTexture, GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTrailTexture, value, new Vector2(Position.X + offsetx, Position.Y + offsety));
             GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsNotSorted.Add(orb);
             GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(orb);
         }

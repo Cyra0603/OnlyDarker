@@ -36,6 +36,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 if (_healthPoints <= 0)
                 {
                     IsExpired = true;
+                    _parentRoomRef.RoomColliders.Remove(BodyHitbox);
                 }
             }
         }

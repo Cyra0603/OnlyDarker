@@ -10,6 +10,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     public class XPOrbSprite : INonSortable, IMyUpdateable
     {
         public Texture2D Texture { get; }
+        public Texture2D TrailTexture { get; }
         public int XPReward { get; }
         public Vector2 Position { get; set; }
         public List<Vector2> TrailPositions { get; set; }
@@ -21,9 +22,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         //const float PULSE_FREQUENCY = 5F;
         public const float SCALE_ONE_PERCENT = 500F;
         public const float SIZE_SCALE_ONE_PERCENT = 0.004F;
-        public XPOrbSprite(Texture2D texture, int xpReward, Vector2 position)
+        public XPOrbSprite(Texture2D texture, Texture2D trailTexture, int xpReward, Vector2 position)
         {
             Texture = texture;
+            TrailTexture = trailTexture;
             Position = position;
             var trailLength = 10;
             TrailPositions = new(trailLength);
@@ -40,7 +42,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             if (IsExpired)
                 return;
-            DrawOrb(Position, 1F);
             float transparency = 0.75F;
             Span<float> tvalues = stackalloc float[TrailPositions.Count];
             tvalues[^1] = transparency;
@@ -52,14 +53,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             int j = 0;
             foreach (var position in TrailPositions)
             {
-                DrawOrb(position, tvalues[j]);
+                GlobalUse.SpriteBatch.Draw(TrailTexture, position, null, Color.White * tvalues[j], 0F, Texture.Bounds.Size.ToVector2() / 2, SizeScale, SpriteEffects.None, 1F);
+                GlobalUse.SpriteBatch.Draw(TrailTexture, position, null, Color.Red * ColorScale * tvalues[j], 0F, Texture.Bounds.Size.ToVector2() / 2, SizeScale, SpriteEffects.None, 1F);
                 j++;
             }
-            void DrawOrb(Vector2 position, float transparency)
-            {
-                GlobalUse.SpriteBatch.Draw(Texture, position, null, Color.White * transparency, 0F, Texture.Bounds.Size.ToVector2() / 2, SizeScale, SpriteEffects.None, 1F);
-                GlobalUse.SpriteBatch.Draw(Texture, position, null, Color.Red * ColorScale * transparency, 0F, Texture.Bounds.Size.ToVector2() / 2, SizeScale, SpriteEffects.None, 1F);
-            }
+            GlobalUse.SpriteBatch.Draw(Texture, Position, null, Color.White, 0F, Texture.Bounds.Size.ToVector2() / 2, SizeScale, SpriteEffects.None, 1F);
+            GlobalUse.SpriteBatch.Draw(Texture, Position, null, Color.Red * ColorScale, 0F, Texture.Bounds.Size.ToVector2() / 2, SizeScale, SpriteEffects.None, 1F);
         }
         private void SetSizeScale(float xpReward)
         {

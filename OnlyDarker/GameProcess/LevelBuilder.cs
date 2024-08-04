@@ -123,10 +123,10 @@ namespace OnlyDarker.GameProcess
             var oneNeighbourRoom1 = grid.OfType<RoomBlueprint>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
             oneNeighbourRoom1.RoomType = RoomType.Treasure;
             var oneNeighbourRoom2 = grid.OfType<RoomBlueprint>().First(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty);
-            oneNeighbourRoom2.RoomType = RoomType.Puzzle;
+            oneNeighbourRoom2.RoomType = RoomType.Shop;
             foreach (var room in grid.OfType<RoomBlueprint>().Where(room => room.Neighbours == 1 && room.RoomType == RoomType.Empty))
             {
-                int rng = RandomNumberGenerator.GetInt32(0, 5);
+                int rng = RandomNumberGenerator.GetInt32(0, 6);
                 room.RoomType = rng switch
                 {
                     0 => RoomType.Treasure,

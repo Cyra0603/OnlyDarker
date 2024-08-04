@@ -107,6 +107,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             }
             return new PremadeWeaponSprites();
         }
+        public WeaponSprite GetExistingSprite(string weaponName)
+        {
+            var sprite = _weaponDatas.FirstOrDefault(sprite => sprite.IngameName == weaponName) ?? throw new KeyNotFoundException($"{weaponName} not found in PremadeWeaponSprites");
+            return sprite;
+        }
         public WeaponSprite GetNewSprite(string weaponName)
         {
             var sprite = _weaponDatas.FirstOrDefault(sprite => sprite.IngameName == weaponName) ?? throw new KeyNotFoundException($"{weaponName} not found in PremadeWeaponSprites");

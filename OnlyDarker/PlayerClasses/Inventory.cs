@@ -52,6 +52,7 @@ namespace OnlyDarker.PlayerClasses
         }
         //drawing
         private const int SLOTS_DRAWING_OFFSET = 5;
+        public Texture2D WeaponDefaultTexture { get; }
         public Rectangle MainBounds => new(0, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 5, (GlobalUse.WindowSize.Y / 17) * Slots.Length - SLOTS_DRAWING_OFFSET / 2);
         public Rectangle SlotsBounds => new(MainBounds.X + MainBounds.Width, MainBounds.Y, GlobalUse.WindowSize.Y / 17, (GlobalUse.WindowSize.Y / 17) * (Slots.Length + 1));
         public Rectangle WeaponSlotBounds => new(MainBounds.Location.X + SLOTS_DRAWING_OFFSET + MainBounds.Width / 2 + SlotSize.X / 2, MainBounds.Location.Y + MainBounds.Height / 3 - SlotSize.Y / 2, SlotSize.X, SlotSize.Y);
@@ -67,12 +68,12 @@ namespace OnlyDarker.PlayerClasses
             _draggedSlot = new InventorySlot(Rectangle.Empty, Point.Zero);
             _hoveredSlot = null;
             WeaponFist = weapon;
-            ChestSlot = new(ArmorType.Chest, new(WeaponSlotBounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, WeaponSlotBounds.Y, WeaponSlotBounds.Width, WeaponSlotBounds.Height), Point.Zero);
-            HelmetSlot = new(ArmorType.Helmet, new(ChestSlot.Bounds.X, ChestSlot.Bounds.Y - SLOTS_DRAWING_OFFSET - SlotSize.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
-            GlovesSlot = new(ArmorType.Gloves, new(ChestSlot.Bounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, ChestSlot.Bounds.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
-            PantsSlot = new(ArmorType.Pants, new(ChestSlot.Bounds.X, ChestSlot.Bounds.Y + SLOTS_DRAWING_OFFSET + SlotSize.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
-            BootsSlot = new(ArmorType.Boots, new(PantsSlot.Bounds.X, PantsSlot.Bounds.Y + SLOTS_DRAWING_OFFSET + SlotSize.Y, PantsSlot.Bounds.Width, PantsSlot.Bounds.Height), Point.Zero);
-            AccessorySlot = new(ArmorType.Accessory, new(HelmetSlot.Bounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, HelmetSlot.Bounds.Y, HelmetSlot.Bounds.Width, HelmetSlot.Bounds.Height), Point.Zero);
+            ChestSlot = new(PremadeArmorSprites.GetInstance().GetNewSprite("Leather chestplate").Texture, ArmorType.Chest, new(WeaponSlotBounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, WeaponSlotBounds.Y, WeaponSlotBounds.Width, WeaponSlotBounds.Height), Point.Zero);
+            HelmetSlot = new(PremadeArmorSprites.GetInstance().GetNewSprite("Leather helmet").Texture, ArmorType.Helmet, new(ChestSlot.Bounds.X, ChestSlot.Bounds.Y - SLOTS_DRAWING_OFFSET - SlotSize.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
+            GlovesSlot = new(PremadeArmorSprites.GetInstance().GetNewSprite("Leather gloves").Texture, ArmorType.Gloves, new(ChestSlot.Bounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, ChestSlot.Bounds.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
+            PantsSlot = new(PremadeArmorSprites.GetInstance().GetNewSprite("Leather pants").Texture, ArmorType.Pants, new(ChestSlot.Bounds.X, ChestSlot.Bounds.Y + SLOTS_DRAWING_OFFSET + SlotSize.Y, ChestSlot.Bounds.Width, ChestSlot.Bounds.Height), Point.Zero);
+            BootsSlot = new(PremadeArmorSprites.GetInstance().GetNewSprite("Leather boots").Texture, ArmorType.Boots, new(PantsSlot.Bounds.X, PantsSlot.Bounds.Y + SLOTS_DRAWING_OFFSET + SlotSize.Y, PantsSlot.Bounds.Width, PantsSlot.Bounds.Height), Point.Zero);
+            AccessorySlot = new(PremadeArmorSprites.GetInstance().GetNewSprite("Iron necklace").Texture, ArmorType.Accessory, new(HelmetSlot.Bounds.X - SLOTS_DRAWING_OFFSET - SlotSize.X, HelmetSlot.Bounds.Y, HelmetSlot.Bounds.Width, HelmetSlot.Bounds.Height), Point.Zero);
             _armorInventorySlots = new()
             {
                 HelmetSlot,
@@ -88,17 +89,18 @@ namespace OnlyDarker.PlayerClasses
             {
                 Slots[i] = new InventorySlot(new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + i * (SLOTS_DRAWING_OFFSET + slotSize.X), slotsBounds.Width - SLOTS_DRAWING_OFFSET, slotsBounds.Width - SLOTS_DRAWING_OFFSET), new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + SLOTS_DRAWING_OFFSET / 2 + i * (SLOTS_DRAWING_OFFSET + slotSize.X)));
             }
+            WeaponDefaultTexture = PremadeWeaponSprites.GetInstance().GetExistingSprite("Sword").Texture;
             WeaponSlot = new InventorySlot(Rectangle.Empty, WeaponSlotBounds.Location)
             {
                 Container = weapon
             };
-            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Stick"), out _);
-            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Sword"), out _);
-            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Lance"), out _);
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather helmet"), out _);
-            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather armor"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather chestplate"), out _);
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather boots"), out _);
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Iron ring"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Iron necklace"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather gloves"), out _);
+            TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather pants"), out _);
         }
         public void Update()
         {
@@ -282,6 +284,10 @@ namespace OnlyDarker.PlayerClasses
                 {
                     GlobalUse.SpriteBatch.Draw(slot.Container.Texture, slot.Bounds, Color.White);
                 }
+                else
+                {
+                    GlobalUse.SpriteBatch.Draw(slot.DefaultTexture, slot.Bounds, Color.Black * 0.25F);
+                }
             }
             if (_hoveredSlot is not null)
             {
@@ -289,6 +295,10 @@ namespace OnlyDarker.PlayerClasses
             }
             if (WeaponSlot.Container.IngameName != WeaponFist.IngameName)
                 GlobalUse.SpriteBatch.Draw(WeaponSlot.Container.Texture, WeaponSlotBounds, Color.White);
+            else
+            {
+                GlobalUse.SpriteBatch.Draw(WeaponDefaultTexture, WeaponSlotBounds, Color.Black * 0.25F);
+            }
             if (_tempSlot.Container is not null)
             {
                 GlobalUse.SpriteBatch.Draw(_tempSlot.Container.Texture, GameBody.GetGameInstance().ControlsManager.CurrentMouseState.Position.ToVector2(), Color.White * 0.8F);
@@ -416,9 +426,11 @@ namespace OnlyDarker.PlayerClasses
     }
     public class ArmorInventorySlot : InventorySlot
     {
+        public Texture2D DefaultTexture { get; }
         public ArmorType ArmorType { get; set; }
-        public ArmorInventorySlot(ArmorType armorType, Rectangle bounds, Point drawnPosition) : base(bounds, drawnPosition)
+        public ArmorInventorySlot(Texture2D defaultTexture, ArmorType armorType, Rectangle bounds, Point drawnPosition) : base(bounds, drawnPosition)
         {
+            DefaultTexture = defaultTexture;
             ArmorType = armorType;
         }
     }

@@ -14,7 +14,20 @@ namespace OnlyDarker.CommonUsing
             var angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
             DrawLine(spriteBatch, point1, distance, angle, color, thickness);
         }
-
+        public static void DrawLine(this SpriteBatch spriteBatch, Line line, Color color, float thickness = 1F)
+        {
+            var point1 = line.StartPoint;
+            var point2 = line.EndPoint;  
+            var distance = Vector2.Distance(point1, point2);
+            var angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
+            DrawLine(spriteBatch, point1, distance, angle, color, thickness);
+        }
+        //public static void DrawLine(this SpriteBatch spriteBatch, Line line, Color color, float thickness = 1F)
+        //{
+        //    var distance = Vector2.Distance(line.StartPoint, line.EndPoint);
+        //    var angle = (float)Math.Atan2(line.EndPoint.Y - line.StartPoint.Y, line.EndPoint.X - line.StartPoint.X);
+        //    DrawLine(spriteBatch, line.StartPoint, distance, angle, color, thickness);
+        //}
         private static void DrawLine(this SpriteBatch spriteBatch, Vector2 point, float length, float angle, Color color, float thickness = 1F)
         {
             var origin = new Vector2(0F, 0.5F);

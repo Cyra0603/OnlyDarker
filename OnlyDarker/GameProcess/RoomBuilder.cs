@@ -292,19 +292,11 @@ namespace OnlyDarker.GameProcess
             else if (y > center.Y) { return Direction.Down; }
             else return Direction.Up;
         }
-        public void DeactivatePortals()
+        public void BlockPortals()
         {
             foreach (var portal in Portals)
             {
-                portal.DeactivatePortal();
-            }
-        }
-        public async void ActivatePortals(int milliseconds) //REWORK TO INGAME TIME
-        {
-            await Task.Delay(milliseconds);
-            foreach (var portal in Portals)
-            {
-                portal.ActivatePortal();
+                portal.BlockPortal();
             }
         }
         private void UpdatePortals()

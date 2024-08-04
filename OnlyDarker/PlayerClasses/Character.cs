@@ -15,7 +15,6 @@ using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
 using OnlyDarker.PlayerClasses;
 using System.Text.Json;
-using SharpDX.Direct2D1;
 using System.IO;
 
 namespace OnlyDarker
@@ -46,12 +45,16 @@ namespace OnlyDarker
         public Inventory Inventory { get; private set; }
         public BaseArmor BaseArmor { get; private set; }
         public WeaponSprite CurrentWeapon => Inventory.WeaponSlot.Container as WeaponSprite;
-        private Texture2D _attackAnimation = GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation");
+        private Texture2D _attackAnimation = GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterAttackAnimation2");
         public ActionTimer? DashTimer;
         public ActionTimer? DashEffectTimer;
         public Timer AttackCooldown = new(0);
         public Timer InvincibilityTimer = new(0);
         public Timer DamagedEffectTimer = new(0);
+        public Line line1;
+        public Line line2;
+        public Line line3;
+        public Line line4;
         private SpriteEffects _flipEffect = SpriteEffects.None;
         public bool IsExpired { get; private set; }
         public bool IsInvincible
@@ -71,6 +74,10 @@ namespace OnlyDarker
             Stats = stats;
             BaseArmor = new BaseArmor();
             Inventory = new(Stats, PremadeWeaponSprites.GetInstance().GetNewSprite("Fist"));
+            DashTimer = new ActionTimer(0);
+            DashEffectTimer = new ActionTimer(0);
+            DashTimer.TimeUpdated += DashAction;
+            DashEffectTimer.TimeElapsed += DashEnded;
         }
         public void RunIFrames(float durationMilliseconds)
         {
@@ -123,22 +130,45 @@ namespace OnlyDarker
 
         private void CheckForInteractions()
         {
-            if (GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives is not null && GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Any(collider => collider.MovementCollider.Intersects(InteractionAura)))
+            if (GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives is null)
             {
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(InteractionAura)).ShowInteractionMessage();
-                _thingsToInteract.Push(GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.First(collider => collider.MovementCollider.Intersects(InteractionAura)));
+                return;
+            }
+            foreach (var interactive in GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives)
+            {
+                if (interactive.MovementCollider.Intersects(InteractionAura))
+                {
+                    interactive.ShowInteractionMessage();
+                    _thingsToInteract.Push(interactive);
+                    return;
+                }
             }
         }
 
         private void CheckForCollisions()
         {
-            if (GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Any(collider => collider.Intersects(MovementCollisionAura)))
+            if(GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders is null)
             {
-                var obstacles = GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Where(collider => collider.Intersects(MovementCollisionAura)).ToList();
-                for (int i = 0, j = 7; i < j; i++)
+                return;
+            }
+            bool shouldCheck = false;
+            Span<Rectangle> rectangles = stackalloc Rectangle[GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Count];
+            int rectsi = 0;
+            foreach(var collider in GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders)
+            {
+                if (collider.Intersects(MovementCollisionAura))
+                {
+                    shouldCheck = true;
+                    rectangles[rectsi] = collider;
+                    rectsi++;
+                }
+            }
+            if (shouldCheck)
+            {
+                for (int i = 0, j = (int)(ControlsManager.GetDirection().Length() + 1); i < j; i++)
                 {
                     var currentDirection = ControlsManager.GetDirection();
-                    CalculatePossibleCollisions(obstacles, ref currentDirection);
+                    CalculatePossibleCollisions(in rectangles, ref currentDirection);
                     Position += ControlsManager.GetDirection() / j * Stats.Speed;
                 }
             }
@@ -148,29 +178,32 @@ namespace OnlyDarker
             }
         }
 
-        private void CalculatePossibleCollisions(List<Rectangle> obstacles, ref Vector2 currentDirection)
+        private void CalculatePossibleCollisions(in Span<Rectangle> obstacles, ref Vector2 currentDirection)
         {
             var ly = currentDirection.Y;
             var lx = currentDirection.X;
-            if (currentDirection.Y < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1F) * Stats.Speed))))
+            foreach(var rect in obstacles)
             {
-                ControlsManager.ZeroDirectionY();
-                ControlsManager.AddFriction();
-            }
-            if (currentDirection.Y > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly + 1F) * Stats.Speed))))
-            {
-                ControlsManager.ZeroDirectionY();
-                ControlsManager.AddFriction();
-            }
-            if (currentDirection.X < 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx - 1F, ly) * Stats.Speed))))
-            {
-                ControlsManager.ZeroDirectionX();
-                ControlsManager.AddFriction();
-            }
-            if (currentDirection.X > 0 && obstacles.Any(collider => collider.Intersects(CalculateMovementCollider(Position + new Vector2(lx + 1F, ly) * Stats.Speed))))
-            {
-                ControlsManager.ZeroDirectionX();
-                ControlsManager.AddFriction();
+                if (currentDirection.Y < 0 && rect.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1F) * Stats.Speed)))
+                {
+                    ControlsManager.ZeroDirectionY();
+                    ControlsManager.AddFriction();
+                }
+                if (currentDirection.Y > 0 && rect.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly + 1F) * Stats.Speed)))
+                {
+                    ControlsManager.ZeroDirectionY();
+                    ControlsManager.AddFriction();
+                }
+                if (currentDirection.X < 0 && rect.Intersects(CalculateMovementCollider(Position + new Vector2(lx - 1F, ly) * Stats.Speed)))
+                {
+                    ControlsManager.ZeroDirectionX();
+                    ControlsManager.AddFriction();
+                }
+                if (currentDirection.X > 0 && rect.Intersects(CalculateMovementCollider(Position + new Vector2(lx + 1F, ly) * Stats.Speed)))
+                {
+                    ControlsManager.ZeroDirectionX();
+                    ControlsManager.AddFriction();
+                }
             }
         }
         public Rectangle CalculateMovementCollider(Vector2 position)
@@ -246,11 +279,11 @@ namespace OnlyDarker
                 var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
                 _dashForce = difference / difference.Length() * ControlsManager.GetMaxDirectionVector(); ;
             }
-            DashTimer = new ActionTimer(Stats.DashLength);
-            DashEffectTimer = new ActionTimer(Stats.DashEffectLength);
+            DashTimer.TimeLeft += Stats.DashLength;
+            DashEffectTimer.TimeLeft += Stats.DashEffectLength;
+            DashTimer.Unpause();
+            DashEffectTimer.Unpause();
             RunIFrames(Stats.DashEffectLength);
-            DashTimer.TimeUpdated += DashAction;
-            DashEffectTimer.TimeElapsed += DashEnded;
         }
         private void DashEnded(object character, EventArgs e)
         {
@@ -294,17 +327,28 @@ namespace OnlyDarker
             var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
             var direction = difference / difference.Length();
             var range = (int)(CurrentWeapon.Data.AttackRange + Stats.Range);
-            var attackRect = new Rectangle(new
-                ((int)(Position.X + (direction.X * range) - range / 2), (int)(Position.Y + (direction.Y * range) - range / 2)),
-                new(range, range));
-            var attackRect2 = new Rectangle(new
-                ((int)(Position.X + (direction.X * range / 2) - range / 2), (int)(Position.Y + (direction.Y * range / 2) - range / 2)),
-                new(range, range));
-            CreateAttackAnimation(flipsf, range);
+            //var attackRect = new Rectangle(new
+            //    ((int)(Position.X + (direction.X * range) - range / 2), (int)(Position.Y + (direction.Y * range) - range / 2)),
+            //    new(range, range));
+            //var attackRect2 = new Rectangle(new
+            //    ((int)(Position.X + (direction.X * range / 2) - range / 2), (int)(Position.Y + (direction.Y * range / 2) - range / 2)),
+            //    new(range, range));
+            
             //THIS DOES NOT WORK FINE
             var critModifier = Stats.CritDamage / 100F;
-            foreach (var target in GameBody.GetGameInstance().SceneManager.CurrentRoom.Damageables.Where(target => target.BodyHitbox.Intersects(attackRect) || target.BodyHitbox.Intersects(attackRect2)))
+            var attackPoint = Position + (direction * range);
+            var halfHeight = Position + (direction * (range * 0.2F));
+            var triangleZ = Position + (-direction * BodyHitbox.Width / 2);
+            var triangleX = halfHeight.RotateAround(attackPoint, -90);
+            var triangleY = halfHeight.RotateAround(attackPoint, 90);
+            Triangle attackArea = new(triangleX, triangleY, triangleZ);
+            CreateAttackAnimation(triangleZ, flipsf, (int)Vector2.Distance(triangleZ, attackPoint));
+            foreach (var target in GameBody.GetGameInstance().SceneManager.CurrentRoom.Damageables)
             {
+                if (!attackArea.Intersects(target.BodyHitbox))
+                {
+                    continue;
+                }
                 if (target.HealthPoints <= 0)
                 {
                     continue;
@@ -324,26 +368,16 @@ namespace OnlyDarker
             //    target.ChangeForce(newForce);
             //    target.Lifetime.TimeLeft /= 2;
             //}
-            if (GlobalUse.IsDebugMode)
-            {
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.AddTempDrawableRect(attackRect);
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.AddTempDrawableRect(attackRect2);
-            }
-            else
-            {
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.ClearTempDrawables();
-            }
         }
 
-        private void CreateAttackAnimation(SpriteEffects flipEffect, int range)
+        private void CreateAttackAnimation(Vector2 source, SpriteEffects flipEffect, float range)
         {
-            var animation = new EffectAnimationManager(_attackAnimation, 128, 64, 12, animationFrequency: 16.6F);
+            var animation = new EffectAnimationManager(_attackAnimation, 128, 128, 10, animationFrequency: 8.3F * CurrentWeapon.Data.AttackSpeed);
             animation.Activate(
-            new(Position,
-            rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - Position.Y, ControlsManager.MousePosition.X - Position.X),
-            scale: range * 4 / animation.SourceRectangleSize.X,
-            spriteEffect: flipEffect,
-            layerDepth: 1F));
+            new(source,
+            rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - source.Y, ControlsManager.MousePosition.X - source.X),
+            scale: range / (animation.SourceRectangleSize.X / 2),
+            spriteEffect: flipEffect));
         }
 
         public void TakeDamage(in DamageInstance damage)

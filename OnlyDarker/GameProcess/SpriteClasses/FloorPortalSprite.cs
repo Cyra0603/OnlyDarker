@@ -17,6 +17,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Rectangle MovementCollider;
         public readonly Room ParentRoomReference;
         public bool IsExpired { get; private set; } = false;
+        public bool IsBlocked { get; set; }
         private bool _isActive;
         public FloorPortalSprite(Texture2D texture, Vector2 position, Room parentRoomReference)
         {
@@ -26,6 +27,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             CenterCords = Position + Origin;
             MovementCollider = new((int)Position.X - (int)Origin.X, (int)Position.Y - (int)Origin.Y, Texture.Width, Texture.Height);
             ParentRoomReference = parentRoomReference;
+            IsBlocked = false;
             _isActive = true;
         }
         public void Update()
@@ -61,8 +63,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         //private void PlayerTeleport()
         //{
-        //    ParentRoomReference.DeactivatePortals();
-        //    ExitRoom.DeactivatePortals();
+        //    ParentRoomReference.BlockPortals();
+        //    ExitRoom.BlockPortals();
         //    GameBody.GetGameInstance().SceneManager.GoToRoom(ExitRoom);
         //    GameBody.GetGameInstance().MainCharacter.SetPosition(ExitPosition);
         //    GameBody.GetGameInstance().SceneManager.CurrentLevel.SetExplorationStates(ExitRoom);

@@ -21,6 +21,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Rectangle MovementCollider;
         public readonly Room ParentRoomReference;
         public bool IsExpired { get; private set; } = false;
+        public bool IsBlocked { get; set; }
         private bool _isActive;
         public RoomPortalSprite(Texture2D texture, Vector2 position, Direction portalDirection, Room parentRoomReference)
         {
@@ -31,11 +32,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             CenterCords = Position + Origin;
             MovementCollider = new((int)Position.X - (int)Origin.X, (int)Position.Y - (int)Origin.Y, Texture.Width, Texture.Height);
             ParentRoomReference = parentRoomReference;
+            IsBlocked = false;
             _isActive = true;
         }
         public void Update()
         {
-            if (_isActive && MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider))
+            if (IsBlocked && !MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider))
+            {
+                UnblockPortal();
+            }
+            if (_isActive && !IsBlocked && MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider))
             {
                 PlayerTeleport();
             }
@@ -56,6 +62,14 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             _isActive = true;
         }
+        public void BlockPortal()
+        {
+            IsBlocked = true;
+        }
+        public void UnblockPortal()
+        {
+            IsBlocked = false;
+        }
         public void DeactivatePortal()
         {
             _isActive = false;
@@ -70,15 +84,13 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         private void PlayerTeleport()
         {
-            ParentRoomReference.DeactivatePortals();
-            ExitRoom.DeactivatePortals();
+            ParentRoomReference.BlockPortals();
+            ExitRoom.BlockPortals();
             GameBody.GetGameInstance().SceneManager.GoToRoom(ExitRoom);
             GameBody.GetGameInstance().MainCharacter.SetPosition(ExitPosition);
             GameBody.GetGameInstance().SceneManager.CurrentLevel.SetExplorationStates(ExitRoom);
-            ParentRoomReference.ActivatePortals(2000);
             ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
             ParentRoomReference.ObjectsYSorted.RemoveAll(item => item.IsExpired);
-            ExitRoom.ActivatePortals(2000);
             GameBody.GetGameInstance().ProjectileSprites.Clear();
             GC.Collect();
         }

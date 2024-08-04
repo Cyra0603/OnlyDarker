@@ -33,7 +33,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 {
                     IsExpired = true;
                     (this as IDamageable).SpawnXPOrbs();
-                    GameBody.GetGameInstance().SpawnCoins(25);
                 }
             }
         }
