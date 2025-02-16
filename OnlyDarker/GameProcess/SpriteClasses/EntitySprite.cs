@@ -61,9 +61,9 @@ using System.Threading.Tasks;
 //        public event ObserveHP OnChangingHealth;
 //        public event ObserveHP OnTakingDamage;
 //        public event ObserveHP OnHealing;
-//        public void Draw()
+//        public void DrawTriangle()
 //        {
-//            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
+//            GlobalUse.SpriteBatch.DrawTriangle(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.5F);
 //        }
 
 //        public void SetRoomBounds(Point roomSize, Point tileSize)

@@ -432,7 +432,7 @@ namespace OnlyDarker.GameProcess
         }
         public void ClearTempDrawables()
         {
-            if (TempRectDrawList.Any())
+            if (TempRectDrawList.Count > 0)
                 TempRectDrawList.Clear();
         }
         public bool LineCastIsCollidingObstacles(in Vector2 start, in Vector2 finish)

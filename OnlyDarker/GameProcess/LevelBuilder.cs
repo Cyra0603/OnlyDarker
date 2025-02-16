@@ -25,6 +25,7 @@ namespace OnlyDarker.GameProcess
         public readonly Floor FloorType;
         private readonly IFloorConfig _floorConfig;
         public List<Room> BuiltFloor { get; private set; }
+        public LootConfig LootTable { get; private set; }
         public Room[,] LevelGrid { get; private set; }
         public Level(Floor floor)
         {
@@ -195,7 +196,7 @@ namespace OnlyDarker.GameProcess
                     emptyRoom.IsUsed = true;
                 }
                 testIterations++;
-                if (testIterations > 10000)
+                if (testIterations > 100000)
                 {
                     Debug.WriteLine("Generation took too many iterations");
                     goto FailedGenerationRetryLabel;

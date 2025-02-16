@@ -4,9 +4,9 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
-namespace OnlyDarker.GameProcess.SpriteClasses
+namespace OnlyDarker.GameProcess
 {
-    public class CoinSprite
+    public class LootConfig
     {
 
     }

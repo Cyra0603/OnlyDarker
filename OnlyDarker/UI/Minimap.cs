@@ -55,7 +55,7 @@ namespace OnlyDarker.UI
                         {
                             int i = (int)room.InstanceRoomType - 1;
                             GlobalUse.SpriteBatch.Draw(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.White * 0.3F);
-                            //GlobalUse.SpriteBatch.Draw(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.Black * 0.3F);
+                            //GlobalUse.SpriteBatch.DrawTriangle(_minimapIcons[i], _iconPos * room.GridCords.ToVector2(), Color.Black * 0.3F);
                             break;
                         }
                     case Room.RoomExplorationState.Explored:

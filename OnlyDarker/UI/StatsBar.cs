@@ -15,7 +15,7 @@ namespace OnlyDarker.UI
         private float PosY => GlobalUse.WindowSize.Y / 2.7F;
         private float CoinCountPosY => GlobalUse.WindowSize.Y / 11;
         public Rectangle CoinRect => new(0, (int)CoinCountPosY, UICoinTexture.Width, UICoinTexture.Height);
-        public bool ShouldDrawStats = false;
+        public bool ShouldDrawStats = true;
         public StatsBar()
         {
             _statsPosition = new(15, PosY);
@@ -43,9 +43,16 @@ namespace OnlyDarker.UI
                 $"Position: {GameBody.GetGameInstance().MainCharacter.Position.X} : {GameBody.GetGameInstance().MainCharacter.Position.Y}\n\n" +
                 $"SEED: {GlobalUse.CurrentSeed}\n\n" +
                 $"Level: {GameBody.GetGameInstance().MainCharacter.Stats.CharacterLevel} [{GameBody.GetGameInstance().MainCharacter.Stats.XP} / {GameBody.GetGameInstance().MainCharacter.Stats.LevelThreshold}]\n\n" +
-                $"Total XP: {GameBody.GetGameInstance().MainCharacter.Stats.TotalXP} \n\n"
+                $"Total XP: {GameBody.GetGameInstance().MainCharacter.Stats.TotalXP} \n\n" +
+                $"CPU: {GameBody.GetGameInstance().DrawnCPUFrameTime}ms \n\n" +
+                $"GPU: {GameBody.GetGameInstance().DrawnGPUFrameTime}ms \n\n" +
+                $"RAM: {GameBody.GetGameInstance().AllocatedMemoryInMB}MB \n\n" +
+                $"NETWORK: {GameBody.GetGameInstance().Ping}ms \n\n" 
                 ),
-                _statsPosition, Color.White, 0F, _statsPosition, 0.6F, SpriteEffects.None, 0F);
+                _statsPosition, Color.White, 0F, _statsPosition, 0.4F, SpriteEffects.None, 0F);
+            var cpu = GameBody.GetGameInstance().DrawnCPUFrameTime;
+            var gpu = GameBody.GetGameInstance().DrawnGPUFrameTime;
+            var sad = 321;
         }
     }
 }

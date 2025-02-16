@@ -150,8 +150,8 @@ namespace OnlyDarker.CommonUsing.Rendering
     }
     public class DamageNumberAnimationManager
     {
-        public const float COMMON_LIFETIME = 800;
-        public const float CRIT_LIFETIME = 1000;
+        public const float COMMON_LIFETIME = 800F;
+        public const float CRIT_LIFETIME = 1000F;
         public Vector2 Position;
         public float ColorDencity = 1F;
         public const float CONST_DENCITY = 0.5F;

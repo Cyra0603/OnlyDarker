@@ -16,6 +16,9 @@ namespace OnlyDarker.GameProcess
         public Texture2D UICoinTexture { get; }
         public Texture2D DummyProjectileSprite { get;private set; }
         public Texture2D DruidProjectileSprite { get; private set; }
+        public Texture2D ArrowProjectileSprite { get; private set; }
+        public Texture2D IronShurikenSprite { get; private set; }
+        public Texture2D ProjectileHitAnimation { get; private set; }
         public Texture2D HeartPickupSpriteTexture { get; private set; }
         public Texture2D XPOrbSpriteTexture { get; private set; }
         public Texture2D XPOrbSpriteTrailTexture { get; private set; }
@@ -33,6 +36,9 @@ namespace OnlyDarker.GameProcess
             TargetDummySpriteTexture = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummy/TargetDummy");
             DummyProjectileSprite = GlobalUse.Content.Load<Texture2D>("Entities/TargetDummyShooter/DummyShooterProjectile");
             DruidProjectileSprite = GlobalUse.Content.Load<Texture2D>("Entities/DruidBoss/DruidSeed");
+            ArrowProjectileSprite = GlobalUse.Content.Load<Texture2D>("Weapons/ArrowProjectile");
+            IronShurikenSprite = GlobalUse.Content.Load<Texture2D>("Weapons/IronShurikenProjectile");
+            ProjectileHitAnimation = GlobalUse.Content.Load<Texture2D>("Effects/ProjectileHitAnimation");
             _instance = this;
         }
         public static TextureMapper GetInstance()

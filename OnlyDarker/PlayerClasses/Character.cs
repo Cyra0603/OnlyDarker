@@ -17,7 +17,7 @@ using OnlyDarker.PlayerClasses;
 using System.Text.Json;
 using System.IO;
 
-namespace OnlyDarker
+namespace OnlyDarker.PlayerClasses
 {
 
     public class Character : IYSortable
@@ -30,6 +30,7 @@ namespace OnlyDarker
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         private Vector2 _handOrigin;
+        private float _handRotationValue => MathHelper.ToRadians((float)Math.Atan2((ControlsManager.MousePosition - Position).Y, (ControlsManager.MousePosition - Position).X));
         private Vector2 _minPosition, _maxPosition;
         public Vector2 RightHandPosition => new(Position.X, Position.Y);
         public Vector2 LeftHandPosition { get; private set; }
@@ -63,7 +64,8 @@ namespace OnlyDarker
             set { }
         }
         public bool IsPushable { get; set; } = false;
-
+        public bool ShouldDrawAttackArea => GlobalUse.IsDebugMode;
+        private Triangle AttackArea;
         public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteStandartTile parentTile, Stats stats)
         {
             _bodyTexture = bodyTexture;
@@ -73,7 +75,7 @@ namespace OnlyDarker
             Position = new(parentTile.Position.X, parentTile.Position.Y - (parentTile.GetTextureWidth() - bodyTexture.Width) / 2);
             Stats = stats;
             BaseArmor = new BaseArmor();
-            Inventory = new(Stats, PremadeWeaponSprites.GetInstance().GetNewSprite("Fist"));
+            Inventory = new(Stats, PremadeWeaponSprites.GetInstance().GetExistingSprite("Fist"));
             DashTimer = new ActionTimer(0);
             DashEffectTimer = new ActionTimer(0);
             DashTimer.TimeUpdated += DashAction;
@@ -89,10 +91,20 @@ namespace OnlyDarker
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
                     GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
+                    GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), _handRotationValue, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
                 }
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
+            GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.White, _handRotationValue, Origin, 1F, _flipEffect, 0.5F);
             if (DamagedEffectTimer.TimeLeft > 0)
+            {
                 GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
+                GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), _handRotationValue, Origin, 1F, _flipEffect, 0.5F);
+            }
+            if (ShouldDrawAttackArea)
+            {
+                GlobalUse.SpriteBatch.DrawTriangle(AttackArea, Color.Black, thickness: 1F);
+                //ShouldDrawAttackArea = false;   
+            }
         }
         public void DrawHpBar() { }
         public void SetRoomBounds(Point roomSize, Point tileSize)
@@ -147,14 +159,14 @@ namespace OnlyDarker
 
         private void CheckForCollisions()
         {
-            if(GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders is null)
+            if (GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders is null)
             {
                 return;
             }
             bool shouldCheck = false;
             Span<Rectangle> rectangles = stackalloc Rectangle[GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders.Count];
             int rectsi = 0;
-            foreach(var collider in GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders)
+            foreach (var collider in GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders)
             {
                 if (collider.Intersects(MovementCollisionAura))
                 {
@@ -182,7 +194,7 @@ namespace OnlyDarker
         {
             var ly = currentDirection.Y;
             var lx = currentDirection.X;
-            foreach(var rect in obstacles)
+            foreach (var rect in obstacles)
             {
                 if (currentDirection.Y < 0 && rect.Intersects(CalculateMovementCollider(Position + new Vector2(lx, ly - 1F) * Stats.Speed)))
                 {
@@ -320,54 +332,11 @@ namespace OnlyDarker
             {
                 return;
             }
-            var flipsf = SpriteEffects.None;
-            if (ControlsManager.MousePosition.X < Position.X)
-                flipsf = SpriteEffects.FlipVertically;
-            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.Data.AttackSpeed); //IMPLEMENT ATTACKSPEED!
             var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
             var direction = difference / difference.Length();
-            var range = (int)(CurrentWeapon.Data.AttackRange + Stats.Range);
-            //var attackRect = new Rectangle(new
-            //    ((int)(Position.X + (direction.X * range) - range / 2), (int)(Position.Y + (direction.Y * range) - range / 2)),
-            //    new(range, range));
-            //var attackRect2 = new Rectangle(new
-            //    ((int)(Position.X + (direction.X * range / 2) - range / 2), (int)(Position.Y + (direction.Y * range / 2) - range / 2)),
-            //    new(range, range));
-            
-            //THIS DOES NOT WORK FINE
-            var critModifier = Stats.CritDamage / 100F;
-            var attackPoint = Position + (direction * range);
-            var halfHeight = Position + (direction * (range * 0.2F));
-            var triangleZ = Position + (-direction * BodyHitbox.Width / 2);
-            var triangleX = halfHeight.RotateAround(attackPoint, -90);
-            var triangleY = halfHeight.RotateAround(attackPoint, 90);
-            Triangle attackArea = new(triangleX, triangleY, triangleZ);
-            CreateAttackAnimation(triangleZ, flipsf, (int)Vector2.Distance(triangleZ, attackPoint));
-            foreach (var target in GameBody.GetGameInstance().SceneManager.CurrentRoom.Damageables)
-            {
-                if (!attackArea.Intersects(target.BodyHitbox))
-                {
-                    continue;
-                }
-                if (target.HealthPoints <= 0)
-                {
-                    continue;
-                }
-                bool proc = GlobalUse.TryChance(Stats.CritChance);
-                var dmg = CurrentWeapon.Data.AttackDamage + Stats.Damage;
-                if (!proc)
-                    target.TakeDamage(new(dmg, 1.2F, CurrentWeapon.Data.WeaponDamageType, proc));
-                else
-                {
-                    target.TakeDamage(new(dmg * critModifier, 1.2F, CurrentWeapon.Data.WeaponDamageType, proc));
-                }
-            }
-            //foreach (var target in GameBody.GetGameInstance().ProjectileSprites.Where(target => target.HurtBox.Intersects(attackRect) || target.HurtBox.Intersects(attackRect2)))
-            //{
-            //    var newForce = Vector2.Lerp(difference / difference.Length(), target.Force, 0.03F);
-            //    target.ChangeForce(newForce);
-            //    target.Lifetime.TimeLeft /= 2;
-            //}
+            var attackOrigin = new Vector2(Position.X, Position.Y + BodyHitbox.Width / 2);
+            CurrentWeapon.Attack(ControlsManager, Stats, direction, Position, attackOrigin);
+            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.Data.AttackSpeed);
         }
 
         private void CreateAttackAnimation(Vector2 source, SpriteEffects flipEffect, float range)
@@ -405,7 +374,7 @@ namespace OnlyDarker
         }
         public void AddCoins(int amount)
         {
-            Stats.CoinCount += amount;  
+            Stats.CoinCount += amount;
         }
         public void ConsoleAddCoins(string amount)
         {
@@ -422,10 +391,10 @@ namespace OnlyDarker
         public void RemoveCoins(int amount, out bool result)
         {
             if (Stats.CoinCount < amount)
-                { 
+            {
                 result = false;
                 return;
-                }
+            }
             Stats.CoinCount -= amount;
             result = true;
         }
@@ -441,17 +410,17 @@ namespace OnlyDarker
             else
                 throw new ArgumentException();
         }
-        private async void SaveCharState()
-        {
-            var options = new JsonSerializerOptions
-            {
-                IncludeFields = true,
-                WriteIndented = true,
-            };
-            string fileName = $"character.state.{DateTime.UtcNow:yyyy-MM-dd}.json";
-            await using FileStream f = File.Create(fileName);
-            await JsonSerializer.SerializeAsync(f, this, options);
-        }
+        //private async void SaveCharState()
+        //{
+        //    var options = new JsonSerializerOptions
+        //    {
+        //        IncludeFields = true,
+        //        WriteIndented = true,
+        //    };
+        //    string fileName = $"character.state.{DateTime.UtcNow:yyyy-MM-dd}.json";
+        //    await using FileStream f = File.Create(fileName);
+        //    await JsonSerializer.SerializeAsync(f, this, options);
+        //}
     }
     public class Stats
     {
@@ -469,7 +438,8 @@ namespace OnlyDarker
                     _xp -= LevelThreshold;
                     CharacterLevel++;
                     LevelThreshold = (int)(LevelThreshold * 1.2F);
-                };
+                }
+                ;
             }
         }
         public int TotalXP;

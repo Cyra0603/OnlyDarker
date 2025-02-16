@@ -17,6 +17,7 @@ namespace OnlyDarker.PlayerClasses
         //data
         public readonly Stats Stats;
         public readonly InventorySlot[] Slots;
+        public readonly InventorySlot[,] Stash;
         private InventorySlot _tempSlot;
         private InventorySlot _draggedSlot;
         private InventorySlot _hoveredSlot;
@@ -53,17 +54,23 @@ namespace OnlyDarker.PlayerClasses
         //drawing
         private const int SLOTS_DRAWING_OFFSET = 5;
         public Texture2D WeaponDefaultTexture { get; }
+        public Texture2D SlotDefaultTexture { get; }
         public Rectangle MainBounds => new(0, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 5, (GlobalUse.WindowSize.Y / 17) * Slots.Length - SLOTS_DRAWING_OFFSET / 2);
         public Rectangle SlotsBounds => new(MainBounds.X + MainBounds.Width, MainBounds.Y, GlobalUse.WindowSize.Y / 17, (GlobalUse.WindowSize.Y / 17) * (Slots.Length + 1));
         public Rectangle WeaponSlotBounds => new(MainBounds.Location.X + SLOTS_DRAWING_OFFSET + MainBounds.Width / 2 + SlotSize.X / 2, MainBounds.Location.Y + MainBounds.Height / 3 - SlotSize.Y / 2, SlotSize.X, SlotSize.Y);
         public Rectangle ContextMenuRect;
         public Point SlotSize => new(SlotsBounds.Width - SLOTS_DRAWING_OFFSET, SlotsBounds.Width - SLOTS_DRAWING_OFFSET);
+        public Point StashSlotSize => new(MainBounds.Width / 12, MainBounds.Width / 12);
         private Color _hoveredSlotColor;
+        public Color InventoryBackgroundColor;
+        public Color SlotBackgroundColor;
         private bool _contextMenuShouldBeDrawn = false;
+
         public Inventory(Stats stats, WeaponSprite weapon)
         {
             Stats = stats;
             Slots = new InventorySlot[10];
+            Stash = new InventorySlot[6, 12];
             _tempSlot = new InventorySlot(Rectangle.Empty, Point.Zero);
             _draggedSlot = new InventorySlot(Rectangle.Empty, Point.Zero);
             _hoveredSlot = null;
@@ -89,7 +96,17 @@ namespace OnlyDarker.PlayerClasses
             {
                 Slots[i] = new InventorySlot(new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + i * (SLOTS_DRAWING_OFFSET + slotSize.X), slotsBounds.Width - SLOTS_DRAWING_OFFSET, slotsBounds.Width - SLOTS_DRAWING_OFFSET), new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + SLOTS_DRAWING_OFFSET / 2 + i * (SLOTS_DRAWING_OFFSET + slotSize.X)));
             }
+            for (int y = 0; y < Stash.GetLength(0); y++)
+            {
+                for (int x = 0; x < Stash.GetLength(1); x++)
+                {
+                    Stash[y, x] = new InventorySlot(new(MainBounds.X + (x * StashSlotSize.X), BootsSlot.Bounds.Y + BootsSlot.Bounds.Height * 2 + (y * StashSlotSize.Y), StashSlotSize.X, StashSlotSize.Y), Point.Zero);
+                }
+            }
             WeaponDefaultTexture = PremadeWeaponSprites.GetInstance().GetExistingSprite("Sword").Texture;
+            SlotDefaultTexture = GlobalUse.Content.Load<Texture2D>("UI/SlotTexture");
+            InventoryBackgroundColor = new Color(42, 42, 42);
+            SlotBackgroundColor = new Color(71, 71, 71);
             WeaponSlot = new InventorySlot(Rectangle.Empty, WeaponSlotBounds.Location)
             {
                 Container = weapon
@@ -101,6 +118,8 @@ namespace OnlyDarker.PlayerClasses
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Iron necklace"), out _);
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather gloves"), out _);
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather pants"), out _);
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Wooden bow"), out _);
+            TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Iron shuriken"), out _);
         }
         public void Update()
         {
@@ -120,7 +139,7 @@ namespace OnlyDarker.PlayerClasses
             {
                 _hoveredSlotColor = Color.NavajoWhite;
             }
-            HandleSlotsIntersection(in localMouseState, in localLastMouseState, in cursor);
+            HandleStashIntersection(in localMouseState, in localLastMouseState, in cursor);
             HandleWeaponSlotIntersection(in localMouseState, in localLastMouseState, in cursor);
             HandleArmorSlotsIntersection(in localMouseState, in localLastMouseState, in cursor);
             if (localMouseState.LeftButton == ButtonState.Released && localLastMouseState.LeftButton == ButtonState.Pressed && _tempSlot.Container is not null)
@@ -130,7 +149,7 @@ namespace OnlyDarker.PlayerClasses
             if (_hoveredSlot is not null)
             {
                 _contextMenuShouldBeDrawn = true;
-                if (_currentDescription is null && _hoveredSlot.Container is not null)
+                if (/*_currentDescription is null && */_hoveredSlot.Container is not null)
                 {
                     switch (_hoveredSlot.Container)
                     {
@@ -144,10 +163,17 @@ namespace OnlyDarker.PlayerClasses
                             break;
                     }
                 }
+                else
+                {
+                    _contextMenuShouldBeDrawn = false;
+                    _currentDescription = null;
+                    _contextMenu = null;
+                }
             }
             else
             {
                 _currentDescription = null;
+                _contextMenuShouldBeDrawn = false;
                 _contextMenu = null;
             }
         }
@@ -260,26 +286,69 @@ namespace OnlyDarker.PlayerClasses
                 }
             }
         }
-
+        private void HandleStashIntersection(in MouseState localMouseState, in MouseState localLastMouseState, in Point cursor)
+        {
+            for (int y = 0; y < Stash.GetLength(0); y++)
+            {
+                for (int x = 0; x < Stash.GetLength(1); x++)
+                {
+                    if (Stash[y, x].Bounds.Contains(cursor))
+                    {
+                        _hoveredSlot = Stash[y, x];
+                        _hoveredSlotColor = Color.NavajoWhite;
+                        if (localMouseState.LeftButton == ButtonState.Pressed && localLastMouseState.LeftButton == ButtonState.Released)
+                        {
+                            _tempSlot.Container = Stash[y, x].Container;
+                            _draggedSlot = Stash[y, x];
+                            Stash[y, x].Container = null;
+                        }
+                        if (localMouseState.LeftButton == ButtonState.Released && localLastMouseState.LeftButton == ButtonState.Pressed && _tempSlot.Container is not null)
+                        {
+                            if (Stash[y, x].Container is null)
+                            {
+                                Stash[y, x].Container = _tempSlot.Container;
+                                _tempSlot.Container = null;
+                            }
+                            else
+                            {
+                                _draggedSlot.Container = Stash[y, x].Container;
+                                Stash[y, x].Container = _tempSlot.Container;
+                                _tempSlot.Container = null;
+                            }
+                        }
+                        break;
+                    }
+                }
+            }
+        }
         public void Draw()
         {
             if (!IsActive)
                 return;
-            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, MainBounds, Color.Gray);
-            //GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, SlotsBounds, Color.Black);
-            foreach (var slot in Slots)
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, MainBounds, InventoryBackgroundColor);
+            //GlobalUse.SpriteBatch.DrawTriangle(GameBody.EmptyTexture, SlotsBounds, Color.Black);
+            //foreach (var slot in Slots)
+            //{
+            //    GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, slot.Bounds, Color.DarkGray);
+            //    GameBody.DrawRectangleOutline(slot.Bounds, Color.White, borderWidth: 2);
+            //    if (slot.Container is not null)
+            //    {
+            //        GlobalUse.SpriteBatch.Draw(slot.Container.Texture, slot.Bounds, Color.White);
+            //    }
+            //}
+            foreach (var slot in Stash)
             {
-                GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, slot.Bounds, Color.DarkGray);
-                GameBody.DrawRectangleOutline(slot.Bounds, Color.White, borderWidth: 2);
+                GlobalUse.SpriteBatch.Draw(SlotDefaultTexture, slot.Bounds, Color.White);
+                //GameBody.DrawRectangleOutline(slot.Bounds, Color.Gray, borderWidth: 1);
                 if (slot.Container is not null)
                 {
                     GlobalUse.SpriteBatch.Draw(slot.Container.Texture, slot.Bounds, Color.White);
                 }
             }
-            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, WeaponSlotBounds, Color.DarkGray);
+            GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, WeaponSlotBounds, /*Color.DarkGray*/SlotBackgroundColor);
             foreach (var slot in _armorInventorySlots)
             {
-                GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, slot.Bounds, Color.DarkGray);
+                GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, slot.Bounds, /*Color.DarkGray*/SlotBackgroundColor);
                 if (slot.Container is not null)
                 {
                     GlobalUse.SpriteBatch.Draw(slot.Container.Texture, slot.Bounds, Color.White);
@@ -303,9 +372,9 @@ namespace OnlyDarker.PlayerClasses
             {
                 GlobalUse.SpriteBatch.Draw(_tempSlot.Container.Texture, GameBody.GetGameInstance().ControlsManager.CurrentMouseState.Position.ToVector2(), Color.White * 0.8F);
             }
-            if(_contextMenu is not null)
+            if (_contextMenuShouldBeDrawn)
             {
-                _contextMenu.Draw();
+                _contextMenu?.Draw();
             }
         }
         public IEnumerable<ArmorSprite> GetArmorSet()
@@ -321,13 +390,16 @@ namespace OnlyDarker.PlayerClasses
         }
         public bool TryStore(ICollectible collectible, out string message)
         {
-            for (int i = 0; i < Slots.Length; i++)
+            for (int y = 0; y < Slots.Length; y++)
             {
-                if (Slots[i].Container is null)
+                for (int x = 0; x < Slots.Length; x++)
                 {
-                    Slots[i].Container = collectible;
-                    message = $"Picked up {collectible.IngameName}";
-                    return true;
+                    if (Stash[y, x].Container is null)
+                    {
+                        Stash[y, x].Container = collectible;
+                        message = $"Picked up {collectible.IngameName}";
+                        return true;
+                    }
                 }
             }
             message = $"Not enough space for {collectible.IngameName}";
@@ -453,7 +525,7 @@ namespace OnlyDarker.PlayerClasses
             {
                 StringsToDraw.Add($"{element.Name} : {element.Value}");
             };
-            int maxheight = 45;         
+            int maxheight = 45;
             int maxwidth = (int)(GetLongestStringLength() * TextSize) + maxheight;
             DescriptionBounds = new(location.X, location.Y + maxheight + maxheight * elements.Count, maxwidth, maxheight + maxheight * elements.Count);
             Bounds = new(location.X, location.Y, maxwidth, maxheight + item.Texture.Height + DescriptionBounds.Height);
@@ -507,4 +579,15 @@ namespace OnlyDarker.PlayerClasses
         public string Name { get; set; } = name;
         public string Value { get; set; } = value;
     }
+    public class StashCell
+    {
+        public ICollectible ContainedItem { get; set; }
+        public bool IsOccupied;
+        public StashCell()
+        {
+            ContainedItem = null;
+            IsOccupied = false;
+        }
+    }
+
 }

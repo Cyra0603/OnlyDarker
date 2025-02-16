@@ -86,12 +86,27 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private void DropLoot()
         {
             var lootTableValue = 5;//TEMP
-            for(int i = 0; i < lootTableValue; i++)
+            var coinTableValue = RandomNumberGenerator.GetInt32(0,30);
+            for (int i = 0; i < lootTableValue; i++)
             {
                 var offsetx = RandomNumberGenerator.GetInt32(-50, 51);
                 var offsety = RandomNumberGenerator.GetInt32(-50, 51);
                 var loot = new HeartPickupSprite(GameBody.GetGameInstance().TextureMapper.HeartPickupSpriteTexture, Position, new Vector2(Position.X + offsetx, Position.Y + offsety));
             }
+            for (int i = 0; i < coinTableValue; i++)
+            {
+                var offsetx = RandomNumberGenerator.GetInt32(-50, 51);
+                var offsety = RandomNumberGenerator.GetInt32(-50, 51);
+                var loot = new CoinPickupSprite(GameBody.GetGameInstance().TextureMapper.CoinTexture, Position, new Vector2(Position.X + offsetx, Position.Y + offsety));
+            }
         }
+    }
+    public static class ChestLootTable
+    {
+        public static WoodenChestTable WoodenChestTable { get; set; } = new();
+    }
+    public class WoodenChestTable
+    {
+        
     }
 }

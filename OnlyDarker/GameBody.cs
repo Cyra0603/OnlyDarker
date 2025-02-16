@@ -12,6 +12,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
@@ -59,9 +60,26 @@ namespace OnlyDarker
         private delegate void TimeElapsed(float milliseconds);
         private event TimeElapsed _timeElapsed;
         public const float FIXED_TIME_STEP = 7.8125F;
+
+        //Diagnostics
+        private Process _currentProcess;
+        private Pinger _pinger;
+        public int Ping => _pinger.Ping;
+        private Stopwatch _CPUFrameTimer;
+        private long _CPUFrameTime;
+        public long DrawnCPUFrameTime { get; private set; }
+        private Stopwatch _GPUFrameTimer;
+        private long _GPUFrameTime;
+        public long DrawnGPUFrameTime { get; private set; }
+        public double AllocatedMemoryInMB { get; private set; }
+        private float _countersTimeStep = 50F;
+        private float _counterElapsedTime = 0F;
+        private float _memoryCounterTimeStep = 1000F;
+        private float _memoryCounterElapsedTime = 0F;
         private string _netgraph = "0";
         private int FPS = 0;
         private Vector2 _netgraphPosition;
+        //View
         private Matrix _cameraView;
         private float _cameraZoom = 2F;
         private float _collectiblesTimeAccumulator = 0F;
@@ -91,6 +109,11 @@ namespace OnlyDarker
             GlobalUse.Arial = Content.Load<SpriteFont>("Fonts/Arial");
 
             GlobalUse.MainFont = Content.Load<SpriteFont>("Fonts/MainFont");
+
+            _CPUFrameTimer = new Stopwatch();
+            _CPUFrameTimer.Start();
+            _GPUFrameTimer = new Stopwatch();
+            _GPUFrameTimer.Start();
 
             _netgraphPosition = new Vector2(GraphicsManager.PreferredBackBufferWidth - GlobalUse.Arial.MeasureString(_netgraph).X, 0);
 
@@ -171,6 +194,10 @@ namespace OnlyDarker
 
             _gameState = GameState.IsRunning;
 
+            _currentProcess = Process.GetCurrentProcess();
+
+            _pinger = new();
+
             base.Initialize();
         }
 
@@ -181,6 +208,7 @@ namespace OnlyDarker
 
         protected override void Update(GameTime gameTime)
         {
+            _CPUFrameTimer.Restart();
             CheckWindowFocus();
             ControlsManager.GetInputStates();
             ControlsManager.UpdateInputs();
@@ -201,6 +229,10 @@ namespace OnlyDarker
             }
             ControlsManager.SaveInputStates();
             base.Update(gameTime);
+            _counterElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            _memoryCounterElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+            _CPUFrameTime = _CPUFrameTimer.ElapsedMilliseconds;
+            UpdateDiagnosers();
         }
 
         private void CheckWindowFocus()
@@ -209,6 +241,20 @@ namespace OnlyDarker
             {
                 _gameState = GameState.Paused;
                 Menu.Show();
+            }
+        }
+        private void UpdateDiagnosers()
+        {
+            if (_counterElapsedTime >= _countersTimeStep)
+            {
+                DrawnCPUFrameTime = _CPUFrameTime;
+                DrawnGPUFrameTime = _GPUFrameTime;
+                _counterElapsedTime = 0;
+            }
+            if(_memoryCounterElapsedTime >= _memoryCounterTimeStep)
+            {
+                AllocatedMemoryInMB = _currentProcess.WorkingSet64 / 1048576;
+                _memoryCounterElapsedTime = 0;
             }
         }
 
@@ -261,6 +307,7 @@ namespace OnlyDarker
 
         protected override void Draw(GameTime gameTime)
         {
+            _GPUFrameTimer.Restart();
             //Rendering
 
             _mainCanvas.Activate();
@@ -275,18 +322,19 @@ namespace OnlyDarker
             //foreach (var mngr in EffectAnimationManagers)
             //{
             //    if (mngr.IsActive)
-            //        mngr.Draw();
+            //        mngr.DrawTriangle();
             //}
             Span<EffectAnimationManager> eamAsSpan = CollectionsMarshal.AsSpan(EffectAnimationManagers);
             for (int i = 0; i < eamAsSpan.Length; i++)
             {
-                var mngr = eamAsSpan[i];
-                mngr.Draw();
+                //var mngr = eamAsSpan[i];
+                //mngr.Draw();
+                eamAsSpan[i].Draw();
             }
             //foreach (var mngr in DamageNumberAnimationManagers)
             //{
             //    if (mngr.IsActive)
-            //        mngr.Draw();
+            //        mngr.DrawTriangle();
             //}
             Span<DamageNumberAnimationManager> dmamAsSpan = CollectionsMarshal.AsSpan(DamageNumberAnimationManagers);
             for (int i = 0; i < dmamAsSpan.Length; i++)
@@ -296,7 +344,7 @@ namespace OnlyDarker
             }
             //foreach (var proj in ProjectileSprites)
             //{
-            //    proj.Draw();
+            //    proj.DrawTriangle();
             //}
             Span<ProjectileSprite> projectilesAsSpan = CollectionsMarshal.AsSpan(ProjectileSprites);
             for (int i = 0; i < projectilesAsSpan.Length; i++)
@@ -324,6 +372,7 @@ namespace OnlyDarker
             _mainCanvas.Draw(GlobalUse.SpriteBatch);
 
             _characterHealthbar.StandaloneDraw();
+
             GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend, samplerState: SamplerState.AnisotropicWrap, rasterizerState: RasterizerState.CullNone);
             MainCharacter.Inventory.Draw();
             _minimap.Draw();
@@ -348,6 +397,7 @@ namespace OnlyDarker
 
             ShowFPS();
             FPS++;
+            _GPUFrameTime = _GPUFrameTimer.ElapsedMilliseconds;
         }
         private void DrawCoin(Vector2 coinPos)
         {

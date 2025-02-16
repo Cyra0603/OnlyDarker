@@ -22,6 +22,12 @@ namespace OnlyDarker.CommonUsing
             var angle = (float)Math.Atan2(point2.Y - point1.Y, point2.X - point1.X);
             DrawLine(spriteBatch, point1, distance, angle, color, thickness);
         }
+        public static void DrawTriangle(this SpriteBatch spriteBatch, Triangle triangle, Color color, float thickness = 1F)
+        {
+            spriteBatch.DrawLine(triangle.X, triangle.Y, color, thickness);
+            spriteBatch.DrawLine(triangle.Y, triangle.Z, color, thickness);
+            spriteBatch.DrawLine(triangle.Z, triangle.X, color, thickness);
+        }
         //public static void DrawLine(this SpriteBatch spriteBatch, Line line, Color color, float thickness = 1F)
         //{
         //    var distance = Vector2.Distance(line.StartPoint, line.EndPoint);
