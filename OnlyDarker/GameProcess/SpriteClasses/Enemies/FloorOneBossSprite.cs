@@ -17,7 +17,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         public Vector2 Position { get; set; }
         public Vector2 AttackOrigin => new(Position.X + BodyTexture.Width / 2, Position.Y + BodyTexture.Height / 2);
         public string BossName { get; }
-        public int XPReward { get;}
+        public int XPReward { get; }
         public bool IsSummoned { get; }
         public enum AttackPattern
         {
@@ -133,7 +133,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 Vector2 force = Vector2.One;
                 for (int i = 0; i < 8; i++)
                 {
-                    var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false);
+                    float projHeight = Position.Y + BodyHitbox.Height - AttackOrigin.Y;
+                    var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false, projHeight);
                     GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
                     force = force.Rotate(MathHelper.ToRadians(45));
                 }
@@ -153,7 +154,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 Vector2 force = Vector2.One;
                 for (int i = 0; i < 10; i++)
                 {
-                    var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false);
+                    float projHeight = Position.Y + BodyHitbox.Height - AttackOrigin.Y;
+                    var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false, projHeight);
                     GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
                     force = force.Rotate(MathHelper.ToRadians(36));
                 }

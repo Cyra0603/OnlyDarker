@@ -13,11 +13,11 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     {
         public Texture2D Texture { get; }
         public Vector2 Position { get; set; }
-        public Vector2 Origin { get; protected set; }
-        public Vector2 CenterCords { get; protected set; }
-        public Vector2 ExitPosition { get; protected set; }
-        public Direction Direction { get; protected set; }
-        public Room ExitRoom { get; protected set; }
+        public Vector2 Origin { get; set; }
+        public Vector2 CenterCords { get; set; }
+        public Vector2 ExitPosition { get; set; }
+        public Direction Direction { get; set; }
+        public Room ExitRoom { get; set; }
         public Rectangle MovementCollider;
         public readonly Room ParentRoomReference;
         public bool IsExpired { get; private set; } = false;

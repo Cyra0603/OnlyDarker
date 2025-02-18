@@ -57,7 +57,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             //SoundManager.PlaySoundEffect(PickupSound);
             Collect();
         }
-        public void Collect()
+        public virtual void Collect()
         {
             if (GameBody.GetGameInstance().MainCharacter.Inventory.TryPickupWeapon(this))
             {
@@ -90,15 +90,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public override void Attack(ControlsManager controlsManager, Stats stats, in Vector2 direction, in Vector2 position, in Vector2 attackOrigin)
         {
             var flipsf = SpriteEffects.None;
-            if (controlsManager.MousePosition.X < position.X)
+            if (controlsManager.RelativeMousePosition.X < position.X)
                 flipsf = SpriteEffects.FlipVertically;
             var range = (int)(_data.AttackRange + stats.Range);
             var critModifier = stats.CritDamage / 100F;
-            bool proc = GlobalUse.TryChance(stats.CritChance);
+            bool isCrit = GlobalUse.Roll(stats.CritChance);
             var dmg = _data.AttackDamage + stats.Damage;
-            if (proc)
+            if (isCrit)
                 dmg *= critModifier;
-            var projectile = new AllyProjectileSprite(_projectileSprite.Texture, position, direction * _data.ProjectileSpeed, new(dmg, 1F, DamageType.Poke, proc), Vector2.Distance(Position, (Position + direction * range)) / _data.ProjectileSpeed, _projectileSprite.IsRotating);
+            var projectileHeight = Vector2.Distance(position, attackOrigin);
+            var projectile = new AllyProjectileSprite(_projectileSprite.Texture, position, direction * _data.ProjectileSpeed, new(dmg, 1F, DamageType.Poke, isCrit), Vector2.Distance(Position, (Position + direction * range)) / _data.ProjectileSpeed, _projectileSprite.IsRotating, projectileHeight);
             GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
             CreateAttackAnimation(controlsManager, position, flipsf, 10F);
         }
@@ -108,7 +109,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
             animation.Activate(
             new(source,
-            rotation: (float)Math.Atan2(controlsManager.MousePosition.Y - source.Y, controlsManager.MousePosition.X - source.X),
+            rotation: (float)Math.Atan2(controlsManager.RelativeMousePosition.Y - source.Y, controlsManager.RelativeMousePosition.X - source.X),
             scale: range / (animation.SourceRectangleSize.X / 2),
             spriteEffect: flipEffect));
         }
@@ -138,10 +139,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public override void Attack(ControlsManager controlsManager, Stats stats, in Vector2 direction, in Vector2 position, in Vector2 attackOrigin)
         {
             var flipsf = SpriteEffects.None;
-            if (controlsManager.MousePosition.X < position.X)
+            if (controlsManager.RelativeMousePosition.X < position.X)
                 flipsf = SpriteEffects.FlipVertically;
             var range = (int)(_data.AttackRange + stats.Range);
-            var critModifier = stats.CritDamage / 100F;
             var attackPoint = position + (direction * range);
             var halfHeight = position + (direction * (range * 0.2F));
             var triangleZ = attackOrigin;
@@ -159,14 +159,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 {
                     continue;
                 }
-                bool proc = GlobalUse.TryChance(stats.CritChance);
+                bool isCrit = GlobalUse.Roll(stats.CritChance);
                 var dmg = _data.AttackDamage + stats.Damage;
-                if (!proc)
-                    target.TakeDamage(new(dmg, 1F, _data.WeaponDamageType, proc));
-                else
-                {
-                    target.TakeDamage(new(dmg * critModifier, 1F, _data.WeaponDamageType, proc));
-                }
+                var critModifier = 1F;
+                if (isCrit)
+                    critModifier = stats.CritDamage / 100F;
+                target.TakeDamage(new(dmg * critModifier, 1F, _data.WeaponDamageType, isCrit));
             }
         }
         private void CreateAttackAnimation(ControlsManager controlsManager, Vector2 source, SpriteEffects flipEffect, float range)
@@ -175,7 +173,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
 
             animation.Activate(
             new(source,
-            rotation: (float)Math.Atan2(controlsManager.MousePosition.Y - source.Y, controlsManager.MousePosition.X - source.X),
+            rotation: (float)Math.Atan2(controlsManager.RelativeMousePosition.Y - source.Y, controlsManager.RelativeMousePosition.X - source.X),
             scale: range / (animation.SourceRectangleSize.X / 2),
             spriteEffect: flipEffect));
         }
@@ -219,10 +217,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     }
     public class RangedWeaponData : WeaponData
     {
-        public float ProjectileSpeed { get; }
+        public float ProjectileSpeed { get; set; }
+        public float ProjectileHeight { get; set; }
         public RangedWeaponData(float projectileSpeed, float range, float damage, float attackSpeed, DamageType damageType, string weaponName, string description) : base(range, damage, attackSpeed, damageType, weaponName, description)
         {
             ProjectileSpeed = projectileSpeed;
+            ProjectileHeight = 0F;
         }
         public override List<DescriptionElement> GetDescriptionElements()
         {
@@ -256,8 +256,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 new MeleeWeaponSprite(Vector2.Zero, "Stick", new(150F, 3F, 3F, DamageType.Blunt, "Stick", "A trusty stick")),
                 new MeleeWeaponSprite(Vector2.Zero, "Lance", new(150F, 8F, 1.5F, DamageType.Poke, "Lance", "A long trusty lance")),
                 new MeleeWeaponSprite(Vector2.Zero, "Fist", new(100F, 2F, 2F, DamageType.Blunt, "Fist", "Your own fist (Yeah, just one of them)")),
-                new RangedWeaponSprite(Vector2.Zero, "WoodenBow", new AllyProjectileSprite(TextureMapper.GetInstance().ArrowProjectileSprite, Vector2.Zero, Vector2.Zero, new(), 0F, false), new(8F, 10000F, 4F, 1.5F, DamageType.Poke, "Wooden bow", "A wooden bow")),
-                new RangedWeaponSprite(Vector2.Zero, "IronShuriken", new AllyProjectileSprite(TextureMapper.GetInstance().IronShurikenSprite, Vector2.Zero, Vector2.Zero, new(), 0F, true), new(8F, 8000F, 2F, 4F, DamageType.Poke, "Iron shuriken", "An iron shuriken")),
+                new RangedWeaponSprite(Vector2.Zero, "WoodenBow", new AllyProjectileSprite(TextureMapper.GetInstance().ArrowProjectileSprite, Vector2.Zero, Vector2.Zero, new(), 0F, false), new(8F, 10000F, 4F, 3F, DamageType.Poke, "Wooden bow", "A wooden bow")),
+                new RangedWeaponSprite(Vector2.Zero, "IronShuriken", new AllyProjectileSprite(TextureMapper.GetInstance().IronShurikenSprite, Vector2.Zero, Vector2.Zero, new(), 0F, true), new(3F, 8000F, 2F, 8F, DamageType.Poke, "Iron shuriken", "An iron shuriken")),
             ];
             _instance = this;
         }

@@ -30,9 +30,9 @@ namespace OnlyDarker.PlayerClasses
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         private Vector2 _handOrigin;
-        private float _handRotationValue => MathHelper.ToRadians((float)Math.Atan2((ControlsManager.MousePosition - Position).Y, (ControlsManager.MousePosition - Position).X));
+        private float _handRotationValue => /*MathHelper.ToRadians(*/(float)Math.Atan2((ControlsManager.RelativeMousePosition - Position).Y, (ControlsManager.RelativeMousePosition - Position).X) - 45F;
         private Vector2 _minPosition, _maxPosition;
-        public Vector2 RightHandPosition => new(Position.X, Position.Y);
+        public Vector2 RightHandPosition => Position;
         public Vector2 LeftHandPosition { get; private set; }
         private Vector2 _dashForce;
         public Rectangle MovementCollisionAura => new(new Point(MovementCollider.Center.X - _bodyTexture.Width, MovementCollider.Center.Y - _bodyTexture.Height / 4), new(_bodyTexture.Width * 2, _bodyTexture.Height / 2));
@@ -87,23 +87,23 @@ namespace OnlyDarker.PlayerClasses
         }
         public void Draw()
         {
+            //var weaponOrigin = new Vector2(CurrentWeapon.Texture.Width / 2, CurrentWeapon.Texture.Height / 2);
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
                     GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
-                    GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), _handRotationValue, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
+                    //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
                 }
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
-            GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.White, _handRotationValue, Origin, 1F, _flipEffect, 0.5F);
+            //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.White, _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
             if (DamagedEffectTimer.TimeLeft > 0)
             {
                 GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
-                GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), _handRotationValue, Origin, 1F, _flipEffect, 0.5F);
+                //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
             }
             if (ShouldDrawAttackArea)
             {
-                GlobalUse.SpriteBatch.DrawTriangle(AttackArea, Color.Black, thickness: 1F);
-                //ShouldDrawAttackArea = false;   
+                GlobalUse.SpriteBatch.DrawTriangle(AttackArea, Color.Black, thickness: 1F);  
             }
         }
         public void DrawHpBar() { }
@@ -131,7 +131,7 @@ namespace OnlyDarker.PlayerClasses
             {
                 Stats.Stamina = Stats.MaxStamina;
             }
-            if (ControlsManager.MousePosition.X < Position.X)
+            if (ControlsManager.RelativeMousePosition.X < Position.X)
                 _flipEffect = SpriteEffects.FlipHorizontally;
             else
                 _flipEffect = SpriteEffects.None;
@@ -288,7 +288,7 @@ namespace OnlyDarker.PlayerClasses
                 _dashForce = ControlsManager.GetDirection();
             else
             {
-                var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
+                var difference = Vector2.Normalize(ControlsManager.RelativeMousePosition - Position);
                 _dashForce = difference / difference.Length() * ControlsManager.GetMaxDirectionVector(); ;
             }
             DashTimer.TimeLeft += Stats.DashLength;
@@ -332,7 +332,7 @@ namespace OnlyDarker.PlayerClasses
             {
                 return;
             }
-            var difference = Vector2.Normalize(ControlsManager.MousePosition - Position);
+            var difference = Vector2.Normalize(ControlsManager.RelativeMousePosition - Position);
             var direction = difference / difference.Length();
             var attackOrigin = new Vector2(Position.X, Position.Y + BodyHitbox.Width / 2);
             CurrentWeapon.Attack(ControlsManager, Stats, direction, Position, attackOrigin);
@@ -344,7 +344,7 @@ namespace OnlyDarker.PlayerClasses
             var animation = new EffectAnimationManager(_attackAnimation, 128, 128, 10, animationFrequency: 8.3F * CurrentWeapon.Data.AttackSpeed);
             animation.Activate(
             new(source,
-            rotation: (float)Math.Atan2(ControlsManager.MousePosition.Y - source.Y, ControlsManager.MousePosition.X - source.X),
+            rotation: (float)Math.Atan2(ControlsManager.RelativeMousePosition.Y - source.Y, ControlsManager.RelativeMousePosition.X - source.X),
             scale: range / (animation.SourceRectangleSize.X / 2),
             spriteEffect: flipEffect));
         }

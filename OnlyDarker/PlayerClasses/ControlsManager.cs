@@ -15,7 +15,7 @@ namespace OnlyDarker
         public BindManager BindManager { get; }
         private Vector2 _direction;
         public Vector2 ForceSum { get; set; }
-        public Vector2 MousePosition
+        public Vector2 RelativeMousePosition
         {
             get
             {

@@ -97,12 +97,12 @@ namespace OnlyDarker.CommonUsing
         {
             IsDebugMode = !IsDebugMode;
         }
-        public static bool TryChance(float chance)
+        public static bool Roll(float chance)
         {
             var value = RandomNumberGenerator.GetInt32(0, 101);
             return value < chance;
         }
-        public static bool TryBasicRNG(float chance)
+        public static bool BasicRoll(float chance)
         {
             var value = SeededStandartRNG.Next(0, 101);
             return value < chance;

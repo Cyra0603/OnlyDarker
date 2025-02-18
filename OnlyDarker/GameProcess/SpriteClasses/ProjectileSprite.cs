@@ -11,19 +11,22 @@ using static System.Runtime.InteropServices.JavaScript.JSType;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public abstract class ProjectileSprite
+    public abstract class ProjectileSprite : IYSortable
     {
         public readonly Texture2D Texture;
         private Texture2D HitAnimation => TextureMapper.GetInstance().ProjectileHitAnimation;
-        public Vector2 Position { get; protected set; }
+        public Vector2 Position { get; set; }
         public Vector2 Origin { get; }
         public Vector2 Force { get; protected set; }
         public bool IsRotating { get; }
+        public bool IsExpired { get; set; }
         public float RotationValue;
+        public float Height;
         public Timer Lifetime;
         public Rectangle HurtBox => new((Position - Origin).ToPoint(), new(Texture.Width, Texture.Height));
+        public Rectangle ShadowRect => new(HurtBox.Location.X, HurtBox.Location.Y + HurtBox.Height + (int)Height, HurtBox.Width, HurtBox.Height / 5);
         protected DamageInstance _damageInstance;
-        public ProjectileSprite(Texture2D texture, Vector2 position, Vector2 force, DamageInstance damageInstance, float lifetime, bool isRotating)
+        public ProjectileSprite(Texture2D texture, Vector2 position, Vector2 force, DamageInstance damageInstance, float lifetime, bool isRotating, float height = 0F)
         {
             Texture = texture;
             Position = position;
@@ -31,6 +34,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Force = force;
             _damageInstance = damageInstance;
             Lifetime = new(lifetime);
+            Height = height;
             IsRotating = isRotating;
             RotationValue = 0F;
         }
@@ -48,6 +52,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             var rotation = Math.Atan2((double)(Force + Position).Y - Position.Y, (double)(Force + Position).X - Position.X);
             rotation += RotationValue;
+            GlobalUse.SpriteBatch.Draw(TextureMapper.GetInstance().ShadowTexture, ShadowRect, Color.White);
             GlobalUse.SpriteBatch.Draw(Texture, Position, null, Color.White, (float)rotation, Origin, 1F, SpriteEffects.None, 1F);
         }
         public void ChangeForce(Vector2 force)
@@ -57,7 +62,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     }
     public class EnemyProjectileSprite : ProjectileSprite
     {
-        public EnemyProjectileSprite(Texture2D texture, Vector2 position, Vector2 force, DamageInstance damageInstance, float lifetime, bool isRotating) : base(texture, position, force, damageInstance, lifetime, isRotating)
+        public EnemyProjectileSprite(Texture2D texture, Vector2 position, Vector2 force, DamageInstance damageInstance, float lifetime, bool isRotating, float height = 0F) : base(texture, position, force, damageInstance, lifetime, isRotating, height)
         {
 
         }
@@ -76,12 +81,23 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 GameBody.GetGameInstance().MainCharacter.TakeDamage(in _damageInstance);
                 Lifetime.TimeLeft = 0;
                 CreateHitAnimation(Position);
+                IsExpired = true;
+            }
+            foreach (var collider in GameBody.GetGameInstance().SceneManager.CurrentRoom.RoomColliders)
+            {
+                if (collider.Intersects(this.HurtBox))
+                {
+                    Lifetime.TimeLeft = 0;
+                    CreateHitAnimation(Position);
+                    IsExpired = true;
+                }
             }
         }
     }
     public class AllyProjectileSprite : ProjectileSprite
     {
-        public AllyProjectileSprite(Texture2D texture, Vector2 position, Vector2 force, DamageInstance damageInstance, float lifetime, bool isRotating) : base(texture, position, force, damageInstance, lifetime, isRotating) { }
+        public AllyProjectileSprite(Texture2D texture, Vector2 position, Vector2 force, DamageInstance damageInstance, float lifetime, bool isRotating, float height = 0F) : base(texture, position, force, damageInstance, lifetime, isRotating, height) { }
+
         public override void Update(float elapsedMilliseconds)
         {
             if (Lifetime.TimeLeft == 0)
