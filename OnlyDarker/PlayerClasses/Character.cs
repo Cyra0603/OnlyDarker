@@ -336,7 +336,7 @@ namespace OnlyDarker.PlayerClasses
             var direction = difference / difference.Length();
             var attackOrigin = new Vector2(Position.X, Position.Y + BodyHitbox.Width / 2);
             CurrentWeapon.Attack(ControlsManager, Stats, direction, Position, attackOrigin);
-            AttackCooldown.TimeLeft += (float)(1000 / CurrentWeapon.Data.AttackSpeed);
+            AttackCooldown.TimeLeft += 1000F / CurrentWeapon.Data.AttackSpeed;
         }
 
         private void CreateAttackAnimation(Vector2 source, SpriteEffects flipEffect, float range)

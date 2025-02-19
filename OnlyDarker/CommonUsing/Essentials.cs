@@ -100,12 +100,12 @@ namespace OnlyDarker.CommonUsing
         public static bool Roll(float chance)
         {
             var value = RandomNumberGenerator.GetInt32(0, 101);
-            return value < chance;
+            return value <= chance;
         }
         public static bool BasicRoll(float chance)
         {
             var value = SeededStandartRNG.Next(0, 101);
-            return value < chance;
+            return value <= chance;
         }
         public static Color[,] TextureTo2DArray(Texture2D texture)
         {

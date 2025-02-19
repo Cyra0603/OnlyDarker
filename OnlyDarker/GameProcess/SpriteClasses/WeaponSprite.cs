@@ -253,7 +253,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             //rework to json
             [
                 new MeleeWeaponSprite(Vector2.Zero,  "Sword",new(100F, 6F, 2F, DamageType.Slice, "Sword", "A trusty sword")),
-                new MeleeWeaponSprite(Vector2.Zero, "Stick", new(150F, 3F, 3F, DamageType.Blunt, "Stick", "A trusty stick")),
+                new MeleeWeaponSprite(Vector2.Zero, "Stick", new(150F, 4F, 3F, DamageType.Blunt, "Stick", "A trusty stick")),
                 new MeleeWeaponSprite(Vector2.Zero, "Lance", new(150F, 8F, 1.5F, DamageType.Poke, "Lance", "A long trusty lance")),
                 new MeleeWeaponSprite(Vector2.Zero, "Fist", new(100F, 2F, 2F, DamageType.Blunt, "Fist", "Your own fist (Yeah, just one of them)")),
                 new RangedWeaponSprite(Vector2.Zero, "WoodenBow", new AllyProjectileSprite(TextureMapper.GetInstance().ArrowProjectileSprite, Vector2.Zero, Vector2.Zero, new(), 0F, false), new(8F, 10000F, 4F, 3F, DamageType.Poke, "Wooden bow", "A wooden bow")),

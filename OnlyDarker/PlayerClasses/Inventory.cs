@@ -16,7 +16,6 @@ namespace OnlyDarker.PlayerClasses
     {
         //data
         public readonly Stats Stats;
-        public readonly InventorySlot[] Slots;
         public readonly InventorySlot[,] Stash;
         private InventorySlot _tempSlot;
         private InventorySlot _draggedSlot;
@@ -55,11 +54,10 @@ namespace OnlyDarker.PlayerClasses
         private const int SLOTS_DRAWING_OFFSET = 5;
         public Texture2D WeaponDefaultTexture { get; }
         public Texture2D SlotDefaultTexture { get; }
-        public Rectangle MainBounds => new(0, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 5, (GlobalUse.WindowSize.Y / 17) * Slots.Length - SLOTS_DRAWING_OFFSET / 2);
-        public Rectangle SlotsBounds => new(MainBounds.X + MainBounds.Width, MainBounds.Y, GlobalUse.WindowSize.Y / 17, (GlobalUse.WindowSize.Y / 17) * (Slots.Length + 1));
+        public Rectangle MainBounds => new(0, GlobalUse.WindowSize.Y / 4, GlobalUse.WindowSize.X / 5, (GlobalUse.WindowSize.Y / 2) - SLOTS_DRAWING_OFFSET / 2);
         public Rectangle WeaponSlotBounds => new(MainBounds.Location.X + SLOTS_DRAWING_OFFSET + MainBounds.Width / 2 + SlotSize.X / 2, MainBounds.Location.Y + MainBounds.Height / 3 - SlotSize.Y / 2, SlotSize.X, SlotSize.Y);
         public Rectangle ContextMenuRect;
-        public Point SlotSize => new(SlotsBounds.Width - SLOTS_DRAWING_OFFSET, SlotsBounds.Width - SLOTS_DRAWING_OFFSET);
+        public Point SlotSize => new(StashSlotSize.X * 2, StashSlotSize.Y * 2);/*new(SlotsBounds.Width - SLOTS_DRAWING_OFFSET, SlotsBounds.Width - SLOTS_DRAWING_OFFSET);*/
         public Point StashSlotSize => new(MainBounds.Width / 12, MainBounds.Width / 12);
         private Color _hoveredSlotColor;
         public Color InventoryBackgroundColor;
@@ -69,7 +67,6 @@ namespace OnlyDarker.PlayerClasses
         public Inventory(Stats stats, WeaponSprite weapon)
         {
             Stats = stats;
-            Slots = new InventorySlot[10];
             Stash = new InventorySlot[6, 12];
             _tempSlot = new InventorySlot(Rectangle.Empty, Point.Zero);
             _draggedSlot = new InventorySlot(Rectangle.Empty, Point.Zero);
@@ -90,12 +87,6 @@ namespace OnlyDarker.PlayerClasses
                 PantsSlot,
                 AccessorySlot,
             };
-            var slotsBounds = SlotsBounds;
-            var slotSize = new Point(slotsBounds.Width - SLOTS_DRAWING_OFFSET, slotsBounds.Width - SLOTS_DRAWING_OFFSET);
-            for (int i = 0; i < Slots.Length; i++)
-            {
-                Slots[i] = new InventorySlot(new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + i * (SLOTS_DRAWING_OFFSET + slotSize.X), slotsBounds.Width - SLOTS_DRAWING_OFFSET, slotsBounds.Width - SLOTS_DRAWING_OFFSET), new(slotsBounds.Location.X + SLOTS_DRAWING_OFFSET / 2, slotsBounds.Location.Y + SLOTS_DRAWING_OFFSET / 2 + i * (SLOTS_DRAWING_OFFSET + slotSize.X)));
-            }
             for (int y = 0; y < Stash.GetLength(0); y++)
             {
                 for (int x = 0; x < Stash.GetLength(1); x++)
@@ -155,11 +146,12 @@ namespace OnlyDarker.PlayerClasses
                     {
                         case WeaponSprite:
                             _currentDescription = (_hoveredSlot.Container as WeaponSprite).Data.GetDescriptionElements();
-                            _contextMenu = new(new(SlotsBounds.Location.X + SlotsBounds.Width, SlotsBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
+                            _currentDescription.Add(new("DPS~", $"{CalculateDPS(_hoveredSlot.Container as WeaponSprite)}"));
+                            _contextMenu = new(new(MainBounds.Location.X + MainBounds.Width, MainBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
                             break;
                         case ArmorSprite:
                             _currentDescription = GetDescriptionElements(_hoveredSlot.Container as ArmorSprite);
-                            _contextMenu = new(new(SlotsBounds.Location.X + SlotsBounds.Width, SlotsBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
+                            _contextMenu = new(new(MainBounds.Location.X + MainBounds.Width, MainBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
                             break;
                     }
                 }
@@ -250,39 +242,6 @@ namespace OnlyDarker.PlayerClasses
                         _draggedSlot.Container = _tempSlot.Container;
                         _tempSlot.Container = null;
                     }
-                }
-            }
-        }
-        private void HandleSlotsIntersection(in MouseState localMouseState, in MouseState localLastMouseState, in Point cursor)
-        {
-            for (int i = 0; i < Slots.Length; i++)
-            {
-                if (Slots[i].Bounds.Contains(cursor))
-                {
-                    _hoveredSlot = Slots[i];
-                    _hoveredSlotColor = Color.NavajoWhite;
-                    Slots[i].GetDescription();
-                    if (localMouseState.LeftButton == ButtonState.Pressed && localLastMouseState.LeftButton == ButtonState.Released)
-                    {
-                        _tempSlot.Container = Slots[i].Container;
-                        _draggedSlot = Slots[i];
-                        Slots[i].Container = null;
-                    }
-                    if (localMouseState.LeftButton == ButtonState.Released && localLastMouseState.LeftButton == ButtonState.Pressed && _tempSlot.Container is not null)
-                    {
-                        if (Slots[i].Container is null)
-                        {
-                            Slots[i].Container = _tempSlot.Container;
-                            _tempSlot.Container = null;
-                        }
-                        else
-                        {
-                            _draggedSlot.Container = Slots[i].Container;
-                            Slots[i].Container = _tempSlot.Container;
-                            _tempSlot.Container = null;
-                        }
-                    }
-                    break;
                 }
             }
         }
@@ -390,9 +349,9 @@ namespace OnlyDarker.PlayerClasses
         }
         public bool TryStore(ICollectible collectible, out string message)
         {
-            for (int y = 0; y < Slots.Length; y++)
+            for (int y = 0; y < Stash.Length; y++)
             {
-                for (int x = 0; x < Slots.Length; x++)
+                for (int x = 0; x < Stash.Length; x++)
                 {
                     if (Stash[y, x].Container is null)
                     {
@@ -474,6 +433,14 @@ namespace OnlyDarker.PlayerClasses
             slot.Container.Position = GameBody.GetGameInstance().MainCharacter.Position;
             GameBody.GetGameInstance().SceneManager.CurrentRoom.SpawnEntity(slot.Container);
             slot.Container = null;
+        }
+        private float CalculateDPS(WeaponSprite weapon)
+        {
+            float d = Stats.Damage + weapon.Data.AttackDamage;
+            float cC = Stats.CritChance/* + weapon.Data.CriticalChance*/ / 100F;
+            float cD = Stats.CritDamage/* + weapon.Data.CriticalDamage*/ / 100F;
+            float aS = Stats.AttackSpeed + weapon.Data.AttackSpeed;
+            return aS * (d * (1F + cC * (cD - 1F)));
         }
     }
     public class InventorySlot
