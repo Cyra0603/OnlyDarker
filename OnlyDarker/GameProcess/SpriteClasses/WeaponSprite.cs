@@ -100,7 +100,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 dmg *= critModifier;
             var projectileHeight = Vector2.Distance(position, attackOrigin);
             var projectile = new AllyProjectileSprite(_projectileSprite.Texture, position, direction * _data.ProjectileSpeed, new(dmg, 1F, DamageType.Poke, isCrit), Vector2.Distance(Position, (Position + direction * range)) / _data.ProjectileSpeed, _projectileSprite.IsRotating, projectileHeight);
-            GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
+
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
+            //GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
             CreateAttackAnimation(controlsManager, position, flipsf, 10F);
         }
         private void CreateAttackAnimation(ControlsManager controlsManager, Vector2 source, SpriteEffects flipEffect, float range)

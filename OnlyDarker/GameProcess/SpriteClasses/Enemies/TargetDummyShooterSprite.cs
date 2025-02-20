@@ -106,7 +106,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             var difference = Vector2.Normalize(GameBody.GetGameInstance().MainCharacter.Position - Position);
             var direction = difference / difference.Length();
             var projectile = new EnemyProjectileSprite(_projectileTexture, Position, direction, new(1, 1, DamageType.Blunt, false), 15000F, true);
-            GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
             _attackCooldown.TimeLeft += AttackCooldownTime;
         }
 

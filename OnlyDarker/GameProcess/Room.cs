@@ -92,7 +92,7 @@ namespace OnlyDarker.GameProcess
             List<Texture2D> portalTextures = ImportPortalTextures(emptyRoom.FloorType, emptyRoom.RoomType);
             TileSize = new(tileTextures[0].Width, tileTextures[0].Height);
             RoomSize = new(TileSize.X * _roomTileSize.X, TileSize.Y * _roomTileSize.Y);
-            FillRoom(tileTextures, standartObstacleTextures, portalTextures, presetData, emptyRoom);
+            FillRoom(tileTextures, standartObstacleTextures, presetData, emptyRoom);
             int i = 0;
             foreach (var tile in _tiles)
             {
@@ -111,7 +111,8 @@ namespace OnlyDarker.GameProcess
             CreateNodeGrid();
             ObjectsYSorted = ObjectsYSorted.OrderBy(obj => obj.Position.Y).ToList();
             ParentLevelReference = parentLevelReference;
-            //local methods
+
+            //local functions
             static Rectangle GetDeflatedRect(SpriteStandartTile tile)
             {
                 return new Rectangle((int)tile.Position.X - (int)tile.GetTextureWidth() / 2 + 1, (int)tile.Position.Y - (int)tile.GetTextureHeight() / 2 + 1, (int)tile.GetTextureWidth() - 1, (int)tile.GetTextureHeight() - 1);
@@ -196,7 +197,7 @@ namespace OnlyDarker.GameProcess
 
             return colors2D;
         }
-        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, List<Texture2D> portalTextures, Color[,] presetData, RoomBlueprint emptyRoom)
+        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, Color[,] presetData, RoomBlueprint emptyRoom)
         {
             for (int y = 0; y < _tiles.GetLength(0); y++)
             {
@@ -215,13 +216,13 @@ namespace OnlyDarker.GameProcess
                             BuildTile(tileTextures, x, y);
                             var portalDirection = CheckPortalDirection(_roomPresetImage, x, y);
                             if (portalDirection == Direction.Left && emptyRoom.HasLeftNeighbour == true)
-                                BuildPortal(portalTextures, x, y, Direction.Left);
+                                BuildPortal(x, y, Direction.Left);
                             else if (portalDirection == Direction.Right && emptyRoom.HasRightNeighbour == true)
-                                BuildPortal(portalTextures, x, y, Direction.Right);
+                                BuildPortal(x, y, Direction.Right);
                             else if (portalDirection == Direction.Up && emptyRoom.HasUpNeighbour == true)
-                                BuildPortal(portalTextures, x, y, Direction.Up);
+                                BuildPortal(x, y, Direction.Up);
                             else if (portalDirection == Direction.Down && emptyRoom.HasDownNeighbour == true)
-                                BuildPortal(portalTextures, x, y, Direction.Down);
+                                BuildPortal(x, y, Direction.Down);
                             break;
                         case "TargetDummy":
                             BuildTile(tileTextures, x, y);
@@ -318,10 +319,9 @@ namespace OnlyDarker.GameProcess
             _tiles[y, x] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), x, y);
         }
 
-        private void BuildPortal(List<Texture2D> portalTextures, int x, int y, Direction portalDirection)
+        private void BuildPortal(int x, int y, Direction portalDirection)
         {
-            int i = GlobalUse.SeededStandartRNG.Next(0, portalTextures.Count);
-            Portals.Add(new RoomPortalSprite(portalTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), portalDirection, this));
+            Portals.Add(new RoomPortalSprite(new Vector2(x * TileSize.X, y * TileSize.Y), portalDirection, this));
         }
         public void SpawnEntity(object entity)
         {

@@ -24,6 +24,8 @@ namespace OnlyDarker.GameProcess
         public Texture2D XPOrbSpriteTrailTexture { get; private set; }
         public Texture2D WaspSpriteTexture { get; private set; }
         public Texture2D TargetDummySpriteTexture { get; private set; }
+        public Texture2D PortalTexture { get; private set; }
+        public Texture2D BrokenPortalTexture { get; private set; }
         private TextureMapper()
         {
             ShadowTexture = GlobalUse.Content.Load<Texture2D>("Shadow");
@@ -39,6 +41,8 @@ namespace OnlyDarker.GameProcess
             ArrowProjectileSprite = GlobalUse.Content.Load<Texture2D>("Weapons/ArrowProjectile");
             IronShurikenSprite = GlobalUse.Content.Load<Texture2D>("Weapons/IronShurikenProjectile");
             ProjectileHitAnimation = GlobalUse.Content.Load<Texture2D>("Effects/ProjectileHitAnimation");
+            PortalTexture = GlobalUse.Content.Load<Texture2D>("RoomGates/RoomGate1");
+            BrokenPortalTexture = GlobalUse.Content.Load<Texture2D>("RoomGates/RoomGate2");
             _instance = this;
         }
         public static TextureMapper GetInstance()

@@ -26,6 +26,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public string InteractionMessage => "to open ";
 
         public Rectangle MovementCollider => new((int)Position.X - _spriteSheet.Width / _maxAnimationSteps / 2, (int)Position.Y - _spriteSheet.Height / 2, _spriteSheet.Width / _maxAnimationSteps, _spriteSheet.Height);
+        public Rectangle ShmovementCollider => new((int)Position.X - 21, (int)Position.Y, 42, 28 / 2);
 
         public ChestSprite(Vector2 position, Room parentRoomRef, ChestType type = ChestType.Wooden)
         {
@@ -39,7 +40,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             _spriteSheet = GlobalUse.Content.Load<Texture2D>($"Chests/{type}Chest");
             _animator = new(_spriteSheet, width, height, animationSteps, animFrequency);
             _parentRoomRef = parentRoomRef;
-            _parentRoomRef.RoomColliders.Add(MovementCollider);
+            _parentRoomRef.RoomColliders.Add(ShmovementCollider);
             _parentRoomRef.Interactives.Add(this);
             _parentRoomRef.Updateables.Add(this);
             _parentRoomRef.ObjectsYSorted.Add(this);
@@ -65,7 +66,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             IsClosed = false;
             _animator.Activate(new(Position));
             _lootDropDelay = new(_lootDropDelayValue);
-                DropLoot();
+            DropLoot();
             _parentRoomRef.Interactives.Remove(this);
             _parentRoomRef.RoomColliders.Remove(MovementCollider);
         }

@@ -50,9 +50,6 @@ namespace OnlyDarker.UI
                 $"NETWORK: {GameBody.GetGameInstance().Ping}ms \n\n" 
                 ),
                 _statsPosition, Color.White, 0F, _statsPosition, 0.4F, SpriteEffects.None, 0F);
-            var cpu = GameBody.GetGameInstance().DrawnCPUFrameTime;
-            var gpu = GameBody.GetGameInstance().DrawnGPUFrameTime;
-            var sad = 321;
         }
     }
 }

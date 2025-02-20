@@ -39,8 +39,9 @@ namespace OnlyDarker.GameProcess
             SetBossRoom(grid, startingRoom);
             SetSpecialRooms(grid);
             SetEncounterRooms(grid);
-            SetRoomDirections(grid);
+
             SetSecretRoom(grid, floor);
+            SetRoomDirections(grid);
             LevelGrid = new Room[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
             BuildRooms(grid);
             LinkPortals();
@@ -73,6 +74,7 @@ namespace OnlyDarker.GameProcess
             }
             grid[targetY, targetX] = new(floor, targetX, targetY);
             grid[targetY, targetX].RoomType = RoomType.Secret;
+            grid[targetY, targetX].Neighbours = maxNeighbours;
             return;
             bool CellIsValid(RoomBlueprint[,] grid, int y, int x)
             {
@@ -97,8 +99,10 @@ namespace OnlyDarker.GameProcess
 
         private void BuildRooms(RoomBlueprint[,] grid)
         {
-            foreach (var room in grid.OfType<RoomBlueprint>().Where(room => room is not null))
+            foreach (var room in grid)
             {
+                if (room is null)
+                    continue;
                 LevelGrid[room.Y, room.X] = new Room(room, this);
                 BuiltFloor.Add(LevelGrid[room.Y, room.X]);
             }
@@ -238,21 +242,41 @@ namespace OnlyDarker.GameProcess
                     {
                         portal.SetExitRoom(LevelGrid[room.GridCords.Y, room.GridCords.X - 1]);
                         portal.SetExitPosition(LevelGrid[room.GridCords.Y, room.GridCords.X - 1].Portals.First(portal => portal.Direction == Direction.Right).Position);
+                        if (room.InstanceRoomType is RoomType.Secret)
+                        {
+                            portal.Break();
+                            portal.ExitRoom.Portals.First(portal => portal.Direction == Direction.Right).Break();
+                        }
                     }
                     if (portal.Direction == Direction.Right)
                     {
                         portal.SetExitRoom(LevelGrid[room.GridCords.Y, room.GridCords.X + 1]);
                         portal.SetExitPosition(LevelGrid[room.GridCords.Y, room.GridCords.X + 1].Portals.First(portal => portal.Direction == Direction.Left).Position);
+                        if (room.InstanceRoomType is RoomType.Secret)
+                        {
+                            portal.Break();
+                            portal.ExitRoom.Portals.First(portal => portal.Direction == Direction.Left).Break();
+                        }
                     }
                     if (portal.Direction == Direction.Up)
                     {
                         portal.SetExitRoom(LevelGrid[room.GridCords.Y - 1, room.GridCords.X]);
                         portal.SetExitPosition(LevelGrid[room.GridCords.Y - 1, room.GridCords.X].Portals.First(portal => portal.Direction == Direction.Down).Position);
+                        if (room.InstanceRoomType is RoomType.Secret)
+                        {
+                            portal.Break();
+                            portal.ExitRoom.Portals.First(portal => portal.Direction == Direction.Down).Break();
+                        }
                     }
                     if (portal.Direction == Direction.Down)
                     {
                         portal.SetExitRoom(LevelGrid[room.GridCords.Y + 1, room.GridCords.X]);
                         portal.SetExitPosition(LevelGrid[room.GridCords.Y + 1, room.GridCords.X].Portals.First(portal => portal.Direction == Direction.Up).Position);
+                        if (room.InstanceRoomType is RoomType.Secret)
+                        {
+                            portal.Break();
+                            portal.ExitRoom.Portals.First(portal => portal.Direction == Direction.Up).Break();
+                        }
                     }
                 }
             }
@@ -303,7 +327,7 @@ namespace OnlyDarker.GameProcess
     public class EntityTableManager
     {
         public Floor Floor { get; init; }
-        private string[] PickupLootTable{ get; init;}
+        private string[] PickupLootTable { get; init; }
         private string[] ItemLootTable { get; init; }
         private string[] MobSummonerTable { get; init; }
         private string[] SummonTable { get; init; }

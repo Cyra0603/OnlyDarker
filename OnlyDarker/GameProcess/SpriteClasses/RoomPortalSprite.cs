@@ -9,25 +9,33 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses
 {
-    public class RoomPortalSprite : INonSortable
+    public class RoomPortalSprite : INonSortable, IInteractive
     {
         public Texture2D Texture { get; }
+        public Texture2D BrokenTexture { get; }
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; set; }
         public Vector2 CenterCords { get; set; }
         public Vector2 ExitPosition { get; set; }
         public Direction Direction { get; set; }
         public Room ExitRoom { get; set; }
-        public Rectangle MovementCollider;
+        public Rectangle MovementCollider { get; set; }
         public readonly Room ParentRoomReference;
         public bool IsExpired { get; private set; } = false;
         public bool IsBlocked { get; set; }
+        public bool IsBroken { get; set; }
+
+        public string IngameName => "broken portal";
+
+        public string InteractionMessage => "to repair ";
+
         private bool _isActive;
-        public RoomPortalSprite(Texture2D texture, Vector2 position, Direction portalDirection, Room parentRoomReference)
+        public RoomPortalSprite(Vector2 position, Direction portalDirection, Room parentRoomReference)
         {
-            Texture = texture;
+            Texture = TextureMapper.GetInstance().PortalTexture;
+            BrokenTexture = TextureMapper.GetInstance().BrokenPortalTexture;
             Position = position;
-            Origin = new(Texture.Width / 2, texture.Height / 2);
+            Origin = new(Texture.Width / 2, Texture.Height / 2);
             Direction = portalDirection;
             CenterCords = Position + Origin;
             MovementCollider = new((int)Position.X - (int)Origin.X, (int)Position.Y - (int)Origin.Y, Texture.Width, Texture.Height);
@@ -41,14 +49,17 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             {
                 UnblockPortal();
             }
-            if (_isActive && !IsBlocked && MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider))
+            if (_isActive && !IsBlocked && !IsBroken && MovementCollider.Intersects(GameBody.GetGameInstance().MainCharacter.MovementCollider))
             {
                 PlayerTeleport();
             }
         }
         public void Draw()
         {
-            GlobalUse.SpriteBatch.Draw(Texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.8F);
+            if(!IsBroken)
+                GlobalUse.SpriteBatch.Draw(Texture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.8F);
+            else
+                GlobalUse.SpriteBatch.Draw(BrokenTexture, Position, null, Color.White, 0F, Origin, 1F, SpriteEffects.None, 0.8F);
         }
         public float GetTextureWidth()
         {
@@ -57,6 +68,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public float GetTextureHeight()
         {
             return Texture.Height;
+        }
+        public void Break()
+        {
+            IsBroken = true;
+            ParentRoomReference.Interactives.Add(this);
+        }
+        public void Repair()
+        {
+            IsBroken = false;
+            ParentRoomReference.Interactives.Remove(this);
         }
         public void ActivatePortal()
         {
@@ -91,8 +112,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GameBody.GetGameInstance().SceneManager.CurrentLevel.SetExplorationStates(ExitRoom);
             ParentRoomReference.Updateables.RemoveAll(items => items.IsExpired);
             ParentRoomReference.ObjectsYSorted.RemoveAll(item => item.IsExpired);
-            GameBody.GetGameInstance().ProjectileSprites.Clear();
             GC.Collect();
+        }
+
+        public void Interact()
+        {
+            Repair();
+            foreach(var portal in ExitRoom.Portals)
+            {
+                portal.Repair();
+            }
         }
     }
 }

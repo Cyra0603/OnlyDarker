@@ -1,6 +1,7 @@
 ﻿using OnlyDarker.CommonUsing;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
+using OnlyDarker.GameProcess.SpriteClasses.Collectibles;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -111,6 +112,9 @@ namespace OnlyDarker.PlayerClasses
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather pants"), out _);
             TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Wooden bow"), out _);
             TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Iron shuriken"), out _);
+            TryStore(new CollectibleStack(new PortalKey(), Vector2.Zero, 9), out _);
+            TryStore(new CollectibleStack(new PortalKey(), Vector2.Zero, 1), out _);
+            TryStore(new CollectibleStack(new PortalKey(), Vector2.Zero, 10), out _);
         }
         public void Update()
         {
@@ -140,17 +144,21 @@ namespace OnlyDarker.PlayerClasses
             if (_hoveredSlot is not null)
             {
                 _contextMenuShouldBeDrawn = true;
-                if (/*_currentDescription is null && */_hoveredSlot.Container is not null)
+                if (_hoveredSlot.Container is not null)
                 {
                     switch (_hoveredSlot.Container)
                     {
                         case WeaponSprite:
                             _currentDescription = (_hoveredSlot.Container as WeaponSprite).Data.GetDescriptionElements();
-                            _currentDescription.Add(new("DPS~", $"{CalculateDPS(_hoveredSlot.Container as WeaponSprite)}"));
+                            _currentDescription.Add(new("DPS~", $"{Math.Round(CalculateDPS(_hoveredSlot.Container as WeaponSprite), 2)}"));
                             _contextMenu = new(new(MainBounds.Location.X + MainBounds.Width, MainBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
                             break;
                         case ArmorSprite:
                             _currentDescription = GetDescriptionElements(_hoveredSlot.Container as ArmorSprite);
+                            _contextMenu = new(new(MainBounds.Location.X + MainBounds.Width, MainBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
+                            break;
+                        case CollectibleStack:
+                            _currentDescription = GetDescriptionElements(_hoveredSlot.Container);
                             _contextMenu = new(new(MainBounds.Location.X + MainBounds.Width, MainBounds.Location.Y), _hoveredSlot.Container, _currentDescription);
                             break;
                     }
@@ -426,6 +434,14 @@ namespace OnlyDarker.PlayerClasses
             {
                 elements.Add(new DescriptionElement($"{resistance.Type.GetName()} resistance", $"{Math.Round((1 - resistance.Modifier) * 100)} %"));
             }
+            return elements;
+        }
+        private List<DescriptionElement> GetDescriptionElements(ICollectible collectible)
+        {
+            var elements = new List<DescriptionElement>
+            { 
+                new(String.Empty, String.Empty)
+            };
             return elements;
         }
         private static void DropItem(InventorySlot slot)

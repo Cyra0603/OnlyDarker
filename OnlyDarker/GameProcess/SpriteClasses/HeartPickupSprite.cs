@@ -55,6 +55,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public void Draw()
         {
             (this as ICollectible).CollectibleDraw();
+            GameBody.DrawRectangleOutline(MovementCollider, Color.Black);
         }
     }
 }

@@ -42,6 +42,7 @@ namespace OnlyDarker.PlayerClasses
             );
         public Rectangle InteractionAura => new(new Point((int)Position.X - _bodyTexture.Width, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width * 2, (int)(_bodyTexture.Height * 1.25F)));
         public Rectangle BodyHitbox => new(new((int)(Position.X - _bodyTexture.Width / 2), (int)(Position.Y - _bodyTexture.Height / 2)), new(_bodyTexture.Width, _bodyTexture.Height));
+        public Rectangle ShadowRect => new(BodyHitbox.Location.X, BodyHitbox.Location.Y + BodyHitbox.Height - (BodyHitbox.Height / 5 / 2), BodyHitbox.Width, BodyHitbox.Height / 5);
         public Stats Stats { get; private set; }
         public Inventory Inventory { get; private set; }
         public BaseArmor BaseArmor { get; private set; }
@@ -91,9 +92,10 @@ namespace OnlyDarker.PlayerClasses
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
-                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect/*SpriteEffects.None*/, 0.5F);
+                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect, 0.5F);
                     //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
                 }
+            GlobalUse.SpriteBatch.Draw(TextureMapper.GetInstance().ShadowTexture, ShadowRect, Color.White);
             GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
             //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.White, _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
             if (DamagedEffectTimer.TimeLeft > 0)

@@ -2043,6 +2043,18 @@
 /processorParam:TextureFormat=Color
 /build:PickupSprites/HeartPickupSprite.png
 
+#begin PickupSprites/RoomPortalKey.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:PickupSprites/RoomPortalKey.png
+
 #begin PickupSprites/XPOrb.png
 /importer:TextureImporter
 /processor:TextureProcessor
@@ -2078,6 +2090,18 @@
 /processorParam:MakeSquare=False
 /processorParam:TextureFormat=Color
 /build:RoomGates/RoomGate1.png
+
+#begin RoomGates/RoomGate2.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:RoomGates/RoomGate2.png
 
 #begin Shadow.png
 /importer:TextureImporter

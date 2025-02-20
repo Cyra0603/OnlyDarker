@@ -41,7 +41,6 @@ namespace OnlyDarker
         public static Texture2D EmptyTexture { get; private set; }
         public List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         public List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
-        public List<ProjectileSprite> ProjectileSprites { get; private set; } = new();
         public List<Vector2> CoinPositions;
         public int CoinsToSpawn;
         public Vector2 CoinsSpawnPosition => new(GlobalUse.WindowSize.X / 2, GlobalUse.WindowSize.Y / 2);
@@ -270,10 +269,10 @@ namespace OnlyDarker
                 if (mngr.IsActive)
                     mngr.Update(milliseconds);
             }
-            foreach (var proj in ProjectileSprites)
-            {
-                proj.Update(milliseconds);
-            }
+            //foreach (var proj in ProjectileSprites)
+            //{
+            //    proj.Update(milliseconds);
+            //}
             if (CoinsToSpawn > 0)
             {
                 float randomx = RandomNumberGenerator.GetInt32(-50, 50);
@@ -295,7 +294,6 @@ namespace OnlyDarker
             CoinPositions.RemoveAll(pos => _statsBar.CoinRect.Contains(pos));
             EffectAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
             DamageNumberAnimationManagers.RemoveAll(mngr => !mngr.IsActive);
-            ProjectileSprites.RemoveAll(proj => proj.Lifetime.TimeLeft <= 0);
             _interactionMessageBar.Update();
             ControlsManager.UpdatePlayerControls();
             MainCharacter.Update(milliseconds);
@@ -346,12 +344,14 @@ namespace OnlyDarker
             //{
             //    proj.DrawTriangle();
             //}
-            Span<ProjectileSprite> projectilesAsSpan = CollectionsMarshal.AsSpan(ProjectileSprites);
-            for (int i = 0; i < projectilesAsSpan.Length; i++)
-            {
-                var proj = projectilesAsSpan[i];
-                proj.Draw();
-            }
+
+            //Span<ProjectileSprite> projectilesAsSpan = CollectionsMarshal.AsSpan(ProjectileSprites);
+            //for (int i = 0; i < projectilesAsSpan.Length; i++)
+            //{
+            //    var proj = projectilesAsSpan[i];
+            //    proj.Draw();
+            //}
+
             //foreach (var entity in SceneManager.CurrentRoom.Damageables)
             //{
             //    if (entity.HealthPoints > 0)
@@ -422,10 +422,6 @@ namespace OnlyDarker
                 foreach (var bounds in SceneManager.CurrentRoom.TempRectDrawList)
                 {
                     DrawRectangleOutline(bounds, Color.Black, 2);
-                }
-                foreach (var proj in ProjectileSprites)
-                {
-                    DrawRectangleOutline(proj.HurtBox, Color.Black, 2);
                 }
                 DrawRectangleOutline(MainCharacter.MovementCollider, Color.Black);
                 DrawRectangleOutline(MainCharacter.MovementCollisionAura, Color.Black);
