@@ -11,7 +11,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     {
         public Texture2D Texture { get; }
         public Vector2 Position { get; set; }
-        private Vector2 _finalPosition { get; }
+        private Vector2 _finalPosition;
         private const string _ingameName = "Heart";
         public string IngameName => _ingameName;
         public string TextureFileName { get; }
@@ -19,6 +19,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public bool IsExpired { get; private set; } = false;
         public Timer _spawnTimer;
         public Rectangle MovementCollider => new((int)Position.X, (int)Position.Y, Texture.Width, Texture.Height);
+
         public HeartPickupSprite(Texture2D texture, Vector2 spawnPosition, Vector2 finalPosition)
         {
             Texture = texture;
@@ -29,6 +30,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(this);
             GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(this);
         }
+
         private void Collect()
         {
             if (GameBody.GetGameInstance().MainCharacter.Stats.HealthPoints >= GameBody.GetGameInstance().MainCharacter.Stats.MaxHealthPoints)
@@ -55,7 +57,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public void Draw()
         {
             (this as ICollectible).CollectibleDraw();
-            GameBody.DrawRectangleOutline(MovementCollider, Color.Black);
         }
     }
 }
