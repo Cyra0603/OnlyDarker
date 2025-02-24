@@ -20,7 +20,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         const float PUSHAWAY_MAX_FORCE = 1F;
         const float SWAY_AMPLITUDE = 2F;
         const float SWAY_FREQUENCY = 5F;
-        void Collect();
         void CollectibleDraw()
         {
             GlobalUse.SpriteBatch.Draw(TextureMapper.GetInstance().ShadowTexture, ShadowRect, Color.White);

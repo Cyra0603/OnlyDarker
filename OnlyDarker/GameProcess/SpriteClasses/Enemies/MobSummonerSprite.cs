@@ -37,7 +37,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 {
                     IsExpired = true;
                     (this as IDamageable).SpawnXPOrbs();
-                    _parentRoomRef.RoomColliders.Remove(BodyHitbox);
                 }
             }
         }
@@ -85,11 +84,6 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 _parentRoomRef.EntitiesToSpawn.Push(summon);
                 _summonTimer.TimeLeft = RandomizeSpawnTime(_summonCooldownTime);
                 _maxSummons--;
-            }
-            if (BodyHitbox.Intersects(GameBody.GetGameInstance().MainCharacter.BodyHitbox))
-            {
-                DamageInstance damage = new(_baseDamage, 1, DamageType.Poke, false);
-                GameBody.GetGameInstance().MainCharacter.TakeDamage(in damage);
             }
         }
         public void Respawn()

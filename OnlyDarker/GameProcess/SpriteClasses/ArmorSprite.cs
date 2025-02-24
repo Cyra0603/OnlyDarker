@@ -89,11 +89,6 @@ namespace OnlyDarker.GameProcess
         }
         public void Interact()
         {
-            //SoundManager.PlaySoundEffect(PickupSound);
-            Collect();
-        }
-        public void Collect()
-        {
             if (GameBody.GetGameInstance().MainCharacter.Inventory.TryWear(this))
             {
                 GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);

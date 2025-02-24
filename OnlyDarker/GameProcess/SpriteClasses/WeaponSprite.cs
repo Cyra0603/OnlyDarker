@@ -52,12 +52,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             (this as ICollectible).CollectibleDraw();
         }
-        public void Interact()
-        {
-            //SoundManager.PlaySoundEffect(PickupSound);
-            Collect();
-        }
-        public virtual void Collect()
+        public virtual void Interact()
         {
             if (GameBody.GetGameInstance().MainCharacter.Inventory.TryPickupWeapon(this))
             {
@@ -260,7 +255,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 new MeleeWeaponSprite(Vector2.Zero, "Lance", new(150F, 8F, 1.5F, DamageType.Poke, "Lance", "A long trusty lance")),
                 new MeleeWeaponSprite(Vector2.Zero, "Fist", new(100F, 2F, 2F, DamageType.Blunt, "Fist", "Your own fist (Yeah, just one of them)")),
                 new RangedWeaponSprite(Vector2.Zero, "WoodenBow", new AllyProjectileSprite(TextureMapper.GetInstance().ArrowProjectileSprite, Vector2.Zero, Vector2.Zero, new(), 0F, false), new(8F, 10000F, 4F, 3F, DamageType.Poke, "Wooden bow", "A wooden bow")),
-                new RangedWeaponSprite(Vector2.Zero, "IronShuriken", new AllyProjectileSprite(TextureMapper.GetInstance().IronShurikenSprite, Vector2.Zero, Vector2.Zero, new(), 0F, true), new(3F, 8000F, 2F, 8F, DamageType.Poke, "Iron shuriken", "An iron shuriken")),
+                new RangedWeaponSprite(Vector2.Zero, "IronShuriken", new AllyProjectileSprite(TextureMapper.GetInstance().IronShurikenSprite, Vector2.Zero, Vector2.Zero, new(), 0F, true), new(3F, 8000F, 2F, 6F, DamageType.Poke, "Iron shuriken", "An iron shuriken")),
             ];
             _instance = this;
         }

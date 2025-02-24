@@ -29,7 +29,7 @@ namespace OnlyDarker.GameProcess
         public readonly Bind HealCharacter;
         public readonly Bind Attack;
         public delegate void KeyPress();
-        protected BindManager()
+        BindManager()
         {
             _managerInstance = this;
             BindList = new();

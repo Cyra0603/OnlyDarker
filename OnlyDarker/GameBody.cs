@@ -5,6 +5,7 @@ using OnlyDarker.CommonUsing;
 using OnlyDarker.CommonUsing.Rendering;
 using OnlyDarker.GameProcess;
 using OnlyDarker.GameProcess.SpriteClasses;
+using OnlyDarker.GameProcess.SpriteClasses.Collectibles;
 using OnlyDarker.IngameMenu;
 using OnlyDarker.PlayerClasses;
 using OnlyDarker.UI;
@@ -142,6 +143,8 @@ namespace OnlyDarker
 
             _mainCanvas.SetDestinationRectangle();
 
+            StackableDataTable.LoadContent();
+
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
@@ -203,6 +206,7 @@ namespace OnlyDarker
         protected override void LoadContent()
         {
             GlobalUse.SpriteBatch = new SpriteBatch(GraphicsDevice);
+            //StackableDataTable.LoadContent();
         }
 
         protected override void Update(GameTime gameTime)

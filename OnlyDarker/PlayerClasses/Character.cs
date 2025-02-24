@@ -30,7 +30,7 @@ namespace OnlyDarker.PlayerClasses
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         private Vector2 _handOrigin;
-        private float _handRotationValue => /*MathHelper.ToRadians(*/(float)Math.Atan2((ControlsManager.RelativeMousePosition - Position).Y, (ControlsManager.RelativeMousePosition - Position).X) - 45F;
+        private float _handRotationValue => (float)Math.Atan2((ControlsManager.RelativeMousePosition - Position).Y, (ControlsManager.RelativeMousePosition - Position).X);
         private Vector2 _minPosition, _maxPosition;
         public Vector2 RightHandPosition => Position;
         public Vector2 LeftHandPosition { get; private set; }
@@ -219,13 +219,19 @@ namespace OnlyDarker.PlayerClasses
                     ControlsManager.AddFriction();
                 }
             }
+            Rectangle CalculateMovementCollider(Vector2 position)
+            {
+                return new(new Point(
+                (int)position.X - _bodyTexture.Width / 2, (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 2),
+                new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2));
+            }
         }
-        public Rectangle CalculateMovementCollider(Vector2 position)
-        {
-            return new(new Point(
-            (int)position.X - _bodyTexture.Width / 2, (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 2),
-            new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2));
-        }
+        //public Rectangle CalculateMovementCollider(Vector2 position)
+        //{
+        //    return new(new Point(
+        //    (int)position.X - _bodyTexture.Width / 2, (int)position.Y + _bodyTexture.Height / 2 - (int)GlobalUse.PIXEL_OFFSET * 2),
+        //    new(_bodyTexture.Width, (int)GlobalUse.PIXEL_OFFSET * 2));
+        //}
         public void SetSpeed(float value)
         {
             Stats.Speed = value;

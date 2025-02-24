@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace OnlyDarker.GameProcess.SpriteClasses.Collectibles
 {
-    public class PortalKey : IStackable
+    public class IronKey : IStackable
     {
         public Texture2D Texture { get; set; }
 
@@ -24,15 +24,15 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Collectibles
 
         public string Description { get; set; }
 
-        public PortalKey(int iD)
+        public IronKey(int iD)
         {
-            Texture = GlobalUse.Content.Load<Texture2D>("PickupSprites/RoomPortalKey");
+            Texture = GlobalUse.Content.Load<Texture2D>("PickupSprites/IronKey");
             ID = iD;
             MaxStackSize = 10;
             IsExpired = false;
-            IngameName = "Portal key";
+            IngameName = "Iron key";
             InteractionMessage = " pick up";
-            Description = "Can open an inactive portal";
+            Description = "Can open an things that need a key";
         }
     }
 }

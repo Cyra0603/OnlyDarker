@@ -29,7 +29,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(this);
             GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(this);
         }
-        public void Collect()
+        private void Collect()
         {
             GameBody.GetGameInstance().MainCharacter.Stats.CoinCount++;
             GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);

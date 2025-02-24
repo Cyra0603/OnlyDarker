@@ -1,5 +1,6 @@
 ﻿using OnlyDarker.CommonUsing;
 using OnlyDarker.GameProcess;
+using OnlyDarker.GameProcess.Interfaces;
 using OnlyDarker.GameProcess.SpriteClasses;
 using OnlyDarker.GameProcess.SpriteClasses.Collectibles;
 using System;
@@ -8,6 +9,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -112,9 +114,12 @@ namespace OnlyDarker.PlayerClasses
             TryStore(PremadeArmorSprites.GetInstance().GetNewSprite("Leather pants"), out _);
             TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Wooden bow"), out _);
             TryStore(PremadeWeaponSprites.GetInstance().GetNewSprite("Iron shuriken"), out _);
-            TryStore(new CollectibleStack(new PortalKey(), Vector2.Zero, 9), out _);
-            TryStore(new CollectibleStack(new PortalKey(), Vector2.Zero, 1), out _);
-            TryStore(new CollectibleStack(new PortalKey(), Vector2.Zero, 10), out _);
+            TryStore(new CollectibleStack("Portal key", Vector2.Zero, 9), out _);
+            TryStore(new CollectibleStack("Portal key", Vector2.Zero, 1), out _);
+            TryStore(new CollectibleStack("Portal key", Vector2.Zero, 10), out _);
+            TryStore(new CollectibleStack("Iron key", Vector2.Zero, 4), out _);
+            TryStore(new CollectibleStack("Iron key", Vector2.Zero, 2), out _);
+            TryStore(new CollectibleStack("Iron key", Vector2.Zero, 10), out _);
         }
         public void Update()
         {
@@ -278,9 +283,20 @@ namespace OnlyDarker.PlayerClasses
                             }
                             else
                             {
-                                _draggedSlot.Container = Stash[y, x].Container;
-                                Stash[y, x].Container = _tempSlot.Container;
-                                _tempSlot.Container = null;
+                                if (Stash[y, x].Container is CollectibleStack stack1 && !stack1.IsFull && _tempSlot.Container is CollectibleStack stack2 && stack1.StackableID == stack2.StackableID)
+                                {
+                                    stack1.Merge(stack2, out _);
+                                    _draggedSlot.Container = _tempSlot.Container;
+                                    _tempSlot.Container = null;
+                                    if (stack2.Size < 1)
+                                        _draggedSlot.Container = null;
+                                }
+                                else
+                                {
+                                    _draggedSlot.Container = Stash[y, x].Container;
+                                    Stash[y, x].Container = _tempSlot.Container;
+                                    _tempSlot.Container = null;
+                                }
                             }
                         }
                         break;
@@ -310,6 +326,10 @@ namespace OnlyDarker.PlayerClasses
                 if (slot.Container is not null)
                 {
                     GlobalUse.SpriteBatch.Draw(slot.Container.Texture, slot.Bounds, Color.White);
+                    if (slot.Container is CollectibleStack stack)
+                    {
+                        GlobalUse.SpriteBatch.DrawString(GlobalUse.Arial, $"{stack.Size}", slot.Bounds.Location.ToVector2(), Color.White, 0F, Vector2.Zero, 0.15F, SpriteEffects.None, 1F);
+                    }
                 }
             }
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, WeaponSlotBounds, /*Color.DarkGray*/SlotBackgroundColor);
@@ -357,9 +377,9 @@ namespace OnlyDarker.PlayerClasses
         }
         public bool TryStore(ICollectible collectible, out string message)
         {
-            for (int y = 0; y < Stash.Length; y++)
+            for (int y = 0; y < Stash.GetLength(0); y++)
             {
-                for (int x = 0; x < Stash.Length; x++)
+                for (int x = 0; x < Stash.GetLength(1); x++)
                 {
                     if (Stash[y, x].Container is null)
                     {
@@ -371,6 +391,45 @@ namespace OnlyDarker.PlayerClasses
             }
             message = $"Not enough space for {collectible.IngameName}";
             return false;
+        }
+        public bool StoreCollectibleStack(CollectibleStack collectibleStack, out string message)
+        {
+            int pickedUpAmount = CalculatePickedUpAmount(collectibleStack);
+            if (pickedUpAmount >= 1)
+            {
+                message = $"Picked up {collectibleStack.IngameName} x{pickedUpAmount}";
+                return true;
+            }
+            else
+            {
+                if (TryStore(collectibleStack, out message))
+                    return true;
+                else
+                {
+                    message = $"Not enough space for {collectibleStack.IngameName}";
+                    return false;
+                }
+            }
+            int CalculatePickedUpAmount(CollectibleStack collectibleStack)
+            {
+                int pickedUpAmount = 0;
+                for (int y = 0; y < Stash.GetLength(0); y++)
+                {
+                    for (int x = 0; x < Stash.GetLength(1); x++)
+                    {
+                        if (Stash[y, x].Container is not null && Stash[y, x].Container is CollectibleStack stack)
+                        {
+                            if (stack.StackableID != collectibleStack.StackableID || stack.Size >= stack.MaxSize)
+                                continue;
+                            stack.Merge(collectibleStack, out int merged);
+                            pickedUpAmount += merged;
+                            if (collectibleStack.Size < 1)
+                                return pickedUpAmount;
+                        }
+                    }
+                }
+                return pickedUpAmount;
+            }
         }
         public bool TryWear(ArmorSprite newItem/*, out string message, out ArmorSprite currentItem*/)
         {
@@ -409,14 +468,13 @@ namespace OnlyDarker.PlayerClasses
             }
             else
             {
-                if (TryStore(newWeapon, out _))
-                    //currentWeapon = WeaponSlot.Container as WeaponSprite;
-                    //DropItem(WeaponSlot);
-                    //message = $"Swapped to {newWeapon.IngameName}";
-                    //WeaponSlot.Container = newWeapon;
-                    return true;
+                TryStore(newWeapon, out _);
+                //currentWeapon = WeaponSlot.Container as WeaponSprite;
+                //DropItem(WeaponSlot);
+                //message = $"Swapped to {newWeapon.IngameName}";
+                //WeaponSlot.Container = newWeapon;
+                return true;
             }
-            return false;
         }
         public void ShowOptions(InventorySlot currentSlot)
         {
@@ -439,8 +497,8 @@ namespace OnlyDarker.PlayerClasses
         private List<DescriptionElement> GetDescriptionElements(ICollectible collectible)
         {
             var elements = new List<DescriptionElement>
-            { 
-                new(String.Empty, String.Empty)
+            {
+                new(string.Empty, string.Empty)
             };
             return elements;
         }
@@ -477,7 +535,6 @@ namespace OnlyDarker.PlayerClasses
             DrawnPosition = drawnPosition;
             Container = container;
         }
-        public string GetDescription() => Container?.Description ?? string.Empty;
     }
     public class ArmorInventorySlot : InventorySlot
     {
@@ -501,11 +558,15 @@ namespace OnlyDarker.PlayerClasses
         public ContextMenu(Point location, ICollectible item, List<DescriptionElement> elements)
         {
             Title = item.IngameName;
+            if (item is CollectibleStack stack)
+                Title += $" {stack.Size}/{stack.MaxSize}";
             Description = item.Description;
             ItemTexture = item.Texture;
             StringsToDraw = new List<string>(elements.Count);
             foreach (var element in elements)
             {
+                if (element.Name == string.Empty)
+                    continue;
                 StringsToDraw.Add($"{element.Name} : {element.Value}");
             };
             int maxheight = 45;
@@ -564,11 +625,11 @@ namespace OnlyDarker.PlayerClasses
     }
     public class StashCell
     {
-        public ICollectible ContainedItem { get; set; }
+        public ICollectible Container { get; set; }
         public bool IsOccupied;
         public StashCell()
         {
-            ContainedItem = null;
+            Container = null;
             IsOccupied = false;
         }
     }

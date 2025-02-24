@@ -10,6 +10,8 @@ namespace OnlyDarker.GameProcess.Interfaces
     {
         public Texture2D Texture { get; set; }
 
+        public int ID { get; }
+
         public int MaxStackSize { get; set; }
 
         public bool IsExpired { get; set; }

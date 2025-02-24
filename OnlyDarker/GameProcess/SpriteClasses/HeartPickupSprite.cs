@@ -29,7 +29,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(this);
             GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(this);
         }
-        public void Collect()
+        private void Collect()
         {
             if (GameBody.GetGameInstance().MainCharacter.Stats.HealthPoints >= GameBody.GetGameInstance().MainCharacter.Stats.MaxHealthPoints)
             {

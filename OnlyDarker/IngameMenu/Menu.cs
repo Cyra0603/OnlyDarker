@@ -50,6 +50,10 @@ namespace OnlyDarker.IngameMenu
                 GameBody.GetGameInstance().GameUnpause();
                 return;
             }
+            if (GameBody.GetGameInstance().MainCharacter.Inventory.IsActive)
+            {
+                GameBody.GetGameInstance().MainCharacter.Inventory.ToggleInventory();   
+            }
             var mstate = Mouse.GetState();
             var kstate = Keyboard.GetState();
             WindowsStack.Peek().Update(in mstate, in kstate);
