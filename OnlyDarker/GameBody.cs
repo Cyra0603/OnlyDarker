@@ -17,6 +17,7 @@ using System.Net.NetworkInformation;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OnlyDarker
@@ -39,6 +40,8 @@ namespace OnlyDarker
         private InteractionMessageBar _interactionMessageBar;
         private BossHPBar _bossHPBar;
         private Minimap _minimap;
+        private LoadingScreen _loadingScreen;
+        private bool _isLoading;
         public static Texture2D EmptyTexture { get; private set; }
         public List<EffectAnimationManager> EffectAnimationManagers { get; private set; } = new();
         public List<DamageNumberAnimationManager> DamageNumberAnimationManagers { get; private set; } = new();
@@ -161,6 +164,8 @@ namespace OnlyDarker
 
             BindManager.ToggleDebug.KeyPressed += GlobalUse.ToggleDebugMode;
 
+            BindManager.SimulateLoading.KeyPressed += RunLoadingSimulation;
+
             ControlsManager = new ControlsManager(BindManager);
 
             Menu = Menu.GetInstance();
@@ -212,6 +217,14 @@ namespace OnlyDarker
         protected override void Update(GameTime gameTime)
         {
             _CPUFrameTimer.Restart();
+            if (_isLoading)
+            {
+                _counterElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                _memoryCounterElapsedTime += (float)gameTime.ElapsedGameTime.TotalMilliseconds;
+                _CPUFrameTime = _CPUFrameTimer.ElapsedMilliseconds;
+                UpdateDiagnosers();
+                return;
+            }
             CheckWindowFocus();
             ControlsManager.GetInputStates();
             ControlsManager.UpdateInputs();
@@ -254,7 +267,7 @@ namespace OnlyDarker
                 DrawnGPUFrameTime = _GPUFrameTime;
                 _counterElapsedTime = 0;
             }
-            if(_memoryCounterElapsedTime >= _memoryCounterTimeStep)
+            if (_memoryCounterElapsedTime >= _memoryCounterTimeStep)
             {
                 AllocatedMemoryInMB = _currentProcess.WorkingSet64 / 1048576;
                 _memoryCounterElapsedTime = 0;
@@ -397,6 +410,13 @@ namespace OnlyDarker
                 Menu.Draw();
                 GlobalUse.SpriteBatch.End();
             }
+            if (_isLoading)
+            {
+                GlobalUse.SpriteBatch.Begin(blendState: BlendState.AlphaBlend);
+                _loadingScreen.Draw();
+                GlobalUse.SpriteBatch.End();
+            }
+
             base.Draw(gameTime);
 
             ShowFPS();
@@ -500,6 +520,33 @@ namespace OnlyDarker
         {
             GraphicsManager.IsFullScreen = !GraphicsManager.IsFullScreen;
             GraphicsManager.ApplyChanges();
+        }
+        public void RunLoadingSimulation()
+        {
+            if (_isLoading)
+                return;
+            var thread = new Thread(SimulateLoading);
+            thread.Start();
+        }
+        public void SimulateLoading()
+        {
+            if (_isLoading)
+                return;
+            _isLoading = true;
+            int tasksCount = RandomNumberGenerator.GetInt32(0, 10);
+            _loadingScreen = new(tasksCount);
+            for (int i = 0; i < tasksCount; i++)
+            {
+                SimulateWork().Wait();
+                _loadingScreen.CurrentTask++;
+            }
+            _isLoading = false;
+        }
+        public Task SimulateWork()
+        {
+            var task = Task.Delay(RandomNumberGenerator.GetInt32(0, 1000));
+            task.Wait();
+            return Task.CompletedTask;
         }
     }
 }

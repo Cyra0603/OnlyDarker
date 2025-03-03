@@ -28,6 +28,7 @@ namespace OnlyDarker.GameProcess
         public Texture2D BrokenPortalTexture { get; private set; }
         private TextureMapper()
         {
+            _instance = this;
             ShadowTexture = GlobalUse.Content.Load<Texture2D>("Shadow");
             CoinTexture = GlobalUse.Content.Load<Texture2D>("PickupSprites/Coin");
             UICoinTexture = GlobalUse.Content.Load<Texture2D>("UI/CoinCount");
@@ -43,7 +44,6 @@ namespace OnlyDarker.GameProcess
             ProjectileHitAnimation = GlobalUse.Content.Load<Texture2D>("Effects/ProjectileHitAnimation");
             PortalTexture = GlobalUse.Content.Load<Texture2D>("RoomGates/RoomGate1");
             BrokenPortalTexture = GlobalUse.Content.Load<Texture2D>("RoomGates/RoomGate2");
-            _instance = this;
         }
         public static TextureMapper GetInstance()
         {

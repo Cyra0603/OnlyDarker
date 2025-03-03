@@ -11,9 +11,9 @@ namespace OnlyDarker.UI
         private static MessageBox _instance;
         MessageBox()
         {
-
+            _instance = this;
         }
-        public MessageBox GetInstance()
+        public static MessageBox GetInstance()
         {
             if (_instance is not null)
                 return _instance;

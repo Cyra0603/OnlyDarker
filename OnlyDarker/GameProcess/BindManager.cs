@@ -11,12 +11,13 @@ namespace OnlyDarker.GameProcess
 {
     public class BindManager
     {
-        private static BindManager _managerInstance = null;
+        private static BindManager _instance = null;
         public readonly MouseState _defaultState = new();
         public readonly List<Bind> BindList;
         public readonly List<Bind> AppHotKeys;
         public readonly Bind ToggleDebug;
         public readonly Bind TogglePause;
+        public readonly Bind SimulateLoading;
         public readonly Bind MoveLeft;
         public readonly Bind MoveRight;
         public readonly Bind MoveUp;
@@ -31,7 +32,7 @@ namespace OnlyDarker.GameProcess
         public delegate void KeyPress();
         BindManager()
         {
-            _managerInstance = this;
+            _instance = this;
             BindList = new();
             AppHotKeys = new();
             bool canBeHold = true;
@@ -39,6 +40,7 @@ namespace OnlyDarker.GameProcess
             {
                 AppHotKeys.Add(ToggleDebug = new(Keys.F1, !canBeHold,"toggle ingame debug"));
                 AppHotKeys.Add(TogglePause = new(Keys.Escape, !canBeHold,"pause and call menu"));
+                AppHotKeys.Add(SimulateLoading = new(Keys.F10, !canBeHold, "simulate loading"));
             }
             //Ingame controls
             {
@@ -58,10 +60,10 @@ namespace OnlyDarker.GameProcess
         }
         public static BindManager GetInstance()
         {
-            if (_managerInstance == null)
-                return _managerInstance = new BindManager();
+            if (_instance == null)
+                return _instance = new BindManager();
             else
-                return _managerInstance;
+                return _instance;
         }
         public class Bind
         {
