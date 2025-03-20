@@ -1,5 +1,6 @@
 ﻿using OnlyDarker.CommonUsing;
 using OnlyDarker.GameProcess;
+using OnlyDarker.UI;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -17,6 +18,7 @@ namespace OnlyDarker.IngameMenu
         private readonly MainWindow _mainWindow;
         public readonly SettingsWindow SettingsWindow;
         public readonly ControlsWindow ControlsWindow;
+        public TraditionalClock Clock;
         public delegate void ButtonPress();
         public const int BUTTON_OFFSET = 10;
         private KeyboardState _lastKeyboardState;
@@ -28,6 +30,7 @@ namespace OnlyDarker.IngameMenu
             _mainWindow = new();
             SettingsWindow = new();
             ControlsWindow = new(BindManager.GetInstance());
+            Clock = new(new(300F, 300F));
             _lastKeyboardState = Keyboard.GetState();
             BindManager.GetInstance().TogglePause.KeyPressed += BackButtonAction;
         }
@@ -54,6 +57,7 @@ namespace OnlyDarker.IngameMenu
             {
                 GameBody.GetGameInstance().MainCharacter.Inventory.ToggleInventory();   
             }
+            Clock.Update();
             var mstate = Mouse.GetState();
             var kstate = Keyboard.GetState();
             WindowsStack.Peek().Update(in mstate, in kstate);
@@ -74,6 +78,7 @@ namespace OnlyDarker.IngameMenu
             WindowsStack.Peek().Draw();
             if (GameConsole.GetInstance().IsActive)
                 GameConsole.GetInstance().Draw();
+            Clock.Draw(GlobalUse.SpriteBatch);
         }
         public void BackButtonAction()
         {
