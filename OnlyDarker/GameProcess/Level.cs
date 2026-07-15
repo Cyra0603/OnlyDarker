@@ -143,7 +143,6 @@ namespace OnlyDarker.GameProcess
 
         private RoomBlueprint[,] GenerateGrid(Floor floor)
         {
-        FailedGenerationRetryLabel:
             var grid = new RoomBlueprint[_floorConfig.GridSize.Y, _floorConfig.GridSize.X];
             grid[_floorConfig.GridSize.Y / 2, _floorConfig.GridSize.X / 2] = new RoomBlueprint(floor, _floorConfig.GridSize.X / 2, _floorConfig.GridSize.Y / 2);
             int rooms = _floorConfig.MaxRooms;
@@ -203,13 +202,13 @@ namespace OnlyDarker.GameProcess
                 if (testIterations > 100000)
                 {
                     Debug.WriteLine("Generation took too many iterations");
-                    goto FailedGenerationRetryLabel;
+                    return GenerateGrid(floor); //Recursion may cause stack overflow
                 }
             }
             if (!(grid.OfType<RoomBlueprint>().Where(room => room.Neighbours == 1).Count() >= 4))
             {
                 Debug.WriteLine("Generation fail: not enough space for special rooms");
-                goto FailedGenerationRetryLabel;
+                return GenerateGrid(floor); //Recursion may cause stack overflow
             }
             return grid;
         }

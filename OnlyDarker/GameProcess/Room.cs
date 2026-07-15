@@ -11,6 +11,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Runtime.InteropServices;
+using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -197,23 +198,26 @@ namespace OnlyDarker.GameProcess
 
             return colors2D;
         }
-        private void FillRoom(List<Texture2D> tileTextures, List<Texture2D> standartObstacleTextures, Color[,] presetData, RoomBlueprint emptyRoom)
+        private void FillRoom(List<Texture2D> tileList, List<Texture2D> standartObstacleTextures, Color[,] presetData, RoomBlueprint emptyRoom)
         {
+            var rng = new Random();
+
             for (int y = 0; y < _tiles.GetLength(0); y++)
             {
                 for (int x = 0; x < _tiles.GetLength(1); x++)
                 {
+                    var randT = rng.Next(0, tileList.Count);
                     switch (_presetColorTranslator[ColorToVector4(in presetData[x, y])])
                     {
                         case "Tile":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             break;
                         case "Obstacle":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             BuildObstacle(standartObstacleTextures, x, y);
                             break;
                         case "Portal":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var portalDirection = CheckPortalDirection(_roomPresetImage, x, y);
                             if (portalDirection == Direction.Left && emptyRoom.HasLeftNeighbour == true)
                                 BuildPortal(x, y, Direction.Left);
@@ -225,7 +229,7 @@ namespace OnlyDarker.GameProcess
                                 BuildPortal(x, y, Direction.Down);
                             break;
                         case "TargetDummy":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var targetDummy = new TargetDummySprite(_tiles[y, x]);
                             ObjectsYSorted.Add(targetDummy);
                             Damageables.Add(targetDummy);
@@ -233,7 +237,7 @@ namespace OnlyDarker.GameProcess
                             ObstaclesBounds.Add(targetDummy.BodyHitbox);
                             break;
                         case "MobSummoner":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var summoner = new MobSummonerSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, new WaspSprite(_tiles[y, x].Position, this, true), _tiles[y, x].Position, this, 2F, new BaseArmor(), 30F, 15000F, 5);
                             ObjectsYSorted.Add(summoner);
                             Damageables.Add(summoner);
@@ -242,46 +246,51 @@ namespace OnlyDarker.GameProcess
                             ObstaclesBounds.Add(summoner.BodyHitbox);
                             break;
                         case "TargetDummyShooter":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var targetDummyShooter = new TargetDummyShooterSprite(_tiles[y, x], this);
                             ObjectsYSorted.Add(targetDummyShooter);
                             Damageables.Add(targetDummyShooter);
                             Updateables.Add(targetDummyShooter);
                             break;
                         case "WeaponStick":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var stickTest = PremadeWeaponSprites.GetInstance().GetNewSprite("Stick", new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)));
                             ObjectsYSorted.Add(stickTest);
                             Interactives.Add(stickTest);
                             break;
                         case "WeaponSword":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var swordTest = PremadeWeaponSprites.GetInstance().GetNewSprite("Sword", new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)));
                             ObjectsYSorted.Add(swordTest);
                             Interactives.Add(swordTest);
                             break;
                         case "WeaponLance":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var lanceTest = PremadeWeaponSprites.GetInstance().GetNewSprite("Lance", new(x * _tiles[y, x].GetTextureWidth() - (_tiles[y, x].GetTextureWidth() / 2), y * _tiles[y, x].GetTextureHeight() - (_tiles[y, x].GetTextureHeight() / 2)));
                             ObjectsYSorted.Add(lanceTest);
                             Interactives.Add(lanceTest);
                             break;
                         case "WoodenChest":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var chestTest = new ChestSprite(new(x * _tiles[y, x].GetTextureWidth(), y * _tiles[y, x].GetTextureHeight()), this);
                             break;
                         case "Boss":
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             var testBoss = new FloorOneBossSprite(GameBody.GetGameInstance().TextureMapper.TargetDummySpriteTexture, this, _tiles[y, x].Position, 50F, "the druid");
                             ObjectsYSorted.Add(testBoss);
                             Damageables.Add(testBoss);
                             Updateables.Add(testBoss);
                             break;
                         default:
-                            BuildTile(tileTextures, x, y);
+                            BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);
                             break;
                     }
                 }
+            }
+            //temp
+            static SpriteSheet GetNewSpriteSheet(Texture2D texture)
+            {
+                return new SpriteSheet(texture, texture.Width, texture.Height, 1);
             }
         }
 
@@ -313,10 +322,9 @@ namespace OnlyDarker.GameProcess
             _standartObstacles[y, x] = new SpriteStandartObstacle(standartObstacleTextures[i], _tiles[y, x]);
         }
 
-        private void BuildTile(List<Texture2D> tileTextures, in int x, in int y)
+        private void BuildTile(SpriteSheet spriteSheet, in int x, in int y)
         {
-            int i = GlobalUse.SeededStandartRNG.Next(0, tileTextures.Count);
-            _tiles[y, x] = new SpriteStandartTile(tileTextures[i], new Vector2(x * TileSize.X, y * TileSize.Y), x, y);
+            _tiles[y, x] = new SpriteStandartTile(spriteSheet, new Vector2(x * TileSize.X, y * TileSize.Y), x, y);
         }
 
         private void BuildPortal(int x, int y, Direction portalDirection)

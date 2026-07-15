@@ -119,6 +119,14 @@ namespace OnlyDarker.CommonUsing
 
             return colors2D;
         }
+        public static Direction GetOppositeDirection(Direction direction) => direction switch
+        {
+            Direction.Left => Direction.Right,
+            Direction.Right => Direction.Left,
+            Direction.Up => Direction.Down,
+            Direction.Down => Direction.Up,
+            _ => throw new ArgumentOutOfRangeException(nameof(direction), direction, null)
+        };
         public static string GetName(this Floor floorType) => floorType switch
         {
             Floor.One => nameof(Floor.One),

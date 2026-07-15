@@ -8,13 +8,13 @@ namespace OnlyDarker.UI
     {
         public Vector2 Center;
         public Texture2D ClockTexture;
-        public float Scale = 1F;
-        int _currentHours;
-        int _currentMinutes;
-        int _currentSeconds;
-        int secondsHandLength;
-        int hoursHandLength;
-        int minutesHandLength;
+        public float Scale = 3F;
+        private int _currentHours;
+        private int _currentMinutes;
+        private int _currentSeconds;
+        private int _secondsHandLength;
+        private int _hoursHandLength;
+        private int _minutesHandLength;
         DateTime _lastUpdatedTime;
         Line _hoursHand;
         Line _minutesHand;
@@ -25,18 +25,19 @@ namespace OnlyDarker.UI
             ClockTexture = TextureMapper.GetInstance().ClockTexture;
             Center = position;
             var time = _lastUpdatedTime = DateTime.Now;
-            secondsHandLength = ClockTexture.Width / 2 - 3;
-            hoursHandLength = ClockTexture.Width / 4;
-            minutesHandLength = secondsHandLength / 2 * 3;
-            _secondsHand = new(Center, new(Center.X, Center.Y - secondsHandLength));
+            _secondsHandLength = (int)(ClockTexture.Width * Scale / 2 - 3);
+            _hoursHandLength = (int)(ClockTexture.Width * Scale / 4);
+            _minutesHandLength = _secondsHandLength / 3 * 2;
+
+            _secondsHand = new(Center, new(Center.X, Center.Y - _secondsHandLength));
             float secondDegrees = 6 * time.Second;
             _secondsHand.EndPoint = _secondsHand.EndPoint.RotateAround(Center, secondDegrees);
 
-            _minutesHand = new(Center, new(Center.X, Center.Y - minutesHandLength));
+            _minutesHand = new(Center, new(Center.X, Center.Y - _minutesHandLength));
             float minutesDegrees = 6 * time.Minute;
             _minutesHand.EndPoint = _minutesHand.EndPoint.RotateAround(Center, minutesDegrees);
 
-            _hoursHand = new(Center, new(Center.X, Center.Y - hoursHandLength));
+            _hoursHand = new(Center, new(Center.X, Center.Y - _hoursHandLength));
             float hoursDegrees = 30 * time.Hour;
             _hoursHand.EndPoint = _hoursHand.EndPoint.RotateAround(Center, hoursDegrees);
         }
@@ -49,30 +50,27 @@ namespace OnlyDarker.UI
             _currentSeconds = time.Second;
             if (_lastUpdatedTime.Hour != _currentHours)
             {
-                Debug.Print($"{_currentHours}");
-                _hoursHand.EndPoint.Y = Center.Y - hoursHandLength;
+                _hoursHand = new(Center, new(Center.X, Center.Y - _hoursHandLength));
                 var hours = _currentHours;
                 if (hours >= 12)
                 {
                     hours -= 12;
                 }
-                float degrees = 360 / 12 * hours;
+                float degrees = 30F * hours;
                 _hoursHand.EndPoint = _hoursHand.EndPoint.RotateAround(Center, degrees);
             }
 
             if (_lastUpdatedTime.Minute != _currentMinutes)
             {
-                Debug.Print($"{_currentMinutes}");
-                _minutesHand.EndPoint.Y = Center.Y - minutesHandLength;
-                float degrees = 360 / 60 * _currentMinutes;
+                _minutesHand = new(Center, new(Center.X, Center.Y - _minutesHandLength));
+                float degrees = 6F * _currentMinutes;
                 _minutesHand.EndPoint = _minutesHand.EndPoint.RotateAround(Center, degrees);
             }
 
             if (_lastUpdatedTime.Second != _currentSeconds)
             {
-                Debug.Print($"{_currentSeconds}");
-                _secondsHand.EndPoint.Y = Center.Y - secondsHandLength;
-                float degrees = 360 / 60 * _currentSeconds;
+                _secondsHand = new(Center, new(Center.X, Center.Y - _secondsHandLength));
+                float degrees = 6F * _currentSeconds;
                 _secondsHand.EndPoint = _secondsHand.EndPoint.RotateAround(Center, degrees);
             }
 
@@ -81,12 +79,15 @@ namespace OnlyDarker.UI
 
         public void Draw(SpriteBatch spriteBatch)
         {
-            spriteBatch.Draw(ClockTexture, Center, null, Color.White, 1F, new(ClockTexture.Width / 2, ClockTexture.Height / 2), Vector2.One, SpriteEffects.None, 1F);
-            Vector2 hourPos = new Vector2(Center.X, Center.Y - secondsHandLength).RotateAround(Center, 30F);
+            var font = GlobalUse.MainFont;
+            spriteBatch.Draw(ClockTexture, Center, null, Color.Black, 1F, new(ClockTexture.Width / 2, ClockTexture.Height / 2), Vector2.Zero, SpriteEffects.None, 0);
+            Vector2 numberPos = new Vector2(Center.X, Center.Y - _secondsHandLength).RotateAround(Center, 30F);
             for (int i = 1; i <= 12; i++)
             {
-                spriteBatch.DrawString(GlobalUse.MainFont, $"{i}", hourPos, Color.White, 0F, Vector2.Zero, 0.1F, SpriteEffects.None, 0F);
-                hourPos = hourPos.RotateAround(Center, 30F);
+                Vector2 origin = font.MeasureString(i.ToString());
+                float scale = Scale / 10;
+                spriteBatch.DrawString(font, $"{i}", numberPos, Color.White, 0F, origin * scale, scale, SpriteEffects.None, 0F);
+                numberPos = numberPos.RotateAround(Center, 30F);
             }
             spriteBatch.DrawLine(_secondsHand, color: Color.Black);
             spriteBatch.DrawLine(_minutesHand, color: Color.Black, thickness: 2);

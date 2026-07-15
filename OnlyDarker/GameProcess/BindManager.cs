@@ -38,8 +38,8 @@ namespace OnlyDarker.GameProcess
             bool canBeHold = true;
             //Common hotkeys
             {
-                AppHotKeys.Add(ToggleDebug = new(Keys.F1, !canBeHold,"toggle ingame debug"));
-                AppHotKeys.Add(TogglePause = new(Keys.Escape, !canBeHold,"pause and call menu"));
+                AppHotKeys.Add(ToggleDebug = new(Keys.F1, !canBeHold, "toggle ingame debug"));
+                AppHotKeys.Add(TogglePause = new(Keys.Escape, !canBeHold, "pause and call menu"));
                 AppHotKeys.Add(SimulateLoading = new(Keys.F10, !canBeHold, "simulate loading"));
             }
             //Ingame controls
@@ -55,8 +55,6 @@ namespace OnlyDarker.GameProcess
                 BindList.Add(HealCharacter = new(Keys.F12, !canBeHold, "heal:"));
                 BindList.Add(Attack = new(_defaultState.LeftButton, !canBeHold, "attack!:"));
             }
-            Debug.WriteLine("Bindmanager initialized");
-
         }
         public static BindManager GetInstance()
         {
@@ -94,7 +92,7 @@ namespace OnlyDarker.GameProcess
                 Key = Keys.None;
                 ButtonState = buttonstate;
                 CanBeHold = canBeHold;
-                Description = description;  
+                Description = description;
             }
             public async void SetControlKey()
             {
@@ -109,7 +107,7 @@ namespace OnlyDarker.GameProcess
                         return;
                     }
                     await Task.Delay(50);
-                    if(Menu.GetInstance().WindowsStack.Peek() is not ControlsWindow)
+                    if (Menu.GetInstance().WindowsStack.Peek() is not ControlsWindow)
                     {
                         return;
                     }
@@ -119,7 +117,7 @@ namespace OnlyDarker.GameProcess
             {
                 foreach (var bind in GetInstance().BindList)
                 {
-                    if( bind.Key == key) return false;
+                    if (bind.Key == key) return false;
                 }
                 foreach (var hotkey in GetInstance().AppHotKeys)
                 {

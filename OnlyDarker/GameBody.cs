@@ -151,6 +151,7 @@ namespace OnlyDarker
             MainCharacter = new(
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacter"),
                 GlobalUse.Content.Load<Texture2D>("Character/MainCharacterHand"),
+                new SpriteSheet(GlobalUse.Content.Load<Texture2D>("Character/AnimationSpriteSheets/CharacterWalkingAnimation"), 32, 50, 12), //temp
                 SceneManager.CurrentRoom._tiles[2, 2],
                 new(1F, 24F));
 

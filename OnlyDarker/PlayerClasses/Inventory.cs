@@ -557,12 +557,14 @@ namespace OnlyDarker.PlayerClasses
         public float TextSize = 0.2F;
         public ContextMenu(Point location, ICollectible item, List<DescriptionElement> elements)
         {
-            int maxheight = 45;
-            int maxwidth = (int)(GetLongestStringLength() * TextSize) + maxheight;
+            int elementsCount = 0;
+            var font = GlobalUse.Arial;
             Title = item.IngameName;
             if (item is CollectibleStack stack)
                 Title += $" {stack.Size}/{stack.MaxSize}";
-            Description = item.Description.SetLineBreaks(5, out int lines);
+            elementsCount++;
+            Description = item.Description;
+            elementsCount++;
             ItemTexture = item.Texture;
             StringsToDraw = new List<string>(elements.Count);
             foreach (var element in elements)
@@ -570,8 +572,12 @@ namespace OnlyDarker.PlayerClasses
                 if (element.Name == string.Empty)
                     continue;
                 StringsToDraw.Add($"{element.Name} : {element.Value}");
+                elementsCount++;
             };
-            DescriptionBounds = new(location.X, location.Y + maxheight + maxheight * elements.Count, maxwidth, maxheight + maxheight * lines);
+            int stringHeight = (int)(font.MeasureString(Title).Y * TextSize);
+            int maxheight = stringHeight * elementsCount + ItemTexture.Height;
+            int maxwidth = (int)(GetLongestStringLength() * TextSize) + maxheight;
+            DescriptionBounds = new(location.X, location.Y + maxheight + maxheight * elements.Count, maxwidth, maxheight + maxheight);
             Bounds = new(location.X, location.Y, maxwidth, maxheight + item.Texture.Height + DescriptionBounds.Height);
         }
         public void Draw()
@@ -606,9 +612,9 @@ namespace OnlyDarker.PlayerClasses
             float title = GlobalUse.Arial.MeasureString(Title).X;
             if (title > maxwidth)
                 maxwidth = (int)title;
-            //float description = GlobalUse.Arial.MeasureString(Description).X;
-            //if (description > maxwidth)
-            //    maxwidth = (int)description;
+            float description = GlobalUse.Arial.MeasureString(Description).X;
+            if (description > maxwidth)
+                maxwidth = (int)description;
             foreach (var str in StringsToDraw)
             {
                 float strLength = GlobalUse.Arial.MeasureString(str).X;

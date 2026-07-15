@@ -121,6 +121,18 @@
 /processorParam:TextureFormat=Color
 /build:Character/AnimationSpriteSheets/CharacterAttackAnimation2.png
 
+#begin Character/AnimationSpriteSheets/CharacterWalkingAnimation.png
+/importer:TextureImporter
+/processor:TextureProcessor
+/processorParam:ColorKeyColor=255,0,255,255
+/processorParam:ColorKeyEnabled=True
+/processorParam:GenerateMipmaps=False
+/processorParam:PremultiplyAlpha=True
+/processorParam:ResizeToPowerOfTwo=False
+/processorParam:MakeSquare=False
+/processorParam:TextureFormat=Color
+/build:Character/AnimationSpriteSheets/CharacterWalkingAnimation.png
+
 #begin Character/MainCharacter.png
 /importer:TextureImporter
 /processor:TextureProcessor

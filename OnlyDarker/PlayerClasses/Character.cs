@@ -23,10 +23,19 @@ namespace OnlyDarker.PlayerClasses
     public class Character : IYSortable
     {
         private readonly Texture2D _bodyTexture;
+        private readonly SpriteSheet _bodyAnimationsSpriteSheet;
         private readonly Texture2D _handTexture;
         private static ControlsManager ControlsManager => GameBody.GetGameInstance().ControlsManager;
         private List<Vector2> _dashFrames = new();
         private Stack<IInteractive> _thingsToInteract = new();
+        //body animation data
+        private float distanceToWalk = 7F;
+        private float walkedDistance;
+        private int skippedUpdates;
+        private int currentFrameIndex;
+        private int maxFrameIndex = 12;
+        //
+        private Vector2 lastPosition;
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
         private Vector2 _handOrigin;
@@ -67,9 +76,10 @@ namespace OnlyDarker.PlayerClasses
         public bool IsPushable { get; set; } = false;
         public bool ShouldDrawAttackArea => GlobalUse.IsDebugMode;
         private Triangle AttackArea;
-        public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteStandartTile parentTile, Stats stats)
+        public Character(Texture2D bodyTexture, Texture2D handTexture, SpriteSheet bodyAnimationSpriteSheet, SpriteStandartTile parentTile, Stats stats)
         {
             _bodyTexture = bodyTexture;
+            _bodyAnimationsSpriteSheet = bodyAnimationSpriteSheet;
             _handTexture = handTexture;
             _handOrigin = new(handTexture.Width / 2, handTexture.Height / 2);
             Origin = new(bodyTexture.Width / 2, bodyTexture.Height / 2);
@@ -89,18 +99,20 @@ namespace OnlyDarker.PlayerClasses
         public void Draw()
         {
             //var weaponOrigin = new Vector2(CurrentWeapon.Texture.Width / 2, CurrentWeapon.Texture.Height / 2);
+            var animSourceRect = _bodyAnimationsSpriteSheet.GetSourceRectangle(currentFrameIndex);
             if (DashTimer is not null && DashEffectTimer.IsRunning)
                 for (int i = 0; i < _dashFrames.Count; i++)
                 {
-                    GlobalUse.SpriteBatch.Draw(_bodyTexture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect, 0.5F);
+                    GlobalUse.SpriteBatch.Draw(_bodyAnimationsSpriteSheet.Texture, _dashFrames[i], animSourceRect, Color.White * (0.5F / (_dashFrames.Count - i)), 0F, Origin, 1F, _flipEffect, 0.5F);
                     //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, _dashFrames[i], null, Color.White * (0.5F / (_dashFrames.Count - i)), _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
                 }
             GlobalUse.SpriteBatch.Draw(TextureMapper.GetInstance().ShadowTexture, ShadowRect, Color.White);
-            GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
+            GlobalUse.SpriteBatch.Draw(_bodyAnimationsSpriteSheet.Texture, Position, animSourceRect, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
+            GlobalUse.SpriteBatch.Draw(_bodyAnimationsSpriteSheet.Texture, Position, animSourceRect, Color.White, 0F, Origin, 1F, _flipEffect, 0.5F);
             //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.White, _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
             if (DamagedEffectTimer.TimeLeft > 0)
             {
-                GlobalUse.SpriteBatch.Draw(_bodyTexture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
+                GlobalUse.SpriteBatch.Draw(_bodyAnimationsSpriteSheet.Texture, Position, animSourceRect, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), 0F, Origin, 1F, _flipEffect, 0.5F);
                 //GlobalUse.SpriteBatch.Draw(CurrentWeapon.Texture, Position, null, Color.Red * (DamagedEffectTimer.TimeLeft / 1000), _handRotationValue, weaponOrigin, 1F, SpriteEffects.None, 0.5F);
             }
             if (ShouldDrawAttackArea)
@@ -122,6 +134,7 @@ namespace OnlyDarker.PlayerClasses
         public void Update(float elapsedMilliseconds)
         {
             ControlsManager.UpdatePlayerMovement(elapsedMilliseconds);
+            lastPosition = Position;
             _thingsToInteract.Clear();
             DashTimer?.Update(elapsedMilliseconds);
             DashEffectTimer?.Update(elapsedMilliseconds);
@@ -140,6 +153,24 @@ namespace OnlyDarker.PlayerClasses
             CheckForCollisions();
             CheckForInteractions();
             Position = Vector2.Clamp(Position, _minPosition, _maxPosition);
+            UpdateBodyFrameCounter();
+        }
+        private void UpdateBodyFrameCounter()
+        {
+            var distanceWalked = Vector2.Distance(Position, lastPosition);
+            if (distanceWalked >= 0.1)
+                walkedDistance += distanceWalked;
+            else
+                currentFrameIndex = 0;
+            if(walkedDistance >= distanceToWalk)
+            {
+                walkedDistance = 0;
+                currentFrameIndex += 1;
+                if(currentFrameIndex >= maxFrameIndex)
+                {
+                    currentFrameIndex = 0;
+                }
+            }
         }
 
         private void CheckForInteractions()

@@ -120,7 +120,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             Repair();
             foreach(var portal in ExitRoom.Portals)
             {
-                portal.Repair();
+                if (portal.Direction == GlobalUse.GetOppositeDirection(Direction))
+                    portal.Repair();
             }
         }
     }
