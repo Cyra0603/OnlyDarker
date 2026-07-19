@@ -32,7 +32,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
                 if (_healthPoints <= 0)
                 {
                     IsExpired = true;
-                    (this as IDamageable).SpawnXPOrbs();
+                    (this as IDamageable).DropXPOrbs();
                 }
             }
         }

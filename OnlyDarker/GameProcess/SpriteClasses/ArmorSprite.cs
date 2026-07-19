@@ -22,6 +22,7 @@ namespace OnlyDarker.GameProcess
         public ArmorType Type { get; }
         public Vector2 Position { get; set; }
         public bool IsExpired { get; private set; } = false;
+        public bool IsInteractive { get; set; }
         public string InteractionMessage => INTERACTION_MESSAGE;
         const string INTERACTION_MESSAGE = " pick up ";
         public string Description { get; }
@@ -91,8 +92,8 @@ namespace OnlyDarker.GameProcess
         {
             if (GameBody.GetGameInstance().MainCharacter.Inventory.TryWear(this))
             {
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Remove(this);
+                IsExpired = true;
+                IsInteractive = false;
             }
         }
     }

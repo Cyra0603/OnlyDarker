@@ -51,7 +51,7 @@ namespace OnlyDarker.GameProcess
             {new Vector4(0,255,0,255) , "Tile"},
             {new Vector4(0,0,255,255) , "Portal"},
             {new Vector4(60,60,60,255) , "TargetDummy" },
-            {new Vector4(60,70,60,255) , "TargetDummyShooter" },
+            {new Vector4(60,70,60,255) , "TargetDummyShooter" }, 
             {new Vector4(60,60,70,255) , "MobSummoner" },
             {new Vector4(150,100,100,255) , "WeaponStick" },
             {new Vector4(100,150,100,255) , "WeaponSword" },
@@ -62,7 +62,7 @@ namespace OnlyDarker.GameProcess
         public List<Rectangle> RoomColliders { get; private set; }
         public List<Rectangle> ObstaclesBounds { get; private set; }
         public List<Rectangle> TempRectDrawList;
-        public const int MAX_ENTITIES = 25;
+        public const int MAX_ENTITIES = 250;
         public Point TileSize { get; private set; }
         public Point RoomSize { get; private set; }
         public Point GridCords { get; private set; }
@@ -147,6 +147,7 @@ namespace OnlyDarker.GameProcess
             UpdatePortals();
             Updateables.RemoveAll(item => item.IsExpired);
             Damageables.RemoveAll(entity => entity.IsExpired);
+            Interactives.RemoveAll(interactive => !interactive.IsInteractive);
         }
         public void Draw()
         {
@@ -331,7 +332,7 @@ namespace OnlyDarker.GameProcess
         {
             Portals.Add(new RoomPortalSprite(new Vector2(x * TileSize.X, y * TileSize.Y), portalDirection, this));
         }
-        public void SpawnEntity(object entity)
+        private void SpawnEntity(object entity)
         {
             if (Damageables.Count >= MAX_ENTITIES)
                 return;
@@ -354,6 +355,7 @@ namespace OnlyDarker.GameProcess
             if (TryCast<IInteractive>(entity, out var interactive) && interactive is not null)
             {
                 Interactives.Add(interactive);
+                interactive.IsInteractive = true;
             }
 
             bool TryCast<T>(object obj, out T cast)

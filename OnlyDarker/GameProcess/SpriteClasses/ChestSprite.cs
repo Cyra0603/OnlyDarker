@@ -22,6 +22,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private int _maxAnimationSteps { get; }
         public bool IsClosed = true;
         public bool IsExpired { get; private set; } = false;
+        public bool IsInteractive { get; set; }
         private Room _parentRoomRef;
         public string InteractionMessage => "to open ";
 
@@ -41,9 +42,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             _animator = new(_spriteSheet, width, height, animationSteps, animFrequency);
             _parentRoomRef = parentRoomRef;
             _parentRoomRef.RoomColliders.Add(ShmovementCollider);
-            _parentRoomRef.Interactives.Add(this);
-            _parentRoomRef.Updateables.Add(this);
-            _parentRoomRef.ObjectsYSorted.Add(this);
+            //_parentRoomRef.Interactives.Add(this);
+            //_parentRoomRef.Updateables.Add(this);
+            //_parentRoomRef.ObjectsYSorted.Add(this);
+            _parentRoomRef.EntitiesToSpawn.Push(this);
         }
 
         public void Draw()
@@ -67,7 +69,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             _animator.Activate(new(Position));
             _lootDropDelay = new(_lootDropDelayValue);
             DropLoot();
-            _parentRoomRef.Interactives.Remove(this);
+            IsInteractive = false;
             _parentRoomRef.RoomColliders.Remove(MovementCollider);
         }
 

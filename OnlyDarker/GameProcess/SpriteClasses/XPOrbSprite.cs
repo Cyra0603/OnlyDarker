@@ -93,8 +93,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public void Update(float elapsedMilliseconds)
         {
 
-            Position = Vector2.Lerp(Position, GameBody.GetGameInstance().MainCharacter.Position, 0.1F);
-            Position = Vector2.SmoothStep(Position, GameBody.GetGameInstance().MainCharacter.Position, 0.05F);
+            Position = Vector2.Lerp(Position, GameBody.GetGameInstance().MainCharacter.Position, 0.05F);
+            Position = Vector2.SmoothStep(Position, GameBody.GetGameInstance().MainCharacter.Position, 0.025F);
             TrailPositions.Add(Position);
             TrailPositions.RemoveAt(0);
             if (GameBody.GetGameInstance().MainCharacter.BodyHitbox.Contains(Position))

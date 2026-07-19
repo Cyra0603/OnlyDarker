@@ -505,7 +505,8 @@ namespace OnlyDarker.PlayerClasses
         private static void DropItem(InventorySlot slot)
         {
             slot.Container.Position = GameBody.GetGameInstance().MainCharacter.Position;
-            GameBody.GetGameInstance().SceneManager.CurrentRoom.SpawnEntity(slot.Container);
+            //GameBody.GetGameInstance().SceneManager.CurrentRoom.SpawnEntity(slot.Container);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.EntitiesToSpawn.Push(slot.Container);
             slot.Container = null;
         }
         private float CalculateDPS(WeaponSprite weapon)

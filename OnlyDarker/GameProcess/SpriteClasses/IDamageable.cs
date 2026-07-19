@@ -54,7 +54,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             if (IsPushable)
                 Position += force;
         }
-        void SpawnXPOrbs()
+        void DropXPOrbs()
         {
             if (IsSummoned)
                 return;
@@ -84,15 +84,16 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             }
             SpawnOrb(xpToSpread);
         }
-        void SpawnOrb(int value)
+        private void SpawnOrb(int value)
         {
             var offsetx = RandomNumberGenerator.GetInt32(-BodyHitbox.Width, BodyHitbox.Width);
             var offsety = RandomNumberGenerator.GetInt32(-BodyHitbox.Height, BodyHitbox.Height);
             //Spawn Entity is slow, but will be cleaner if optimized
             //GameBody.GetGameInstance().SceneManager.CurrentRoom.SpawnEntity(new XPOrbSprite(GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTexture, value, new Vector2(Position.X + offsetx, Position.Y + offsety)));
             var orb = new XPOrbSprite(GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTexture, GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTrailTexture, value, new Vector2(Position.X + offsetx, Position.Y + offsety));
-            GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsNotSorted.Add(orb);
-            GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(orb);
+            //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsNotSorted.Add(orb);
+            //GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(orb);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.EntitiesToSpawn.Push(orb);
         }
     }
 }

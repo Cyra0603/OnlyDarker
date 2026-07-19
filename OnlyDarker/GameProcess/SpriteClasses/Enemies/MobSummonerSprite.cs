@@ -36,7 +36,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 if (_healthPoints <= 0)
                 {
                     IsExpired = true;
-                    (this as IDamageable).SpawnXPOrbs();
+                    (this as IDamageable).DropXPOrbs();
                 }
             }
         }
@@ -51,7 +51,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         {
             _texture = texture;
             Position = position;
-            XPReward = 75;
+            XPReward = 7500;
             IsSummoned = false;
             _summonableEntity = summonableEntity;
             _initialPosition = position;

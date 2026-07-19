@@ -13,6 +13,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         string IngameName { get;}
         static string BaseMessage => $"[{GameBody.GetGameInstance().ControlsManager.BindManager.Interact.Key}] to ";
         string InteractionMessage { get; }
+        bool IsInteractive { get; set; }
         Rectangle MovementCollider { get; }
         virtual void ShowInteractionMessage()
         {

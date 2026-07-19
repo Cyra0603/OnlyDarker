@@ -51,6 +51,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 if (_healthPoints <= 0)
                 {
                     IsExpired = true;
+                    (this as IDamageable).DropXPOrbs();
                 }
             }
         }
@@ -135,8 +136,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 {
                     float projHeight = Position.Y + BodyHitbox.Height - AttackOrigin.Y;
                     var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false, projHeight);
-                    GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
-                    GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
+                    //GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
+                    //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
+                    _parentRoomRef.EntitiesToSpawn.Push(projectile);
                     force = force.Rotate(MathHelper.ToRadians(45));
                 }
                 ShootCooldown.TimeLeft = _shootCooldownTime;
@@ -157,8 +159,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 {
                     float projHeight = Position.Y + BodyHitbox.Height - AttackOrigin.Y;
                     var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false, projHeight);
-                    GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
-                    GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
+                    //GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
+                    //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
+                    _parentRoomRef.EntitiesToSpawn.Push(projectile);
                     force = force.Rotate(MathHelper.ToRadians(36));
                 }
                 ShootCooldown.TimeLeft = _shootCooldownTime;

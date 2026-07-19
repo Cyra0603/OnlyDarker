@@ -22,7 +22,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public string IngameName => Data.WeaponName;
         public string TextureFileName { get; }
         public string PickupSound { get; } //temp
-        public bool IsExpired { get; private set; } = false;
+        public bool IsExpired { get; set; } = false;
+
+        public bool IsInteractive { get; set; } = false;
         public string InteractionMessage => INTERACTION_MESSAGE;
         const string INTERACTION_MESSAGE = " swap to ";
 
@@ -56,8 +58,10 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         {
             if (GameBody.GetGameInstance().MainCharacter.Inventory.TryPickupWeapon(this))
             {
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Remove(this);
+                //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
+                //GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Remove(this);
+                IsExpired = true;
+                IsInteractive = false;
             }
         }
         public abstract void Attack(ControlsManager controlsManager, Stats stats, in Vector2 direction, in Vector2 position, in Vector2 attackOrigin);
@@ -96,8 +100,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             var projectileHeight = Vector2.Distance(position, attackOrigin);
             var projectile = new AllyProjectileSprite(_projectileSprite.Texture, position, direction * _data.ProjectileSpeed, new(dmg, 1F, DamageType.Poke, isCrit), Vector2.Distance(Position, (Position + direction * range)) / _data.ProjectileSpeed, _projectileSprite.IsRotating, projectileHeight);
 
-            GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
-            GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
+            //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
+            //GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
+            GameBody.GetGameInstance().SceneManager.CurrentRoom.EntitiesToSpawn.Push(projectile);
             //GameBody.GetGameInstance().ProjectileSprites.Add(projectile);
             CreateAttackAnimation(controlsManager, position, flipsf, 10F);
         }

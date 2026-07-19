@@ -22,6 +22,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public Rectangle MovementCollider { get; set; }
         public readonly Room ParentRoomReference;
         public bool IsExpired { get; private set; } = false;
+        public bool IsInteractive { get; set; }
         public bool IsBlocked { get; set; }
         public bool IsBroken { get; set; }
 
@@ -72,12 +73,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         public void Break()
         {
             IsBroken = true;
-            ParentRoomReference.Interactives.Add(this);
+            IsInteractive = true;
         }
         public void Repair()
         {
             IsBroken = false;
-            ParentRoomReference.Interactives.Remove(this);
+            IsInteractive = false;
         }
         public void ActivatePortal()
         {

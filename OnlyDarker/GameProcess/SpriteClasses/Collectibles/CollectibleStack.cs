@@ -29,6 +29,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Collectibles
 
         public bool IsExpired => Container.IsExpired;
 
+        public bool IsInteractive { get; set; }
+
         public string IngameName => Container.IngameName;
 
         public string TextureFileName { get; set; }
@@ -76,8 +78,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Collectibles
             bool isStored = GameBody.GetGameInstance().MainCharacter.Inventory.StoreCollectibleStack(this, out _);
             if (Size < 1 || isStored)
             {
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
-                GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Remove(this);
+                //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Remove(this);
+                //GameBody.GetGameInstance().SceneManager.CurrentRoom.Interactives.Remove(this);
+                IsInteractive = false;
             }
         }
 
