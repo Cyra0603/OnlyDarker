@@ -9,7 +9,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         private readonly Texture2D _texture;
         public Vector2 Position { get; set; }
         public Vector2 Origin { get; protected set; }
-        public Rectangle MovementCollider { get; private set; }
+        public Hitbox MovementCollider { get; private set; }
         public Rectangle Bounds { get; private set; }
         private Rectangle _nonTransparentBounds;
         private float _transparencyFadeTime = 250F;
@@ -21,14 +21,15 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             _texture = texture;
             Origin = new(texture.Width / 2, texture.Height / 2);
             Position = new(parentTile.Position.X, parentTile.Position.Y - texture.Width / 2);
-            MovementCollider = new(new Point(
+            Rectangle rect = new(new Point(
                 (int)parentTile.Position.X - (int)parentTile.GetTextureWidth() / 2,
                 (int)parentTile.Position.Y - (int)parentTile.GetTextureHeight() / 2),
                 new((int)parentTile.GetTextureWidth(),
                 (int)parentTile.GetTextureHeight())
                 );
+            MovementCollider = new(rect);
             Bounds = new(new(Position.ToPoint().X - _texture.Width / 2, Position.ToPoint().Y - _texture.Height / 2), new(_texture.Width, _texture.Height));
-            _nonTransparentBounds = new(new(Bounds.Size.X - MovementCollider.Size.X, Bounds.Size.Y - MovementCollider.Size.Y), MovementCollider.Size);
+            _nonTransparentBounds = new(new(Bounds.Size.X - rect.Size.X, Bounds.Size.Y - rect.Size.Y), rect.Size);
         }
         public void Draw()
         {
@@ -36,12 +37,12 @@ namespace OnlyDarker.GameProcess.SpriteClasses
             {
                 _transparencyTimer.TimeLeft = _transparencyFadeTime;
                 GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White * 0.5F, 0F, Origin, 1F, SpriteEffects.None, 0.4F);
-                GlobalUse.SpriteBatch.Draw(_texture, MovementCollider, _nonTransparentBounds, Color.White);
+                GlobalUse.SpriteBatch.Draw(_texture, MovementCollider.GetBounds(), _nonTransparentBounds, Color.White);
             }
             else
                 GlobalUse.SpriteBatch.Draw(_texture, Position, null, Color.White * (1F - (0.5F * (_transparencyTimer.TimeLeft / _transparencyFadeTime))), 0F, Origin, 1F, SpriteEffects.None, 0.4F);
             if (_transparencyTimer.TimeLeft > 0.1)
-                GlobalUse.SpriteBatch.Draw(_texture, MovementCollider, _nonTransparentBounds, Color.White);
+                GlobalUse.SpriteBatch.Draw(_texture, MovementCollider.GetBounds(), _nonTransparentBounds, Color.White);
         }
 
         private bool IntersectsEssentialObjects()

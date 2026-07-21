@@ -14,7 +14,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses
     public interface IDamageable
     {
         Vector2 Position { get; set; }
-        Rectangle BodyHitbox { get; }
+        Hitbox BodyHitbox { get; }
         bool IsInvincible { get; }
         bool IsExpired { get; set; }
         bool IsPushable { get; }
@@ -43,7 +43,8 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         void DrawHPBar()
         {
-            var bounds = new Rectangle(BodyHitbox.Left, BodyHitbox.Top, BodyHitbox.Size.X, BodyHitbox.Size.X / 10);
+            var bodyHitbox = BodyHitbox.GetBounds();
+            var bounds = new Rectangle(bodyHitbox.Left, bodyHitbox.Top, bodyHitbox.Size.X, bodyHitbox.Size.X / 10);
             var currentHpBounds = new Rectangle(bounds.Location.X, bounds.Location.Y, (int)(bounds.Width * HealthPoints / MaxHealthPoints), bounds.Height);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Green);
             GlobalUse.SpriteBatch.Draw(GameBody.EmptyTexture, currentHpBounds, Color.Red * (1 - (HealthPoints / MaxHealthPoints)));
@@ -86,8 +87,9 @@ namespace OnlyDarker.GameProcess.SpriteClasses
         }
         private void SpawnOrb(int value)
         {
-            var offsetx = RandomNumberGenerator.GetInt32(-BodyHitbox.Width, BodyHitbox.Width);
-            var offsety = RandomNumberGenerator.GetInt32(-BodyHitbox.Height, BodyHitbox.Height);
+            var bodyHitbox = BodyHitbox.GetBounds();
+            var offsetx = RandomNumberGenerator.GetInt32(-bodyHitbox.Width, bodyHitbox.Width);
+            var offsety = RandomNumberGenerator.GetInt32(-bodyHitbox.Height, bodyHitbox.Height);
             //Spawn Entity is slow, but will be cleaner if optimized
             //GameBody.GetGameInstance().SceneManager.CurrentRoom.SpawnEntity(new XPOrbSprite(GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTexture, value, new Vector2(Position.X + offsetx, Position.Y + offsety)));
             var orb = new XPOrbSprite(GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTexture, GameBody.GetGameInstance().TextureMapper.XPOrbSpriteTrailTexture, value, new Vector2(Position.X + offsetx, Position.Y + offsety));

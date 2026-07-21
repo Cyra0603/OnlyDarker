@@ -204,7 +204,7 @@ namespace OnlyDarker.PlayerClasses
                 if (collider.Intersects(MovementCollisionAura))
                 {
                     shouldCheck = true;
-                    rectangles[rectsi] = collider;
+                    rectangles[rectsi] = collider.GetBounds();
                     rectsi++;
                 }
             }

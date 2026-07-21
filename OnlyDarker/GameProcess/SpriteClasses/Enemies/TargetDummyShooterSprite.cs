@@ -24,7 +24,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
             GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.X + GameBody.GetGameInstance().MainCharacter.MovementCollider.Width / 2,
             GameBody.GetGameInstance().MainCharacter.MovementCollider.Location.Y + GameBody.GetGameInstance().MainCharacter.MovementCollider.Height / 2);
         public Rectangle MovementCollider;
-        public Rectangle BodyHitbox => new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height));
+        public Hitbox BodyHitbox => new (new(new((int)Position.X - _bodyTexture.Width / 2, (int)Position.Y - _bodyTexture.Height / 2), new(_bodyTexture.Width, _bodyTexture.Height)), IsExpired);
         private Timer _attackCooldown;
         public readonly float AttackCooldownTime = 1000F;
         public BaseArmor BaseArmor { get; }

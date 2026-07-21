@@ -51,7 +51,7 @@ namespace OnlyDarker.GameProcess
             {new Vector4(0,255,0,255) , "Tile"},
             {new Vector4(0,0,255,255) , "Portal"},
             {new Vector4(60,60,60,255) , "TargetDummy" },
-            {new Vector4(60,70,60,255) , "TargetDummyShooter" }, 
+            {new Vector4(60,70,60,255) , "TargetDummyShooter" },
             {new Vector4(60,60,70,255) , "MobSummoner" },
             {new Vector4(150,100,100,255) , "WeaponStick" },
             {new Vector4(100,150,100,255) , "WeaponSword" },
@@ -59,7 +59,7 @@ namespace OnlyDarker.GameProcess
             {new Vector4(200,200,0,255) , "WoodenChest" },
             {new Vector4(70,60,60,255) , "Boss" },
         };
-        public List<Rectangle> RoomColliders { get; private set; }
+        public List<Hitbox> RoomColliders { get; private set; }
         public List<Rectangle> ObstaclesBounds { get; private set; }
         public List<Rectangle> TempRectDrawList;
         public const int MAX_ENTITIES = 250;
@@ -114,10 +114,6 @@ namespace OnlyDarker.GameProcess
             ParentLevelReference = parentLevelReference;
 
             //local functions
-            static Rectangle GetDeflatedRect(SpriteStandartTile tile)
-            {
-                return new Rectangle((int)tile.Position.X - (int)tile.GetTextureWidth() / 2 + 1, (int)tile.Position.Y - (int)tile.GetTextureHeight() / 2 + 1, (int)tile.GetTextureWidth() - 1, (int)tile.GetTextureHeight() - 1);
-            }
             void CreateNodeGrid()
             {
                 for (int y = 0; y < _tiles.GetLength(0); y++)
@@ -131,6 +127,11 @@ namespace OnlyDarker.GameProcess
                             _nodesAllocation[y, x].IsBlocked = false;
                         }
                     }
+                }
+
+                static Rectangle GetDeflatedRect(SpriteStandartTile tile)
+                {
+                    return new Rectangle((int)tile.Position.X - (int)tile.GetTextureWidth() / 2 + 1, (int)tile.Position.Y - (int)tile.GetTextureHeight() / 2 + 1, (int)tile.GetTextureWidth() - 1, (int)tile.GetTextureHeight() - 1);
                 }
             }
         }
@@ -244,7 +245,7 @@ namespace OnlyDarker.GameProcess
                             Damageables.Add(summoner);
                             Updateables.Add(summoner);
                             RoomColliders.Add(summoner.BodyHitbox);
-                            ObstaclesBounds.Add(summoner.BodyHitbox);
+                            //ObstaclesBounds.Add(summoner.BodyHitbox);
                             break;
                         case "TargetDummyShooter":
                             BuildTile(GetNewSpriteSheet(tileList[randT]), x, y);

@@ -14,7 +14,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         private readonly Texture2D _texture;
         private readonly Vector2 _initialPosition;
         public Vector2 Position { get; set; }
-        public Rectangle BodyHitbox => new((int)Position.X, (int)Position.Y, _texture.Width, _texture.Height);
+        public Hitbox BodyHitbox => new(new ((int)Position.X, (int)Position.Y, _texture.Width, _texture.Height), IsExpired);
         private readonly Room _parentRoomRef;
         public bool IsExpired { get; set; }
         public bool IsInvincible { get; }

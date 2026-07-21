@@ -36,7 +36,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
         private float _summonCooldownTime;
         public Timer SummonCooldown;
         public bool IsExpired { get; set; }
-        public Rectangle BodyHitbox => new((int)Position.X, (int)Position.Y, BodyTexture.Width, BodyTexture.Height);
+        public Hitbox BodyHitbox => new (new((int)Position.X, (int)Position.Y, BodyTexture.Width, BodyTexture.Height), IsExpired);
         public bool IsInvincible { get; private set; } = false;
         public bool IsPushable { get; } = false;
 
@@ -134,7 +134,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 Vector2 force = Vector2.One;
                 for (int i = 0; i < 8; i++)
                 {
-                    float projHeight = Position.Y + BodyHitbox.Height - AttackOrigin.Y;
+                    float projHeight = Position.Y + BodyHitbox.GetBounds().Height - AttackOrigin.Y;
                     var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false, projHeight);
                     //GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
                     //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);
@@ -157,7 +157,7 @@ namespace OnlyDarker.GameProcess.SpriteClasses.Enemies
                 Vector2 force = Vector2.One;
                 for (int i = 0; i < 10; i++)
                 {
-                    float projHeight = Position.Y + BodyHitbox.Height - AttackOrigin.Y;
+                    float projHeight = Position.Y + BodyHitbox.GetBounds().Height - AttackOrigin.Y;
                     var projectile = new EnemyProjectileSprite(TextureMapper.GetInstance().DruidProjectileSprite, AttackOrigin, force, new(5, 1, DamageType.Poke, false), 10000F, false, projHeight);
                     //GameBody.GetGameInstance().SceneManager.CurrentRoom.Updateables.Add(projectile);
                     //GameBody.GetGameInstance().SceneManager.CurrentRoom.ObjectsYSorted.Add(projectile);

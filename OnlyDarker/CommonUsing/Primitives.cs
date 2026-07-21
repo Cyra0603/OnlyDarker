@@ -46,6 +46,39 @@ namespace OnlyDarker.CommonUsing
             }
             return false;
         }
+        public readonly bool Intersects(Hitbox hitbox)
+        {
+            Rectangle rectangle = hitbox.GetBounds();
+            if (rectangle.Contains(X) || rectangle.Contains(Y) || rectangle.Contains(Z))
+                return true;
+            Vector2 rectcenter = new(rectangle.Location.X + rectangle.Width / 2, rectangle.Location.Y + rectangle.Height / 2);
+            Vector2 topleft = rectangle.Location.ToVector2();
+            Vector2 topright = new(topleft.X + rectangle.Width, topleft.Y);
+            Vector2 bottomleft = new(topleft.X, topleft.Y + rectangle.Height);
+            Vector2 bottomright = new(bottomleft.X + rectangle.Width, bottomleft.Y);
+            if (this.Contains(rectcenter))
+            {
+                return true;
+            }
+            Span<Line> rectlines =
+            [
+                new(topleft, topright),
+                new(topright, bottomright),
+                new(bottomright, bottomleft),
+                new(bottomleft, topleft),
+            ];
+            Line line1 = new(Z, Y);
+            Line line2 = new(Z, X);
+            Line line3 = new(X, Y);
+            for (int i = 0; i < rectlines.Length; i++)
+            {
+                if (rectlines[i].Intersects(line1) || rectlines[i].Intersects(line2) || rectlines[i].Intersects(line3))
+                {
+                    return true;
+                }
+            }
+            return false;
+        }
         public readonly bool Contains(in Vector2 position)
         {
             float x = position.X;
